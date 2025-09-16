@@ -1,0 +1,16 @@
+
+seed: 42
+data:
+  train_dir: /path/to/train
+  val_dir: /path/to/val
+  test_dir: /path/to/test
+synthesis:
+  per_class: 1000
+  out_dir: artifacts/synthetic
+eval:
+  fid_cap_per_class: 200
+  output_json: runs/summary.jsonl
+  output_console: runs/console.txt
+evaluator: small_cnn_v1
+model:
+  name: REPLACE_ME

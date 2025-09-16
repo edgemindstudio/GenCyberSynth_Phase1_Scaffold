@@ -1,0 +1,12 @@
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gcs-model-template"
+version = "0.0.1"
+description = "Template for a GenCyberSynth model repo"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["gcs-core>=0.1.0"]

@@ -1,0 +1,19 @@
+# envs & caches
+.venv/
+__pycache__/
+*.py[cod]
+.DS_Store
+
+# big artifacts
+artifacts/
+logs/
+checkpoints/
+wandb/
+*.pt
+*.ckpt
+*.h5
+*.npy
+*.npz
+*.pkl
+# node / misc
+node_modules/

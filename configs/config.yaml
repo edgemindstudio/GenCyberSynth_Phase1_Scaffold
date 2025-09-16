@@ -1,0 +1,6 @@
+data:
+  root: "/path/to/USTC-TFC2016_40x40_gray"
+scale: [0, 1]
+random_seeds: [42, 43, 44]
+paths:
+  artifacts: "artifacts"

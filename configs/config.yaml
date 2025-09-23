@@ -1,3 +1,8 @@
+# configs/config.yaml
+
+# ---- global knobs ----
+SEED: 42
+
 data:
   root: "/path/to/USTC-TFC2016_40x40_gray"
 scale: [0, 1]

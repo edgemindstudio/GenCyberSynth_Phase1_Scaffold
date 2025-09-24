@@ -27,6 +27,16 @@ import numpy as np
 from sklearn.mixture import GaussianMixture
 
 
+def create_gmm(**kwargs) -> GaussianMixture:
+    return GaussianMixture(**kwargs)
+
+def flatten_images(x: np.ndarray) -> np.ndarray:
+    return x.reshape((x.shape[0], -1))
+
+def reshape_to_images(x_flat: np.ndarray, img_shape: tuple[int,int,int]) -> np.ndarray:
+    return x_flat.reshape((-1, *img_shape))
+
+
 # ---------------------------------------------------------------------
 # Public config for GaussianMixture (nice for IDEs / defaults)
 # ---------------------------------------------------------------------

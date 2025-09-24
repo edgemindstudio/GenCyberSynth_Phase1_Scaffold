@@ -9,7 +9,7 @@ import numpy as np
 import tensorflow as tf
 from PIL import Image
 
-from .model import BernoulliRBM
+from .models import BernoulliRBM
 
 
 # ------------------------- Gibbs sampling ------------------------- #

@@ -1,0 +1,69 @@
+name: Smoke (synth+eval)
+
+on:
+  # Run on every push and PR to main; adjust branches as needed
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  # Allow manual runs from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    env:
+      # Keep TF/CUDA off & quiet for CI
+      CUDA_VISIBLE_DEVICES: ""
+      TF_CPP_MIN_LOG_LEVEL: "2"
+      # Use your repo’s default config
+      CFG: configs/config.yaml
+      # Choose which model to smoke-test; override in matrix if desired
+      SMOKE_MODEL: gan
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            pip-${{ runner.os }}-
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Optional: if your eval reads gcs-core without pip installing it,
+      # expose it via PYTHONPATH (comment out if not needed)
+      - name: Add gcs-core to PYTHONPATH (optional)
+        if: ${{ hashFiles('gcs-core/**') != '' }}
+        run: echo "PYTHONPATH=$GITHUB_WORKSPACE/gcs-core:$PYTHONPATH" >> $GITHUB_ENV
+
+      - name: Smoke test (synth + eval)
+        run: |
+          make smoke SMOKE_MODEL=${SMOKE_MODEL} CFG=${CFG}
+
+      - name: Collect scores table
+        if: always()   # still run to surface artifacts even if smoke fails
+        run: |
+          python scripts/collect_scores.py || true
+
+      - name: Upload artifacts (summaries, grids, table)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts
+          path: |
+            artifacts/**/*
+            artifacts/phase1_scores.csv
+          if-no-files-found: warn

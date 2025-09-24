@@ -3,6 +3,7 @@
 __pycache__/
 *.py[cod]
 .DS_Store
+.USTC-TFC2016_malware/
 
 # big artifacts
 artifacts/
@@ -68,3 +69,24 @@ pip-wheel-metadata/
 
 # IDE
 .idea/
+
+# venv & editor
+*.code-workspace
+
+# data & checkpoints
+USTC-*/
+**/checkpoints/
+**/*.weights.h5
+**/*.pt
+**/*.ckpt
+
+# generated artifacts
+!artifacts/.gitkeep
+
+# caches & misc
+*.pyc
+*.pyo
+*.DS_Store
+
+.cache/
+wandb/

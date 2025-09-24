@@ -1,28 +1,23 @@
 # eval/runner.py
-
 """
 Evaluation runner for the GenCyberSynth scaffold.
 
-This module loads synthetic samples produced by a model adapter (via its
-manifest), computes a small suite of quality/diversity metrics using
-`gcs_core`, and writes a timestamped JSON summary under:
+Loads synthetic samples via a model's manifest, computes quality/diversity
+metrics using `gcs_core` when available (with robust local fallbacks), and
+writes a timestamped JSON summary under:
 
     {artifacts}/{model_name}/summaries/summary_YYYYMMDD_HHMMSS.json
 
-Configuration (from `configs/config.yaml`)
-------------------------------------------
+Also writes:
+    {artifacts}/{model_name}/summaries/latest.json
+
+Config (configs/config.yaml)
+----------------------------
 evaluator:
-  domain_encoder: "malware_encoder_v1"   # optional; if supported by gcs_core
-  per_class_cap: 200                     # max samples per class for metric eval
+  domain_encoder: "malware_encoder_v1"   # optional; used if supported by gcs_core
+  per_class_cap: 200                     # max samples per class
 paths:
   artifacts: "artifacts"                 # root output directory
-
-Notes
------
-- Defensive design: each metric is computed in isolation; failures are caught
-  and surfaced in metrics["_warnings"] without aborting the run.
-- If `gcs_core` is not installed or lacks a metric, corresponding values are
-  set to None with an explanatory message.
 """
 
 from __future__ import annotations
@@ -33,7 +28,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-# --- Optional dependency: gcs_core -------------------------------------------
+# -----------------------------------------------------------------------------
+# Optional dependency: gcs_core
+# -----------------------------------------------------------------------------
 _WARNINGS: List[str] = []
 try:
     from gcs_core import val_common, synth_loader  # type: ignore
@@ -45,50 +42,74 @@ except Exception as _e:  # pragma: no cover
         f"ImportError: {type(_e).__name__}: {_e}"
     )
 
-
-# --- Local fallbacks if gcs_core.* is missing --------------------------------
+# -----------------------------------------------------------------------------
+# Local fallbacks if gcs_core.* is missing
+# -----------------------------------------------------------------------------
 def _load_manifest_local(manifest_path: str) -> Dict[str, Any]:
+    """Load a manifest JSON with minimal schema normalization."""
     with open(manifest_path, "r") as f:
         man = json.load(f)
-    man.setdefault("paths", [])
+    # Normalize common fields referenced below
+    if "paths" not in man and isinstance(man.get("samples"), list):
+        # Some adapters emit {"samples":[{"path":..., "label":...}, ...]}
+        man["paths"] = man["samples"]
+    man.setdefault("paths", [])  # list of {"path": "...", "label": int}
     man.setdefault("per_class_counts", {})
     return man
 
 
-def _read_image(path: Path) -> Optional["np.ndarray"]:
+def _read_image(path: Path, *, min_hw: int = 11, target_hw: tuple[int, int] | None = None) -> Optional["np.ndarray"]:
+    """
+    Minimal image reader -> float32 HWC in [0,1].
+    Ensures each spatial dim >= `min_hw` (default 11) so MS-SSIM won't assert.
+    If `target_hw` provided, resizes to exactly that (e.g., (40,40)).
+    """
     try:
-        from PIL import Image
+        from PIL import Image  # type: ignore
         import numpy as np
         img = Image.open(path).convert("RGB")
-        return (np.asarray(img).astype("float32") / 255.0)
+        w, h = img.size
+        if target_hw is not None:
+            img = img.resize(target_hw, Image.NEAREST)
+        elif min(w, h) < min_hw:
+            img = img.resize((max(min_hw, w), max(min_hw, h)), Image.NEAREST)
+        arr = np.asarray(img).astype("float32") / 255.0
+        return arr
     except Exception:
         return None
 
 
-def _load_images_local(
-    manifest: Dict[str, Any],
-    per_class_cap: int = 200
-) -> Tuple["np.ndarray", "np.ndarray"]:
+def _load_images_local(manifest: Dict[str, Any], per_class_cap: int = 200) -> Tuple["np.ndarray", "np.ndarray"]:
+    """Load up to `per_class_cap` images per class from manifest using local IO."""
     import numpy as np
     xs: List[np.ndarray] = []
     ys: List[int] = []
     counts: Dict[int, int] = {}
+    # Force to at least 11×11 (and in this project, samples are 40×40, so hit that).
+    target_hw = (40, 40)
+
     for item in manifest.get("paths", []):
-        y = int(item["label"])
+        try:
+            y = int(item["label"])
+        except Exception:
+            continue
         if counts.get(y, 0) >= per_class_cap:
             continue
-        arr = _read_image(Path(item["path"]))
+        arr = _read_image(Path(item["path"]), target_hw=target_hw)
         if arr is None:
             continue
         xs.append(arr)
         ys.append(y)
         counts[y] = counts.get(y, 0) + 1
+
     if not xs:
         return np.zeros((0, 0, 0, 0), dtype="float32"), np.zeros((0,), dtype="int32")
     return np.stack(xs, axis=0).astype("float32"), np.asarray(ys, dtype="int32")
 
 
-# --- Small utilities ----------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Small utilities
+# -----------------------------------------------------------------------------
 def _cfg_get(cfg: Dict[str, Any], dotted: str, default: Any = None) -> Any:
     """Fetch a nested config value by dotted path, e.g. 'evaluator.per_class_cap'."""
     cur: Any = cfg
@@ -134,7 +155,86 @@ def _maybe_set_domain_encoder(encoder_name: Optional[str]):
     _safe_metric("set_domain_encoder", setter, encoder_name)
 
 
-# --- Public API ---------------------------------------------------------------
+# --- Robust local MS-SSIM with SSIM fallback ---------------------------------
+def _ms_ssim_intra_class_local(imgs, labels, max_pairs_per_class: int = 200) -> float | None:
+    """
+    Robust intra-class diversity proxy.
+
+    Steps:
+      - Ensure NHWC float32 in [0,1]
+      - Tile 1-channel -> 3 channels
+      - Upscale to at least 11x11 (nearest) so TF windows are valid
+      - Try MS-SSIM; if it fails for a pair, fall back to SSIM
+      - Aggregate across up to `max_pairs_per_class` random pairs per class
+    Returns mean similarity in [0,1] (lower => more diverse), or None if no class has >=2 samples.
+    """
+    try:
+        import numpy as np
+        import tensorflow as tf
+    except Exception:
+        return None
+
+    if imgs is None or getattr(imgs, "size", 0) == 0 or labels is None:
+        return None
+
+    x = imgs.astype("float32", copy=False)
+    if x.max() > 1.5:
+        x = x / 255.0
+    if x.ndim == 3:  # (N,H,W) -> (N,H,W,1)
+        x = x[..., None]
+    if x.shape[-1] == 1:
+        x = np.repeat(x, 3, axis=-1)
+
+    # Guarantee H,W >= 11
+    H, W = int(x.shape[1]), int(x.shape[2])
+    if min(H, W) < 11:
+        new_h = max(11, H)
+        new_w = max(11, W)
+        x = tf.image.resize(tf.convert_to_tensor(x), [new_h, new_w], method="nearest").numpy()
+        H, W = new_h, new_w
+
+    # Choose a safe odd filter size (<= min(H,W))
+    fs = min(11, H, W)
+    if fs % 2 == 0:
+        fs -= 1
+    fs = max(fs, 3)
+
+    y = np.asarray(labels).astype("int32", copy=False)
+
+    vals: list[float] = []
+    rng = np.random.default_rng(42)
+
+    for cls in np.unique(y):
+        idx = np.where(y == cls)[0]
+        if len(idx) < 2:
+            continue
+        # up to K random unique pairs
+        n_pairs = min(max_pairs_per_class, len(idx) * (len(idx) - 1) // 2)
+        for _ in range(n_pairs):
+            i, j = rng.choice(idx, size=2, replace=False)
+            a = tf.convert_to_tensor(x[i:i+1])  # (1,H,W,3)
+            b = tf.convert_to_tensor(x[j:j+1])  # (1,H,W,3)
+            v = None
+            # Try MS-SSIM first
+            try:
+                v = tf.image.ssim_multiscale(a, b, max_val=1.0, filter_size=fs)  # shape (1,)
+                v = float(tf.reduce_mean(v).numpy())
+            except Exception:
+                # Fallback to plain SSIM
+                try:
+                    v = tf.image.ssim(a, b, max_val=1.0, filter_size=fs)  # shape (1,)
+                    v = float(tf.reduce_mean(v).numpy())
+                except Exception:
+                    v = None
+            if v is not None and np.isfinite(v):
+                vals.append(float(v))
+
+    return float(np.mean(vals)) if vals else None
+
+
+# -----------------------------------------------------------------------------
+# Public API
+# -----------------------------------------------------------------------------
 def evaluate_model_suite(
     config: Dict[str, Any],
     model_name: str,
@@ -143,15 +243,8 @@ def evaluate_model_suite(
     """
     Evaluate a single model family (folder) by loading its synthetic samples and
     computing image-quality/diversity metrics.
-
-    Args:
-        config: Parsed configuration mapping.
-        model_name: Folder under `{artifacts}/` (e.g., 'gan', 'vae', 'diffusion').
-        no_synth: If True, skip loading manifest/samples and only write a stub summary.
-
-    Returns:
-        A dictionary payload written to summaries JSON and also returned to caller.
     """
+    # Resolve paths
     artifacts_root = _cfg_get(config, "paths.artifacts", "artifacts")
     model_root = os.path.join(artifacts_root, model_name)
     synth_root = os.path.join(model_root, "synthetic")
@@ -160,7 +253,7 @@ def evaluate_model_suite(
     man_path = os.path.join(synth_root, "manifest.json")
     have_synth = (not no_synth) and os.path.exists(man_path)
 
-    # Configurable evaluator parameters (with safe defaults)
+    # Evaluator parameters
     per_class_cap = int(_cfg_get(config, "evaluator.per_class_cap", 200))
     domain_encoder = _cfg_get(config, "evaluator.domain_encoder", None)
 
@@ -168,8 +261,11 @@ def evaluate_model_suite(
     if _WARNINGS:
         metrics["_warnings"] = list(_WARNINGS)
 
+    # ---------------------------------------------------------------------
+    # Load manifest & images
+    # ---------------------------------------------------------------------
     if have_synth:
-        # --- Manifest ---
+        # Manifest
         if synth_loader is not None and hasattr(synth_loader, "load_manifest"):
             man = synth_loader.load_manifest(man_path)  # type: ignore[attr-defined]
         else:
@@ -178,7 +274,7 @@ def evaluate_model_suite(
             )
             man = _load_manifest_local(man_path)
 
-        # --- Images ---
+        # Images
         if synth_loader is not None and hasattr(synth_loader, "load_images"):
             imgs, labels = synth_loader.load_images(man, per_class_cap=per_class_cap)  # type: ignore[attr-defined]
         else:
@@ -187,7 +283,25 @@ def evaluate_model_suite(
             )
             imgs, labels = _load_images_local(man, per_class_cap=per_class_cap)
 
-        # Optional domain-encoder selection
+        # --- Normalize shapes for metrics (belt & suspenders) --------------
+        try:
+            import numpy as np
+            import tensorflow as tf
+            if getattr(imgs, "size", 0) > 0:
+                if imgs.ndim == 3:  # (N,H,W) -> (N,H,W,1)
+                    imgs = imgs[..., None]
+                imgs = imgs.astype("float32", copy=False)
+                if imgs.max() > 1.5:
+                    imgs /= 255.0
+                H, W = int(imgs.shape[1]), int(imgs.shape[2])
+                if min(H, W) < 11:
+                    imgs = tf.image.resize(tf.convert_to_tensor(imgs),
+                                           [max(11, H), max(11, W)],
+                                           method="nearest").numpy()
+        except Exception:
+            pass
+
+        # Optional domain-encoder selection (no-op if unsupported)
         _maybe_set_domain_encoder(domain_encoder)
 
         # If nothing loaded, note it explicitly
@@ -196,7 +310,9 @@ def evaluate_model_suite(
                 "No images loaded from manifest; metrics may be empty."
             )
 
-        # --- Core metrics (defensive calls) ---
+        # -----------------------------------------------------------------
+        # Core metrics (defensive calls)
+        # -----------------------------------------------------------------
         cfid_fn = getattr(val_common, "compute_cfid", None) if val_common else None
         metrics["cfid"] = _safe_metric("cfid", cfid_fn, imgs, labels)
 
@@ -217,8 +333,23 @@ def evaluate_model_suite(
             metrics["gen_precision"] = None
             metrics["gen_recall"] = None
 
-        mss_fn = getattr(val_common, "ms_ssim_intra_class", None) if val_common else None
-        metrics["ms_ssim"] = _safe_metric("ms_ssim_intra_class", mss_fn, imgs, labels)
+        # --- MS-SSIM (force robust local implementation) -------------------
+        try:
+            mss_val = _ms_ssim_intra_class_local(imgs, labels, max_pairs_per_class=200)
+            if mss_val is not None:
+                metrics.setdefault("_warnings", []).append(
+                    "MS-SSIM computed via local fallback (robust)."
+                )
+            else:
+                metrics.setdefault("_warnings", []).append(
+                    "Local MS-SSIM returned no value (insufficient pairs per class?)."
+                )
+        except Exception as e:
+            mss_val = None
+            metrics.setdefault("_warnings", []).append(
+                f"Local MS-SSIM failed: {type(e).__name__}: {e}"
+            )
+        metrics["ms_ssim"] = mss_val
 
     else:
         metrics["note"] = "No synthetic images found (or --no-synth used); metrics skipped."
@@ -226,11 +357,48 @@ def evaluate_model_suite(
     # Placeholder for downstream utility; wire in your classifier when ready.
     metrics["downstream"] = {"macro_f1": None, "macro_auprc": None, "balanced_acc": None}
 
+    # ---------------------------------------------------------------------
+    # Counts: num_real / num_fake (best-effort)
+    # ---------------------------------------------------------------------
+    counts: Dict[str, Optional[int]] = {"num_real": None, "num_fake": None}
+    try:
+        import numpy as np
+        data_root = _cfg_get(config, "DATA_DIR", _cfg_get(config, "data.root", "USTC-TFC2016_malware"))
+        data_dir = Path(data_root)
+        real_total = 0
+        for fname in ("train_data.npy", "test_data.npy"):
+            fpath = data_dir / fname
+            if fpath.exists():
+                try:
+                    real_total += int(np.load(fpath, allow_pickle=False).shape[0])
+                except Exception:
+                    pass
+        counts["num_real"] = real_total
+    except Exception:
+        counts["num_real"] = None
+
+    try:
+        if have_synth and os.path.exists(man_path):
+            with open(man_path, "r") as f:
+                man_json = json.load(f)
+            if isinstance(man_json, dict):
+                if isinstance(man_json.get("paths"), list):
+                    counts["num_fake"] = len(man_json["paths"])
+                elif isinstance(man_json.get("samples"), list):
+                    counts["num_fake"] = len(man_json["samples"])
+    except Exception:
+        counts["num_fake"] = None
+
+    # ---------------------------------------------------------------------
+    # Assemble payload & write files
+    # ---------------------------------------------------------------------
     payload: Dict[str, Any] = {
         "timestamp": datetime.now().isoformat(timespec="seconds"),
         "model": model_name,
         "config_used": True,
         "metrics": metrics,
+        "counts": counts,
+        "manifest_path": man_path if have_synth else None,
     }
 
     out_path = os.path.join(summaries_dir, f"summary_{_now_ts()}.json")

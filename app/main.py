@@ -1,5 +1,4 @@
 # app/main.py
-
 """
 GenCyberSynth Scaffold CLI
 ==========================
@@ -11,6 +10,7 @@ A small, production-friendly CLI that wires together:
 
 Subcommands
 -----------
+- train : (optional) Route to a model repo's trainer if present.
 - synth : Generate synthetic images using a registered adapter.
 - eval  : Run evaluation using gcs-core on the latest manifest (optionally skip synth).
 - list  : Show registered adapters and any skipped adapter imports.
@@ -19,6 +19,7 @@ Typical usage
 -------------
 python -m app.main synth --model diffusion --config configs/config.yaml
 python -m app.main eval  --model diffusion --config configs/config.yaml
+python -m app.main train --model gan        --config configs/config.yaml
 python -m app.main list
 
 Config expectations (minimal)
@@ -44,7 +45,7 @@ import json
 import os
 import sys
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Callable
 
 # Local modules (kept light so the CLI starts even if some deps are missing)
 from adapters.registry import make_adapter, list_adapters, SKIPPED_IMPORTS
@@ -110,6 +111,79 @@ def _manifest_path(model_name: str, arts_root: str) -> str:
 # ---------------------------------------------------------------------------
 # Command handlers
 # ---------------------------------------------------------------------------
+def cmd_train(args: argparse.Namespace) -> int:
+    """
+    Best-effort router into a per-model trainer module.
+
+    Looks for: <model>.train  (e.g., gan.train, diffusion.train, vae.train)
+    Call rules:
+      - If module has `main`, call: main(["--config", <path>])
+      - Else if module has `train`, call: train(config_dict)
+    Falls back to the alternate calling convention if the first attempt
+    raises a TypeError (signature mismatch).
+    """
+    cfg = load_config(args.config)
+    cfg.setdefault("paths", {})
+    if args.artifacts:
+        cfg["paths"]["artifacts"] = args.artifacts
+
+    _info(f"Train model: {args.model}")
+    _info(f"Config     : {args.config or '<defaults>'}")
+
+    module_name = f"{args.model}.train"
+    try:
+        mod = __import__(module_name, fromlist=["*"])
+    except Exception as e:
+        _warn(f"No trainer module found at '{module_name}' ({e.__class__.__name__}: {e}).")
+        _info("Tip: add a train.py to your model package (expose `main(argv)` or `train(config)`), "
+              "or skip training and just run synth/eval.")
+        return 1
+
+    has_main = hasattr(mod, "main") and callable(getattr(mod, "main"))
+    has_train = hasattr(mod, "train") and callable(getattr(mod, "train"))
+
+    if not (has_main or has_train):
+        _warn(f"Trainer module '{module_name}' has no callable main()/train(). Nothing to do.")
+        return 1
+
+    # Prefer explicit interface: main(argv) if present, else train(cfg)
+    if has_main:
+        try:
+            _info(f"Calling {module_name}.main(['--config', '{args.config}'])")
+            ret = mod.main(["--config", args.config])  # type: ignore[attr-defined]
+            return int(ret) if isinstance(ret, int) else 0
+        except TypeError:
+            # Fallback: maybe it actually wants a dict
+            try:
+                _info(f"Falling back: {module_name}.main(config_dict)")
+                ret = mod.main(cfg)  # type: ignore[attr-defined]
+                return int(ret) if isinstance(ret, int) else 0
+            except Exception as e:
+                _err(f"Training failed: {e.__class__.__name__}: {e}")
+                return 1
+        except Exception as e:
+            _err(f"Training failed: {e.__class__.__name__}: {e}")
+            return 1
+
+    # Else use train(cfg) primarily, fallback to argv if needed
+    try:
+        _info(f"Calling {module_name}.train(config_dict)")
+        ret = mod.train(cfg)  # type: ignore[attr-defined]
+        return int(ret) if isinstance(ret, int) else 0
+    except TypeError:
+        try:
+            _info(f"Falling back: {module_name}.train(['--config', '{args.config}'])")
+            ret = mod.train(["--config", args.config])  # type: ignore[attr-defined]
+            return int(ret) if isinstance(ret, int) else 0
+        except Exception as e:
+            _err(f"Training failed: {e.__class__.__name__}: {e}")
+            return 1
+    except Exception as e:
+        _err(f"Training failed: {e.__class__.__name__}: {e}")
+        return 1
+
+
+
 def cmd_synth(args: argparse.Namespace) -> int:
     cfg = load_config(args.config)
     cfg.setdefault("paths", {})
@@ -160,7 +234,6 @@ def cmd_eval(args: argparse.Namespace) -> int:
 
     try:
         # If no_synth is False, we *do not* auto-generate here; we assume you ran synth first.
-        # (If you prefer an auto-flow, invoke the adapter here before evaluate_model_suite)
         evaluate_model_suite(cfg, model_name=args.model, no_synth=args.no_synth)
     except FileNotFoundError as e:
         _err(str(e))
@@ -193,9 +266,16 @@ def cmd_list(_: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="gencs",
-        description="GenCyberSynth – unified CLI for synthesis & evaluation",
+        description="GenCyberSynth – unified CLI for training, synthesis & evaluation",
     )
     sub = p.add_subparsers(dest="cmd", required=True)
+
+    # train (optional wire-through to per-model trainer)
+    p_t = sub.add_parser("train", help="Train the model (routes into <model>.train if available)")
+    p_t.add_argument("--model", required=True, help="Model family (e.g., gan, diffusion, vae, ...)")
+    p_t.add_argument("--config", default="configs/config.yaml", help="Path to YAML config")
+    p_t.add_argument("--artifacts", default=None, help="Override artifacts root directory")
+    p_t.set_defaults(func=cmd_train)
 
     # synth
     p_s = sub.add_parser("synth", help="Generate synthetic images via an adapter")

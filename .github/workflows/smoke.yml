@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: true
-          submodules: true
+          submodules: recursive   # important for gcs-core
 
       - name: Set up Python 3.10 (TF-friendly)
         uses: actions/setup-python@v5
@@ -29,14 +29,15 @@ jobs:
           python-version: "3.10"
           cache: "pip"
 
-      - name: Install deps
+      - name: Install deps (filter out gcs-core / git+ssh)
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          # Create a CI-safe requirements file that excludes any gcs-core or git+ssh lines
+          awk '!/gcs-core/ && !/git\+ssh/ {print}' requirements.txt > requirements.ci.txt
+          echo "== requirements.ci.txt ==" && cat requirements.ci.txt
+          pip install -r requirements.ci.txt
 
-      # Put repo-local gcs-core on PYTHONPATH for imports
       - name: Add gcs-core to PYTHONPATH
-        if: ${{ hashFiles('gcs-core/**') != '' }}
         run: echo "PYTHONPATH=$GITHUB_WORKSPACE/gcs-core:$PYTHONPATH" >> $GITHUB_ENV
 
       - name: Show versions

@@ -23,12 +23,13 @@ jobs:
           lfs: true
           submodules: recursive
 
-      - name: Set up Python 3.10 (TF-friendly)
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
           cache: "pip"
 
+      # Build a CI requirements file that strips any git+ssh / gcs-core lines
       - name: Prepare CI requirements file (strip git+ssh / gcs-core)
         run: |
           awk '!/git\+ssh/ && !/gcs-core/ {print}' requirements.txt > requirements.ci.txt

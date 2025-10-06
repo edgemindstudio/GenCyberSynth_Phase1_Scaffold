@@ -14,24 +14,14 @@ jobs:
       CUDA_VISIBLE_DEVICES: ""
       TF_CPP_MIN_LOG_LEVEL: "2"
       CFG: configs/config.yaml
-      # Use the model you already validated end-to-end
-      SMOKE_MODEL: maskedautoflow
-      # Make repo-local gcs_core importable (kept from your file)
-      PYTHONPATH: ${{ github.workspace }}/gcs-core:${{ env.PYTHONPATH }}
+      SMOKE_MODEL: gan
 
     steps:
-      - name: Checkout repo (LFS + submodules)
+      - name: Checkout repo (with LFS + submodules)
         uses: actions/checkout@v4
         with:
           lfs: true
-          submodules: recursive
-          fetch-depth: 0
-
-      - name: Show LFS status (debug)
-        run: |
-          git lfs ls-files || true
-          ls -lh artifacts || true
-          ls -lh artifacts/*/checkpoints || true
+          submodules: true
 
       - name: Set up Python 3.10 (TF-friendly)
         uses: actions/setup-python@v5
@@ -43,6 +33,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      # Put repo-local gcs-core on PYTHONPATH for imports
+      - name: Add gcs-core to PYTHONPATH
+        if: ${{ hashFiles('gcs-core/**') != '' }}
+        run: echo "PYTHONPATH=$GITHUB_WORKSPACE/gcs-core:$PYTHONPATH" >> $GITHUB_ENV
+
+      - name: Show versions
+        run: |
           python - <<'PY'
           import sys
           print("Python:", sys.version)
@@ -57,20 +55,20 @@ jobs:
           PY
 
       - name: Smoke test (synth + eval)
-        run: |
-          make smoke SMOKE_MODEL=${SMOKE_MODEL} CFG=${CFG}
+        run: make smoke SMOKE_MODEL=${SMOKE_MODEL} CFG=${CFG}
 
       - name: Collect scores table
         if: always()
         run: |
+          mkdir -p ci_out
           python scripts/collect_scores.py || true
+          cp -r artifacts ci_out/artifacts || true
+          cp artifacts/phase1_scores.csv ci_out/ 2>/dev/null || true
 
       - name: Upload artifacts (summaries, grids, table)
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: smoke-artifacts
-          path: |
-            artifacts/**/*
-            artifacts/phase1_scores.csv
+          path: ci_out
           if-no-files-found: warn

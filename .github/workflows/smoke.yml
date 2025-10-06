@@ -30,17 +30,38 @@ jobs:
           python-version: "3.10"
           cache: "none"
 
-      - name: Install deps (CI requirements w/o gcs-core)
+      # --- Install deps ---------------------------------------------------
+      # Prefer a CI-specific requirements file if it exists; otherwise
+      # create one by stripping any git+ssh or gcs-core references.
+      - name: Prepare CI requirements file
+        shell: bash
         run: |
+          set -euxo pipefail
+          if [[ -f requirements.ci.txt ]]; then
+            echo "Using existing requirements.ci.txt"
+          else
+            echo "Generating requirements.ci.txt from requirements.txt (filtering git+ssh and gcs-core)…"
+            awk '!/git\+ssh/ && !/gcs-core/' requirements.txt > requirements.ci.txt
+          fi
+          echo "===== requirements.ci.txt ====="
+          cat requirements.ci.txt
+          echo "==============================="
+
+      - name: Install deps
+        shell: bash
+        run: |
+          set -euxo pipefail
           python -m pip install --upgrade pip
-          pip install -r requirements.ci.txt
+          pip install --no-cache-dir -r requirements.ci.txt
 
-      - name: "Guard — ensure no git+ssh in CI requirements"
-        run: |
-          ! grep -E 'git\+ssh|gcs-core' requirements.ci.txt || (echo "CI reqs contain git+ssh or gcs-core!" && exit 1)
-
+      # Put repo-local gcs-core (submodule) on PYTHONPATH so imports work
       - name: Add gcs-core to PYTHONPATH (submodule path)
-        run: echo "PYTHONPATH=$GITHUB_WORKSPACE/gcs-core:$PYTHONPATH" >> $GITHUB_ENV
+        shell: bash
+        run: |
+          set -euxo pipefail
+          echo "PYTHONPATH=$GITHUB_WORKSPACE/gcs-core:$PYTHONPATH" >> "$GITHUB_ENV"
+          ls -la gcs-core || true
+          ls -la gcs-core/gcs_core || true
 
       - name: Show versions
         run: |
@@ -52,17 +73,24 @@ jobs:
           except Exception as e:
               print("TF import failed:", e)
           try:
-              import gcs_core; print("gcs_core:", gcs_core.__file__)
+              import gcs_core; print("gcs_core module path:", gcs_core.__file__)
           except Exception as e:
               print("gcs_core import failed:", e)
           PY
 
+      # --- Smoke (synth+eval) --------------------------------------------
       - name: Smoke test (synth + eval)
-        run: make smoke SMOKE_MODEL=${SMOKE_MODEL} CFG=${CFG}
+        shell: bash
+        run: |
+          set -euxo pipefail
+          make smoke SMOKE_MODEL="${SMOKE_MODEL}" CFG="${CFG}"
 
+      # --- Collect artifacts even on failure ------------------------------
       - name: Collect scores table
         if: always()
+        shell: bash
         run: |
+          set -euxo pipefail
           mkdir -p ci_out
           python scripts/collect_scores.py || true
           cp -r artifacts ci_out/artifacts || true

@@ -1,16 +1,10 @@
-# Makefile
+# Makefile — Phase 2 convenience targets (CI-safe)
 
-# Use bash for all recipes (fixes: "/bin/sh: 0: Illegal option -o pipefail")
-SHELL := /usr/bin/env bash
+# Use bash for all recipes (Make requires a single path, no args)
+SHELL := bash
+# Fail fast, undefined vars error, and preserve pipefail
 .SHELLFLAGS := -euo pipefail -c
-
 .SILENT:
-# .ONESHELL is optional; you can keep it or drop it. With bash it’s fine.
-# .ONESHELL:
-
-.SILENT:
-.SHELLFLAGS = -eo pipefail -c
-.ONESHELL:
 
 .PHONY: help setup smoke smoke-all train synth eval table grids report clean-summaries clean-synth all
 

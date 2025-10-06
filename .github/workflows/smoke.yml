@@ -29,7 +29,6 @@ jobs:
           python-version: "3.11"
           cache: "pip"
 
-      # Build a CI requirements file that strips any git+ssh / gcs-core lines
       - name: Prepare CI requirements file (strip git+ssh / gcs-core)
         run: |
           awk '!/git\+ssh/ && !/gcs-core/ {print}' requirements.txt > requirements.ci.txt
@@ -58,8 +57,10 @@ jobs:
               print("gcs_core import failed:", e)
           PY
 
+      # IMPORTANT: run make with bash so 'pipefail' is supported
       - name: Smoke test (synth + eval)
-        run: make smoke SMOKE_MODEL=${SMOKE_MODEL} CFG=${CFG}
+        run: |
+          make smoke SMOKE_MODEL="${SMOKE_MODEL}" CFG="${CFG}" SHELL=/bin/bash
 
       - name: Collect scores table
         if: always()

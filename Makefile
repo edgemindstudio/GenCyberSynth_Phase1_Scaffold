@@ -1,4 +1,12 @@
-# Makefile — Phase 2 convenience targets (ready to paste)
+# Makefile
+
+# Use bash for all recipes (fixes: "/bin/sh: 0: Illegal option -o pipefail")
+SHELL := /usr/bin/env bash
+.SHELLFLAGS := -euo pipefail -c
+
+.SILENT:
+# .ONESHELL is optional; you can keep it or drop it. With bash it’s fine.
+# .ONESHELL:
 
 .SILENT:
 .SHELLFLAGS = -eo pipefail -c

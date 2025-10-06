@@ -1,4 +1,4 @@
--e git+ssh://git@github.com/edgemindstudio/gcs-core.git@d28176f999b7381432915aea3e2f019bdca25eaa#egg=gcs_core&subdirectory=../../gcs-core
+# -e git+ssh://git@github.com/edgemindstudio/gcs-core.git@d28176f999b7381432915aea3e2f019bdca25eaa#egg=gcs_core&subdirectory=../../gcs-core
 absl-py==2.3.1
 gradio>=4.0
 astunparse==1.6.3

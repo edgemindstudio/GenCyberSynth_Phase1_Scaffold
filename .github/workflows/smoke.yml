@@ -14,15 +14,24 @@ jobs:
       CUDA_VISIBLE_DEVICES: ""
       TF_CPP_MIN_LOG_LEVEL: "2"
       CFG: configs/config.yaml
-      SMOKE_MODEL: gan
-      # Make repo-local gcs_core importable
+      # Use the model you already validated end-to-end
+      SMOKE_MODEL: maskedautoflow
+      # Make repo-local gcs_core importable (kept from your file)
       PYTHONPATH: ${{ github.workspace }}/gcs-core:${{ env.PYTHONPATH }}
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repo (LFS + submodules)
         uses: actions/checkout@v4
         with:
           lfs: true
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Show LFS status (debug)
+        run: |
+          git lfs ls-files || true
+          ls -lh artifacts || true
+          ls -lh artifacts/*/checkpoints || true
 
       - name: Set up Python 3.10 (TF-friendly)
         uses: actions/setup-python@v5
@@ -54,15 +63,14 @@ jobs:
       - name: Collect scores table
         if: always()
         run: |
-          mkdir -p ci_out
           python scripts/collect_scores.py || true
-          cp -r artifacts ci_out/artifacts || true
-          cp artifacts/phase1_scores.csv ci_out/ 2>/dev/null || true
 
       - name: Upload artifacts (summaries, grids, table)
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: smoke-artifacts
-          path: ci_out
+          path: |
+            artifacts/**/*
+            artifacts/phase1_scores.csv
           if-no-files-found: warn

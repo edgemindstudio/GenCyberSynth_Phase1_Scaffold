@@ -1,3 +1,4 @@
+# .github/workflows/smoke.yml
 name: Smoke (synth+eval)
 
 on:
@@ -8,25 +9,24 @@ on:
   workflow_dispatch:
     inputs:
       smoke_model:
-        description: "Model to smoke-test"
-        type: choice
-        default: gan
-        options: [gan, diffusion, vae, autoregressive, maskedautoflow, restrictedboltzmann, gaussianmixture]
-
-# make all run steps use bash (needed for 'set -eo pipefail' in Makefile)
-defaults:
-  run:
-    shell: bash
+        description: "Model to smoke-test (gan, diffusion, vae, autoregressive, maskedautoflow, restrictedboltzmann, gaussianmixture)"
+        type: string
+        default: "gan"
+      cfg:
+        description: "Config path"
+        type: string
+        default: "configs/config.yaml"
 
 jobs:
   smoke:
+    name: smoke • ${{ inputs.smoke_model || 'gan' }}
     runs-on: ubuntu-latest
     env:
       CUDA_VISIBLE_DEVICES: ""
       TF_CPP_MIN_LOG_LEVEL: "2"
-      CFG: configs/config.yaml
-      # Use manual input when present, otherwise default to 'gan'
+      # fallbacks for push/PR events
       SMOKE_MODEL: ${{ inputs.smoke_model || 'gan' }}
+      CFG: ${{ inputs.cfg || 'configs/config.yaml' }}
 
     steps:
       - name: Checkout repo (with LFS + submodules)
@@ -42,8 +42,8 @@ jobs:
 
       - name: Prepare CI requirements file (strip git+ssh / gcs-core)
         run: |
-          awk '!/git\+ssh/ && !/gcs-core/ {print}' requirements.txt > requirements.ci.txt
-          echo "== requirements.ci.txt ==" && cat requirements.ci.txt
+          awk '!/gcs-core/ && !/git\+ssh/' requirements.txt > requirements.ci.txt
+          cat requirements.ci.txt
 
       - name: Install deps
         run: |
@@ -69,7 +69,7 @@ jobs:
           PY
 
       - name: Smoke test (synth + eval) - ${{ env.SMOKE_MODEL }}
-        run: make smoke SMOKE_MODEL=${SMOKE_MODEL} CFG=${CFG}
+        run: make smoke SMOKE_MODEL="${SMOKE_MODEL}" CFG="${CFG}"
 
       - name: Collect scores table
         if: always()

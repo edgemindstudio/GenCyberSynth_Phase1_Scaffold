@@ -28,13 +28,13 @@ help:
 	echo "  setup             - pip install -r requirements.txt"
 	echo "  smoke             - 1-model quick synth+eval (SMOKE_MODEL=$(SMOKE_MODEL))"
 	echo "  smoke-all         - quick synth+eval on ALL MODELS"
-	echo "  train             - iterate train over MODELS"
+	echo "  train             - iterate train over MODELS (uses SEEDS)"
 	echo "  synth             - generate for MODELS (uses SYN_PER_CLASS, SEEDS)"
 	echo "  eval              - evaluate for MODELS (uses SEEDS)"
 	echo "  onepass           - train→synth→eval for one MODEL/SEED"
-	echo "  onepass-seeds     - same as onepass but over SEEDS for a single MODEL"
-	echo "  onepass-all       - onepass-seeds over all MODELS"
-	echo "  models-seeds      - low-level: run arbitrary CMD over MODELS×SEEDS"
+	echo "  onepass-seeds     - onepass over SEEDS for a single MODEL"
+	echo "  onepass-all       - onepass-seeds across all MODELS"
+	echo "  models-seeds      - run arbitrary app.main CMD over MODELS×SEEDS"
 	echo "  grids             - build preview grids"
 	echo "  table             - aggregate summaries → artifacts/phase1_scores.csv"
 	echo "  report            - write artifacts/phase1_report.md"
@@ -134,7 +134,7 @@ onepass-all:
 	done
 
 # Low-level helper to run an arbitrary app.main subcommand over MODELS×SEEDS
-# Usage: make models-seeds CMD="eval --extra-flags"
+# Usage: make models-seeds CMD="eval --out $(OUT_JSONL)"
 models-seeds:
 	@if [ -z "$$CMD" ]; then echo "Set CMD, e.g., make models-seeds CMD='eval --out $(OUT_JSONL)'"; exit 2; fi
 	for m in $(MODELS); do \

@@ -129,6 +129,10 @@ clean-synth:
 	find $(SYN_BASE) -type f -path "$(SYN_BASE)/*/seed*/*" -delete || true
 	echo "Cleaned synthetic artifacts."
 
+# Consolidate per-model JSON summaries → one JSONL
+summaries-jsonl:
+	$(PY) scripts/summaries_to_jsonl.py
+	
 # -------- Slurm example (print-only) ----------------------------------------
 slurm-help:
 	echo "# Example array (config-only commands):"

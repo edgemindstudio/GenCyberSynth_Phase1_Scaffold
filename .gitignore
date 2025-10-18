@@ -6,7 +6,10 @@ __pycache__/
 .USTC-TFC2016_malware/
 
 # big artifacts
-artifacts/
+artifacts/*
+!artifacts/summaries/
+artifacts/summaries/*
+!artifacts/summaries/*.jsonl
 logs/
 checkpoints/
 wandb/

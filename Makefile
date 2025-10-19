@@ -164,7 +164,7 @@ demo:
 # Submit 3 models × 3 seeds array (expects slurm/phase3_array.sbatch)
 submit-array:
 	mkdir -p logs artifacts/summaries
-	sbatch slurm/phase3_array.sbatch
+	sbatch slurm.sh
 
 # Watch your queue
 monitor:

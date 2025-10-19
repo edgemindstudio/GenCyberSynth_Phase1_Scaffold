@@ -152,6 +152,12 @@ summaries-jsonl:
 	  exit 2; \
 	fi
 
+
+# ---- Demo (local only) -------------------------------------------------------
+demo:
+	$(PY) demo/app.py
+
+
 # -------- Slurm example (print-only) ----------------------------------------
 slurm-help:
 	echo "# Example array (config-only commands):"

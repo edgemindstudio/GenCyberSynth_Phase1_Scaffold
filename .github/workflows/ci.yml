@@ -9,74 +9,141 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   smoke-all:
-    name: Smoke tests
+    name: Smoke tests (all adapters)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: |
+            requirements.ci.txt
+            requirements.txt
 
-      - name: Run smoke-all
+      - name: Install dependencies (CI-lean if available)
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.ci.txt ]; then
+            pip install -r requirements.ci.txt
+          else
+            pip install -r requirements.txt
+          fi
+
+      - name: Repo setup (creates summaries dir, etc.)
+        run: make setup
+
+      - name: Run smoke-all (tiny synth+eval)
         run: make smoke-all
 
-      # Hand off everything under artifacts/ to the next job
       - name: Upload raw artifacts from smoke
         uses: actions/upload-artifact@v4
         with:
           name: phase1-artifacts-raw
           path: artifacts
           if-no-files-found: error
+          retention-days: 7
+
+      - name: Build preview grids
+        run: make grids
+
+      - name: Upload preview grids
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-grids
+          path: artifacts/preview_grids/*.png
+          if-no-files-found: warn
 
   validate-jsonl:
-    name: Build & Validate Phase-1 JSONL
+    name: Consolidate & validate JSONL/CSV
     runs-on: ubuntu-latest
     needs: smoke-all
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
 
-      - name: Install jsonschema (for optional validation)
+      - name: Install minimal build deps
         run: |
           python -m pip install --upgrade pip
-          pip install jsonschema==4.23.0
+          # jsonschema used by the consolidator (optional but helpful)
+          pip install jsonschema==4.23.0 pandas==2.2.3
 
-      # Restore artifacts produced by the smoke job
       - name: Download raw artifacts
         uses: actions/download-artifact@v4
         with:
           name: phase1-artifacts-raw
           path: .
 
-      # Consolidate into a single JSONL (schema is applied automatically
-      # by the Makefile only if the schema file exists)
-      - name: Build consolidated JSONL
+      - name: Build consolidated JSONL (schema-aware)
         run: make summaries-jsonl
 
-      # Convert JSONL -> tiny CSV table for README/report
-      - name: Build mini CSV table
+      - name: Build mini CSV table (JSONL -> CSV)
         run: python scripts/jsonl_to_csv.py
 
-      # Optional second pass: run the consolidator again WITHOUT forcing a schema,
-      # just to fail early if JSON lines are malformed.
-      - name: Validate JSON lines (schema optional)
+      - name: Validate JSON lines format (schema optional, reset to fresh)
         run: |
           python scripts/summaries_to_jsonl.py \
             --glob "artifacts/*/summaries/summary_*.json" \
             --out artifacts/summaries/phase1_summaries.jsonl \
             --reset
 
-      # Make outputs downloadable from the Actions run
-      - name: Upload consolidated artifacts
+      - name: Upload consolidated outputs
         uses: actions/upload-artifact@v4
         with:
           name: phase1-summaries
           path: |
             artifacts/summaries/phase1_summaries.jsonl
             artifacts/phase1_scores.csv
+          if-no-files-found: error
+          retention-days: 30
+
+  demo-smoke:
+    name: Demo import & grid presence
+    runs-on: ubuntu-latest
+    needs: validate-jsonl
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install minimal runtime for demo
+        run: |
+          python -m pip install --upgrade pip
+          pip install gradio==5.7.0
+
+      - name: Check demo import and grids exist
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import importlib.util
+          assert Path("demo/app.py").exists(), "demo/app.py missing"
+          spec = importlib.util.spec_from_file_location("demo_app", "demo/app.py")
+          mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+          art = Path("artifacts/preview_grids")
+          pngs = list(art.glob("*_grid.png"))
+          assert pngs, f"No preview grids in {art}"
+          print(f"OK: {len(pngs)} grid(s) found")
+          PY

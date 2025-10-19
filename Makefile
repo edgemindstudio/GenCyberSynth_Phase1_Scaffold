@@ -158,6 +158,35 @@ summaries-jsonl:
 demo:
 	$(PY) demo/app.py
 
+# --- Phase-3 (Talon scale-up) -------------------------------------------------
+.PHONY: submit-array monitor tailf aggregate resume container sif
+
+# Submit 3 models × 3 seeds array (expects slurm/phase3_array.sbatch)
+submit-array:
+	mkdir -p logs artifacts/summaries
+	sbatch slurm/phase3_array.sbatch
+
+# Watch your queue
+monitor:
+	squeue -u $$USER -o "%.18i %.9P %.8j %.8u %.2t %.10M %.6D %R"
+
+# Follow the newest job logs live
+tailf:
+	ls -t logs/*.out | head -n 2 | xargs -n1 -I{} sh -c 'echo "==== {} ===="; tail -n 50 -f "{}"'
+
+# Aggregate multi-seed results into a single CSV
+aggregate:
+	$(PY) scripts/aggregate_results.py --src artifacts/summaries/phase1_summaries.jsonl --dst artifacts/phase3_aggregate.csv
+	@echo "Wrote artifacts/phase3_aggregate.csv"
+
+# (Optional) Build container locally and convert to Apptainer SIF
+container:
+	docker build -t gcs-dev:latest -f Dockerfile.gencys .
+
+sif:
+	mkdir -p artifacts/containers
+	apptainer build artifacts/containers/gcs-dev.sif docker-daemon://gcs-dev:latest
+
 
 # -------- Slurm example (print-only) ----------------------------------------
 slurm-help:

@@ -6,7 +6,7 @@ __pycache__/
 .USTC-TFC2016_malware/
 
 
-logs/
+!logs/
 checkpoints/
 wandb/
 *.pt

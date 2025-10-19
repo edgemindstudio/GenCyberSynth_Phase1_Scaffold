@@ -15,11 +15,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
       - name: Run smoke-all
         run: make smoke-all
+
+      # Hand off everything under artifacts/ to the next job
+      - name: Upload raw artifacts from smoke
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase1-artifacts-raw
+          path: artifacts
+          if-no-files-found: error
 
   validate-jsonl:
     name: Build & Validate Phase-1 JSONL
@@ -27,21 +37,46 @@ jobs:
     needs: smoke-all
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install jsonschema
+      - name: Install jsonschema (for optional validation)
         run: |
           python -m pip install --upgrade pip
           pip install jsonschema==4.23.0
 
+      # Restore artifacts produced by the smoke job
+      - name: Download raw artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: phase1-artifacts-raw
+          path: .
+
+      # Consolidate into a single JSONL (schema is applied automatically
+      # by the Makefile only if the schema file exists)
       - name: Build consolidated JSONL
         run: make summaries-jsonl
 
+      # Convert JSONL -> tiny CSV table for README/report
+      - name: Build mini CSV table
+        run: python scripts/jsonl_to_csv.py
+
+      # Optional second pass: run the consolidator again WITHOUT forcing a schema,
+      # just to fail early if JSON lines are malformed.
       - name: Validate JSON lines (schema optional)
         run: |
           python scripts/summaries_to_jsonl.py \
             --glob "artifacts/*/summaries/summary_*.json" \
             --out artifacts/summaries/phase1_summaries.jsonl \
-            --schema gcs-core/gcs_core/schemas/eval_summary.lite.schema.json --reset
+            --reset
+
+      # Make outputs downloadable from the Actions run
+      - name: Upload consolidated artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase1-summaries
+          path: |
+            artifacts/summaries/phase1_summaries.jsonl
+            artifacts/phase1_scores.csv

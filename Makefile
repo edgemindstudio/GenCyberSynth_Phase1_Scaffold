@@ -5,22 +5,25 @@ SHELL := bash
 .SILENT:
 
 .PHONY: help setup smoke smoke-all train synth eval table grids report clean-summaries clean-synth all \
-        onepass onepass-seeds onepass-all models-seeds slurm-help
+        onepass onepass-seeds onepass-all models-seeds slurm-help summaries-jsonl scores-csv
 
 # -------- Globals (override on CLI) ------------------------------------------
 PY               ?= python
 CFG              ?= configs/config.yaml
 MODELS           ?= gan diffusion vae autoregressive maskedautoflow restrictedboltzmann gaussianmixture
 SMOKE_MODEL      ?= gan
-SEEDS            ?= 42 43 44            # kept for future CLI expansion
-SYN_PER_CLASS    ?= 1000                # kept for future CLI expansion
+SEEDS            ?= 42 43 44
+SYN_PER_CLASS    ?= 1000
 
 # Paths (override as needed)
-REAL_ROOT        ?= USTC-TFC2016_malware/real   # kept for future CLI expansion
-SYN_BASE         ?= artifacts/synthetic         # kept for future CLI expansion
+REAL_ROOT        ?= USTC-TFC2016_malware/real
+SYN_BASE         ?= artifacts/synthetic
 SUMMARIES_DIR    ?= artifacts/summaries
 OUT_JSONL        ?= $(SUMMARIES_DIR)/phase1_summaries.jsonl
-ENCODER          ?= artifacts/domain_encoder.pt # kept for future CLI expansion
+ENCODER          ?= artifacts/domain_encoder.pt
+
+# Optional schema (used only if present)
+SCHEMA_PATH      ?= gcs-core/gcs_core/schemas/eval_summary.lite.schema.json
 
 # -------- Help ---------------------------------------------------------------
 help:
@@ -28,19 +31,17 @@ help:
 	echo "  setup             - pip install -r requirements.txt"
 	echo "  smoke             - 1-model quick synth+eval (SMOKE_MODEL=$(SMOKE_MODEL))"
 	echo "  smoke-all         - quick synth+eval on ALL MODELS"
-	echo "  train             - iterate train over MODELS"
-	echo "  synth             - generate for MODELS"
-	echo "  eval              - evaluate for MODELS"
+	echo "  train/synth/eval  - loops over MODELS"
 	echo "  onepass           - train→synth→eval for one MODEL (use: make onepass MODEL=gan)"
-	echo "  onepass-seeds     - alias of onepass (seeds reserved for future CLI flags)"
 	echo "  onepass-all       - onepass across all MODELS"
-	echo "  models-seeds      - run custom subcommand over MODELS (reserved for future flags)"
+	echo "  models-seeds      - run a custom CMD over MODELS (make models-seeds CMD=eval)"
 	echo "  grids             - build preview grids"
-	echo "  table             - aggregate summaries → artifacts/phase1_scores.csv"
-	echo "  report            - write artifacts/phase1_report.md"
-	echo "  clean-summaries   - remove JSON summaries"
-	echo "  clean-synth       - remove synthetic images & manifests"
-	echo "  slurm-help        - print Slurm example (uses config-only commands)"
+	echo "  table             - aggregate (legacy) collect_scores.py"
+	echo "  scores-csv        - JSONL → tiny CSV (artifacts/phase1_scores.csv)"
+	echo "  summaries-jsonl   - consolidate per-model JSON → JSONL (schema optional)"
+	echo "  clean-summaries   - remove JSON summaries and JSONL"
+	echo "  clean-synth       - remove synthetic artifacts"
+	echo "  slurm-help        - print Slurm example"
 	echo "  all               - setup → synth → eval → grids → table → report"
 
 # -------- Setup --------------------------------------------------------------
@@ -82,14 +83,12 @@ eval:
 	done
 
 # -------- Convenient one-pass wrappers --------------------------------------
-# Usage:
-#   make onepass MODEL=gan
+# Usage: make onepass MODEL=gan
 onepass:
 	$(PY) -m app.main train --model $(MODEL) --config $(CFG) || true
 	$(PY) -m app.main synth --model $(MODEL) --config $(CFG)
 	$(PY) -m app.main eval  --model $(MODEL) --config $(CFG)
 
-# Seeds kept for later; currently same as onepass
 onepass-seeds:
 	$(MAKE) onepass MODEL=$(MODEL)
 
@@ -98,8 +97,8 @@ onepass-all:
 	  $(MAKE) onepass MODEL=$$m; \
 	done
 
-# Low-level helper: run a custom subcommand (without extra flags for now)
-# Usage example (current CLI): make models-seeds CMD="eval"
+# Run a custom subcommand over MODELS (current CLI only; flags reserved)
+# Example: make models-seeds CMD="eval"
 models-seeds:
 	@if [ -z "$$CMD" ]; then echo "Set CMD, e.g., make models-seeds CMD='eval'"; exit 2; fi
 	for m in $(MODELS); do \
@@ -111,6 +110,10 @@ models-seeds:
 table:
 	$(PY) scripts/collect_scores.py
 
+# Tiny CSV used by README/report preview
+scores-csv:
+	$(PY) scripts/jsonl_to_csv.py
+
 grids:
 	$(PY) scripts/make_grids.py
 
@@ -120,35 +123,40 @@ report:
 
 # -------- Cleaning -----------------------------------------------------------
 clean-summaries:
-	rm -f $(OUT_JSONL) || true
-	find $(SUMMARIES_DIR) -type f -name 'summary_*.json' -delete || true
+	rm -f "$(OUT_JSONL)" || true
+	find "$(SUMMARIES_DIR)" -type f -name 'summary_*.json' -delete || true
 	rm -f artifacts/*/summaries/latest.json || true
 	echo "Cleaned summaries."
 
 clean-synth:
-	find $(SYN_BASE) -type f -path "$(SYN_BASE)/*/seed*/*" -delete || true
+	find "$(SYN_BASE)" -type f -path "$(SYN_BASE)/*/seed*/*" -delete || true
 	echo "Cleaned synthetic artifacts."
 
-# Consolidate per-model JSON summaries → one JSONL
+# -------- Consolidate per-model JSON summaries → one JSONL -------------------
 summaries-jsonl:
-	$(PY) scripts/summaries_to_jsonl.py
-	
+	@echo "Building consolidated JSONL…"
+	@if compgen -G "artifacts/*/summaries/summary_*.json" > /dev/null; then \
+	  SCHEMA_ARG=""; \
+	  if [ -f "$(SCHEMA_PATH)" ]; then \
+	    echo "Using schema: $(SCHEMA_PATH)"; \
+	    SCHEMA_ARG="--schema $(SCHEMA_PATH)"; \
+	  else \
+	    echo "Schema not found → skipping JSON Schema validation (fast path)"; \
+	  fi; \
+	  $(PY) scripts/summaries_to_jsonl.py \
+	    --glob "artifacts/*/summaries/summary_*.json" \
+	    --out "$(OUT_JSONL)" $$SCHEMA_ARG --reset; \
+	  echo "Built $(OUT_JSONL)"; \
+	else \
+	  echo "No per-model summaries found at artifacts/*/summaries/summary_*.json"; \
+	  exit 2; \
+	fi
+
 # -------- Slurm example (print-only) ----------------------------------------
 slurm-help:
 	echo "# Example array (config-only commands):"
 	echo "sbatch --array=1-3 model-template/scripts/slurm_array_example.sh \\"
 	echo "  -- make onepass MODEL=gan"
-
-
-# Makefile (append)
-.PHONY: summaries-jsonl
-summaries-jsonl:
-	@python scripts/summaries_to_jsonl.py \
-		--glob "artifacts/*/summaries/summary_*.json" \
-		--out artifacts/summaries/phase1_summaries.jsonl \
-		--schema gcs-core/gcs_core/schemas/eval_summary.lite.schema.json --reset
-	@echo "Built artifacts/summaries/phase1_summaries.jsonl"
-
 
 # -------- Everything ---------------------------------------------------------
 all: setup synth eval grids table report

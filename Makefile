@@ -139,6 +139,17 @@ slurm-help:
 	echo "sbatch --array=1-3 model-template/scripts/slurm_array_example.sh \\"
 	echo "  -- make onepass MODEL=gan"
 
+
+# Makefile (append)
+.PHONY: summaries-jsonl
+summaries-jsonl:
+	@python scripts/summaries_to_jsonl.py \
+		--glob "artifacts/*/summaries/summary_*.json" \
+		--out artifacts/summaries/phase1_summaries.jsonl \
+		--schema gcs-core/gcs_core/schemas/eval_summary.lite.schema.json --reset
+	@echo "Built artifacts/summaries/phase1_summaries.jsonl"
+
+
 # -------- Everything ---------------------------------------------------------
 all: setup synth eval grids table report
 	echo "All done."

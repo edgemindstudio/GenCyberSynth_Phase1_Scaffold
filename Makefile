@@ -154,6 +154,7 @@ summaries-jsonl:
 
 
 # ---- Demo (local only) -------------------------------------------------------
+.PHONY: demo
 demo:
 	$(PY) demo/app.py
 

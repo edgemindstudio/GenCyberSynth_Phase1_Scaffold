@@ -1,11 +1,12 @@
-# Makefile — Phase 2 convenience targets (CI-safe)
+# Makefile — Phase 2 convenience targets (CI-safe, Talon-ready)
 
 SHELL := bash
 .SHELLFLAGS := -euo pipefail -c
 .SILENT:
 
 .PHONY: help setup smoke smoke-all train synth eval table grids report clean-summaries clean-synth all \
-        onepass onepass-seeds onepass-all models-seeds slurm-help summaries-jsonl scores-csv
+        onepass onepass-seeds onepass-all models-seeds slurm-help summaries-jsonl scores-csv \
+        demo submit-array submit-array-gpu monitor lastlog tailf aggregate container sif
 
 # -------- Globals (override on CLI) ------------------------------------------
 PY               ?= python
@@ -33,15 +34,19 @@ help:
 	echo "  smoke-all         - quick synth+eval on ALL MODELS"
 	echo "  train/synth/eval  - loops over MODELS"
 	echo "  onepass           - train→synth→eval for one MODEL (use: make onepass MODEL=gan)"
+	echo "  onepass-seeds     - onepass over SEEDS for one MODEL (use: make onepass-seeds MODEL=gan)"
 	echo "  onepass-all       - onepass across all MODELS"
-	echo "  models-seeds      - run a custom CMD over MODELS (make models-seeds CMD=eval)"
+	echo "  models-seeds      - run custom CMD over MODELS (e.g., make models-seeds CMD='eval')"
 	echo "  grids             - build preview grids"
-	echo "  table             - aggregate (legacy) collect_scores.py"
+	echo "  table             - legacy aggregate (collect_scores.py)"
 	echo "  scores-csv        - JSONL → tiny CSV (artifacts/phase1_scores.csv)"
 	echo "  summaries-jsonl   - consolidate per-model JSON → JSONL (schema optional)"
 	echo "  clean-summaries   - remove JSON summaries and JSONL"
 	echo "  clean-synth       - remove synthetic artifacts"
-	echo "  slurm-help        - print Slurm example"
+	echo "  demo              - run local Gradio viewer (demo/app.py)"
+	echo "  submit-array      - submit CPU matrix to Talon (slurm/models_seeds_matrix_cpu.slurm)"
+	echo "  submit-array-gpu  - submit GPU matrix to Talon (slurm/models_seeds_matrix_gpu.slurm)"
+	echo "  monitor|lastlog|tailf - Talon helpers"
 	echo "  all               - setup → synth → eval → grids → table → report"
 
 # -------- Setup --------------------------------------------------------------
@@ -89,12 +94,16 @@ onepass:
 	$(PY) -m app.main synth --model $(MODEL) --config $(CFG)
 	$(PY) -m app.main eval  --model $(MODEL) --config $(CFG)
 
+# Usage: make onepass-seeds MODEL=gan
 onepass-seeds:
-	$(MAKE) onepass MODEL=$(MODEL)
+	@for s in $(SEEDS); do \
+	  echo ">> MODEL=$(MODEL) SEED=$$s (note: seed is currently handled inside app/main.py if supported)"; \
+	  $(MAKE) -s onepass MODEL=$(MODEL); \
+	done
 
 onepass-all:
 	for m in $(MODELS); do \
-	  $(MAKE) onepass MODEL=$$m; \
+	  $(MAKE) -s onepass MODEL=$$m; \
 	done
 
 # Run a custom subcommand over MODELS (current CLI only; flags reserved)
@@ -110,7 +119,6 @@ models-seeds:
 table:
 	$(PY) scripts/collect_scores.py
 
-# Tiny CSV used by README/report preview
 scores-csv:
 	$(PY) scripts/jsonl_to_csv.py
 
@@ -152,47 +160,42 @@ summaries-jsonl:
 	  exit 2; \
 	fi
 
-
-# ---- Demo (local only) -------------------------------------------------------
-.PHONY: demo
+# ---- Demo (local only) ------------------------------------------------------
 demo:
 	$(PY) demo/app.py
 
-# --- Phase-3 (Talon scale-up) -------------------------------------------------
-.PHONY: submit-array monitor tailf aggregate resume container sif
-
-# Submit 3 models × 3 seeds array (expects slurm/phase3_array.sbatch)
+# ---- Talon helpers (Phase 3) -----------------------------------------------
+# Submit CPU matrix with env overrides (uses slurm/models_seeds_matrix_cpu.slurm)
 submit-array:
-	mkdir -p logs artifacts/summaries
-	sbatch slurm.sh
+	@echo "Submitting CPU matrix job…"
+	@sbatch --export=ALL,MODELS="$(MODELS)",SEEDS="$(SEEDS)",SYN_PER_CLASS="$(SYN_PER_CLASS)",REPO_DIR="$$(pwd)" \
+		slurm/models_seeds_matrix_cpu.slurm
 
-# Watch your queue
+# Submit GPU matrix
+submit-array-gpu:
+	@echo "Submitting GPU matrix job…"
+	@sbatch --export=ALL,MODELS="$(MODELS)",SEEDS="$(SEEDS)",SYN_PER_CLASS="$(SYN_PER_CLASS)",REPO_DIR="$$(pwd)" \
+		slurm/models_seeds_matrix_gpu.slurm
+
+# Watch your queue (press q to exit)
 monitor:
-	squeue -u $$USER -o "%.18i %.9P %.8j %.8u %.2t %.10M %.6D %R"
+	@watch -n 2 'squeue -u $$USER'
 
-# Follow the newest job logs live
+# Print the most recent .out file path
+lastlog:
+	@ls -t slurm/*.out 2>/dev/null | head -1 || ls -t *.out 2>/dev/null | head -1 || echo "no .out yet"
+
+# Tail the most recent .out (Ctrl-C to exit)
 tailf:
-	ls -t logs/*.out | head -n 2 | xargs -n1 -I{} sh -c 'echo "==== {} ===="; tail -n 50 -f "{}"'
-
-# Aggregate multi-seed results into a single CSV
-aggregate:
-	$(PY) scripts/aggregate_results.py --src artifacts/summaries/phase1_summaries.jsonl --dst artifacts/phase3_aggregate.csv
-	@echo "Wrote artifacts/phase3_aggregate.csv"
-
-# (Optional) Build container locally and convert to Apptainer SIF
-container:
-	docker build -t gcs-dev:latest -f Dockerfile.gencys .
-
-sif:
-	mkdir -p artifacts/containers
-	apptainer build artifacts/containers/gcs-dev.sif docker-daemon://gcs-dev:latest
-
+	@f=$$(ls -t slurm/*.out 2>/dev/null | head -1 || ls -t *.out 2>/dev/null | head -1); \
+	if [ -n "$$f" ]; then echo "Tailing $$f …"; tail -n 200 -f "$$f"; else echo "no .out yet"; fi
 
 # -------- Slurm example (print-only) ----------------------------------------
 slurm-help:
-	echo "# Example array (config-only commands):"
-	echo "sbatch --array=1-3 model-template/scripts/slurm_array_example.sh \\"
-	echo "  -- make onepass MODEL=gan"
+	echo "# Submit CPU matrix (override on CLI as needed):"
+	echo "make submit-array MODELS='diffusion cdcgan cvae' SEEDS='42 43 44' SYN_PER_CLASS=1000"
+	echo "# Submit GPU matrix:"
+	echo "make submit-array-gpu MODELS='gan diffusion vae' SEEDS='42 43 44'"
 
 # -------- Everything ---------------------------------------------------------
 all: setup synth eval grids table report

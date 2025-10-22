@@ -96,43 +96,37 @@ jobs:
           name: phase1-artifacts-raw
           path: phase1-artifacts-raw
 
+      # Optional: show what we actually downloaded for easier debugging
       - name: Inspect workspace (debug)
         run: |
-          echo "== pwd ==" && pwd
-          echo "== ls -la =="
+          set -x
           ls -la
-          echo "== ls -la phase1-artifacts-raw =="
           ls -la phase1-artifacts-raw || true
+          find phase1-artifacts-raw -maxdepth 3 -type f | sed 's/^/RAW: /' || true
 
-      - name: Flatten downloaded artifact
-        shell: bash
-        run: |
-          set -euo pipefail
-          shopt -s dotglob
-          # Merge contents into repo root so paths look like ./artifacts/...
-          if [ -d phase1-artifacts-raw ]; then
-            mkdir -p artifacts
-            rsync -a --ignore-existing phase1-artifacts-raw/ ./
-            # If artifacts existed already, merge/overwrite as needed:
-            rsync -a phase1-artifacts-raw/artifacts/ artifacts/ || true
-            rmdir phase1-artifacts-raw || true
-          fi
-          test -d artifacts || (echo "No artifacts/ directory after flatten"; ls -la; exit 1)
-          echo "Flattened. Top-level artifacts now present:"
-          ls -la artifacts
-
+      # If the artifact was uploaded as a folder, nothing to flatten is required.
+      # We now consolidate using a robust script that handles all layouts.
       - name: Build consolidated JSONL (schema-aware)
-        run: make summaries-jsonl
+        run: |
+          bash scripts/build_jsonl.sh
 
       - name: Build mini CSV table (JSONL -> CSV)
         run: python scripts/jsonl_to_csv.py
 
+      # Validate the JSONL we just built (don’t re-glob the raw summaries).
       - name: Validate JSON lines format (schema optional, reset to fresh)
         run: |
-          python scripts/summaries_to_jsonl.py \
-            --glob "artifacts/*/summaries/summary_*.json" \
-            --out artifacts/summaries/phase1_summaries.jsonl \
-            --reset
+          python - <<'PY'
+          import json, pathlib, sys
+          p = pathlib.Path("artifacts/summaries/phase1_summaries.jsonl")
+          assert p.exists(), f"Missing JSONL: {p}"
+          n = 0
+          with p.open() as f:
+            for i, line in enumerate(f, 1):
+              json.loads(line)
+              n = i
+          print(f"OK: validated {n} JSON lines in {p}")
+          PY
 
       - name: Upload consolidated outputs
         uses: actions/upload-artifact@v4

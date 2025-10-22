@@ -1,6 +1,7 @@
 # Makefile — CI-safe & Talon-ready (robust JSONL consolidation)
 
 SHELL := bash
+.ONESHELL:
 .SHELLFLAGS := -euo pipefail -c
 .SILENT:
 
@@ -143,44 +144,11 @@ clean-synth:
 	echo "Cleaned synthetic artifacts."
 
 # -------- Consolidate per-model JSON summaries → one JSONL -------------------
-# Works both locally and in CI (where files live under phase1-artifacts-raw/artifacts/)
+.PHONY: summaries-jsonl
 summaries-jsonl:
 	@echo "Building consolidated JSONL…"
-	@{ \
-	  # init locals (required because of -u / nounset)
-	  found_any=0; \
-	  schema_arg=""; \
-	  # optional schema
-	  if [ -f "$(SCHEMA_PATH)" ]; then \
-	    echo "Using schema: $(SCHEMA_PATH)"; \
-	    schema_arg="--schema $(SCHEMA_PATH)"; \
-	  else \
-	    echo "Schema not found → skipping JSON Schema validation (fast path)"; \
-	  fi; \
-	  # Pass 1: local artifacts
-	  if compgen -G "artifacts/*/summaries/summary_*.json" > /dev/null; then \
-	    echo "[pass1] artifacts/*/summaries/summary_*.json"; \
-	    found_any=1; \
-	    $(PY) scripts/summaries_to_jsonl.py \
-	      --glob "artifacts/*/summaries/summary_*.json" \
-	      --out "$(OUT_JSONL)" $$schema_arg --reset; \
-	  fi; \
-	  # Pass 2: downloaded CI bundle (actions/download-artifact)
-	  if compgen -G "phase1-artifacts-raw/artifacts/*/summaries/summary_*.json" > /dev/null; then \
-	    echo "[pass2] phase1-artifacts-raw/artifacts/*/summaries/summary_*.json"; \
-	    found_any=1; \
-	    $(PY) scripts/summaries_to_jsonl.py \
-	      --glob "phase1-artifacts-raw/artifacts/*/summaries/summary_*.json" \
-	      --out "$(OUT_JSONL)" $$schema_arg --reset; \
-	  fi; \
-	  # Final check
-	  if [ $$found_any -eq 0 ]; then \
-	    echo "No per-model summaries found under either path."; \
-	    exit 2; \
-	  else \
-	    echo "Built $(OUT_JSONL)"; \
-	  fi; \
-	}
+	@scripts/build_jsonl.sh
+
 
 # ---- Demo (local only) ------------------------------------------------------
 demo:

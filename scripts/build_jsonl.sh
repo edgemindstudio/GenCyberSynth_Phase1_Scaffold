@@ -10,13 +10,13 @@ SCHEMA_PATH="${SCHEMA_PATH:-gcs-core/gcs_core/schemas/eval_summary.lite.schema.j
 
 echo "Building consolidated JSONL…"
 
-schema_arg=""
+# Always initialize as an array (safe under `set -u`)
+declare -a schema_arg=()
 if [[ -f "${SCHEMA_PATH}" ]]; then
   echo "Using schema: ${SCHEMA_PATH}"
   schema_arg=(--schema "${SCHEMA_PATH}")
 else
   echo "Schema not found → skipping JSON Schema validation (fast path)"
-  schema_arg=()
 fi
 
 run_pass () {
@@ -26,7 +26,9 @@ run_pass () {
     echo "[${label}] ${glob}"
     python scripts/summaries_to_jsonl.py \
       --glob "${glob}" \
-      --out "${OUT_JSONL}" "${schema_arg[@]}" --reset
+      --out "${OUT_JSONL}" \
+      "${schema_arg[@]}" \
+      --reset
     echo "Built ${OUT_JSONL}"
     return 0
   fi

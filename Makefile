@@ -143,6 +143,34 @@ clean-synth:
 	find "$(SYN_BASE)" -type f -path "$(SYN_BASE)/*/seed*/*" -delete || true
 	echo "Cleaned synthetic artifacts."
 
+# -------- Plotting Figures -------------------
+.PHONY: figs-core figs-diversity figs-imbalance figs-qual figs-hparams figs-all
+
+figs-core:
+	python scripts/plots/core/pareto_downstream_vs_similarity.py
+	python scripts/plots/core/per_class_delta_f1.py || true
+	python scripts/plots/core/per_class_delta_f1.py --heatmap || true
+	python scripts/plots/core/calibration_curves.py
+
+figs-diversity:
+	python scripts/plots/diversity/umap_projection.py || true
+	python scripts/plots/diversity/ms_ssim_hist.py || true
+	python scripts/plots/diversity/nn_distance_distrib.py || true
+
+figs-imbalance:
+	python scripts/plots/imbalance/class_counts_before_after.py || true
+	python scripts/plots/imbalance/simple_stats_sanity.py --model=gan || true
+
+figs-qual:
+	python scripts/plots/qual/grids_panels.py
+
+figs-hparams:
+	python scripts/plots/hparams/parallel_coords.py || true
+
+figs-all: figs-core figs-diversity figs-imbalance figs-qual figs-hparams
+	@echo "Figures → artifacts/figures/**"
+
+
 # -------- Consolidate per-model JSON summaries → one JSONL -------------------
 .PHONY: summaries-jsonl
 summaries-jsonl:

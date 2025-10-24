@@ -10,7 +10,7 @@ SCHEMA_PATH="${SCHEMA_PATH:-gcs-core/gcs_core/schemas/eval_summary.lite.schema.j
 
 echo "Building consolidated JSONL…"
 
-# Always initialize as an array (safe under `set -u`)
+# Always initialize as an array (safe under set -u)
 declare -a schema_arg=()
 if [[ -f "${SCHEMA_PATH}" ]]; then
   echo "Using schema: ${SCHEMA_PATH}"
@@ -18,6 +18,14 @@ if [[ -f "${SCHEMA_PATH}" ]]; then
 else
   echo "Schema not found → skipping JSON Schema validation (fast path)"
 fi
+
+# Safe expansion for empty arrays under bash 3.x + set -u:
+#   "${schema_arg[@]:-}" expands to nothing if the array is empty,
+#   avoiding the "unbound variable" error.
+_safe_schema_expansion() {
+  # shellcheck disable=SC2128
+  printf '%s\n' "${schema_arg[@]:-}"
+}
 
 run_pass () {
   local label="$1"
@@ -27,7 +35,7 @@ run_pass () {
     python scripts/summaries_to_jsonl.py \
       --glob "${glob}" \
       --out "${OUT_JSONL}" \
-      "${schema_arg[@]}" \
+      $(_safe_schema_expansion) \
       --reset
     echo "Built ${OUT_JSONL}"
     return 0

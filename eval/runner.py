@@ -27,6 +27,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+from scripts.eval_write_summary import write_phase2_summary
 
 # -----------------------------------------------------------------------------
 # Optional dependency: gcs_core
@@ -389,31 +390,84 @@ def evaluate_model_suite(
     except Exception:
         counts["num_fake"] = None
 
+
     # ---------------------------------------------------------------------
-    # Assemble payload & write files
+    # Assemble plot-friendly summary & write files (using helper)
     # ---------------------------------------------------------------------
-    payload: Dict[str, Any] = {
-        "timestamp": datetime.now().isoformat(timespec="seconds"),
-        "model": model_name,
-        "config_used": True,
-        "metrics": metrics,
-        "counts": counts,
-        "manifest_path": man_path if have_synth else None,
+    stamp = _now_ts()
+    out_path = os.path.join(summaries_dir, f"summary_{stamp}.json")
+
+    seed_ = int(_cfg_get(config, "seed", 0))
+
+    gen = {
+        "fid_macro": None,
+        "cfid_macro": metrics.get("cfid"),
+        "kid": metrics.get("kid"),
+        "ms_ssim": metrics.get("ms_ssim"),
+    }
+    util_real = {"macro_f1": None}
+    util_rs = {"macro_f1": None}
+
+    # Cast counts to plain ints if present
+    counts_map = {
+        "train_real": (int(counts["num_real"]) if counts.get("num_real") is not None else None),
+        "synthetic": (int(counts["num_fake"]) if counts.get("num_fake") is not None else None),
     }
 
-    out_path = os.path.join(summaries_dir, f"summary_{_now_ts()}.json")
-    with open(out_path, "w") as f:
-        json.dump(payload, f, indent=2)
+    # Build the exact record we intend to write (so we can return it even if read fails)
+    rec = {
+        "timestamp": datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "model": model_name,
+        "seed": seed_,
+        "run_id": f"{model_name}_{seed_}",
+        "generative": {
+            "fid_macro": gen["fid_macro"],
+            "cfid_macro": gen["cfid_macro"],
+            "kid": gen["kid"],
+            "ms_ssim": gen["ms_ssim"],
+        },
+        "utility_real_only": {"macro_f1": util_real["macro_f1"]},
+        "utility_real_plus_synth": {"macro_f1": util_rs["macro_f1"]},
+        # legacy shims that plots/JSONL expect
+        "metrics.cfid": gen["cfid_macro"],
+        "metrics.cfid_macro": gen["cfid_macro"],
+        "metrics.fid_macro": gen["fid_macro"],
+        "metrics.kid": gen["kid"],
+        "metrics.ms_ssim": gen["ms_ssim"],
+        "metrics.downstream.macro_f1": util_rs["macro_f1"],
+        "counts.num_real": counts_map["train_real"],
+        "counts.num_fake": counts_map["synthetic"],
+    }
+
+    # Write one compact line to the per-model summary file
+    write_phase2_summary(
+        out_json=out_path,
+        model=model_name,
+        seed=seed_,
+        generative=gen,
+        util_real=util_real,
+        util_rs=util_rs,
+        counts=counts_map,
+        run_id=rec["run_id"],
+        util_real_per_class=per_class_real,
+        util_rs_per_class=per_class_rs,
+    )
     print(f"[eval] Saved evaluation summary → {out_path}")
 
-    # Best-effort “latest.json”
-    try:  # pragma: no cover
-        with open(os.path.join(summaries_dir, "latest.json"), "w") as f:
-            json.dump(payload, f, indent=2)
+    # Also write a human-readable latest.json (fallback to `rec` if read fails)
+    try:
+        with open(out_path, "r") as fsrc:
+            latest = json.loads(fsrc.read())
+    except Exception:
+        latest = rec  # safe fallback
+
+    try:
+        with open(os.path.join(summaries_dir, "latest.json"), "w") as fdst:
+            json.dump(latest, fdst, indent=2)
     except Exception:
         pass
 
-    return payload
+    return latest
 
 
 __all__ = ["evaluate_model_suite"]

@@ -101,4 +101,4 @@ artifacts/summaries/*
 !artifacts/summaries/phase1_summaries.jsonl
 !artifacts/preview/
 !artifacts/preview/**
-!artifacts/preview/phase1_grid.png
+!artifacts/preview/phase1_grid.pngartifacts/summaries/phase1_summaries_backfilled.jsonl

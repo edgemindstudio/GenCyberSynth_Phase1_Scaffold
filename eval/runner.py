@@ -449,8 +449,6 @@ def evaluate_model_suite(
         util_rs=util_rs,
         counts=counts_map,
         run_id=rec["run_id"],
-        util_real_per_class=per_class_real,
-        util_rs_per_class=per_class_rs,
     )
     print(f"[eval] Saved evaluation summary → {out_path}")
 
@@ -471,3 +469,5 @@ def evaluate_model_suite(
 
 
 __all__ = ["evaluate_model_suite"]
+
+

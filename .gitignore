@@ -102,3 +102,10 @@ artifacts/summaries/*
 !artifacts/preview/
 !artifacts/preview/**
 !artifacts/preview/phase1_grid.pngartifacts/summaries/phase1_summaries_backfilled.jsonl
+!artifacts/summaries/*.jsonl
+
+# Re-ignore backfilled JSONL(s)
+artifacts/summaries/*backfilled*.jsonl
+
+# Re-ignore this one file
+artifacts/summaries/phase1_summaries_backfilled.jsonl

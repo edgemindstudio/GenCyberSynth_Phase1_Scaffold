@@ -109,3 +109,6 @@ artifacts/summaries/*backfilled*.jsonl
 
 # Re-ignore this one file
 artifacts/summaries/phase1_summaries_backfilled.jsonl
+
+# build outputs
+artifacts/summaries/*.jsonl

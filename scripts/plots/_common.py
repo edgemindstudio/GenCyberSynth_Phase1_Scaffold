@@ -334,3 +334,4 @@ def pareto_frontier(points: np.ndarray) -> np.ndarray:
             frontier_idx_local.append(i)
             best_y = y
     return order[frontier_idx_local]
+

@@ -7,15 +7,24 @@ in a fixed feature space (your frozen domain encoder).
 
 Inputs
 ------
-- artifacts/summaries/phase1_summaries.jsonl
+- artifacts/summaries/phase1_summaries.jsonl (or another JSONL via --jsonl)
 
-Expected fields (any subset OK)
--------------------------------
-- memorization.nn_dists           (list of floats per run)           [preferred]
-- memorization.nn_dist_mean       (float per run)                    [fallback]
-- memorization.nn_dist_min        (float per run)                    [fallback]
-- metrics.nn_dists / metrics.nn_dist_mean / metrics.nn_dist_min      [aliases]
-- model                           (string; for per-model overlays)
+We support any of these schemas (any subset is OK):
+1) Per-sample arrays (preferred for histograms by sample):
+   - memorization.nn_dists
+   - metrics.nn_dists
+   - nn_dists
+
+2) Per-run nested dict (use --which to pick a statistic):
+   - diversity.nn_distance: {"mean":..., "min":..., "p50":..., "p90":...}
+   - metrics.nn_distance:   {"mean":..., "min":..., "p50":..., "p90":...}
+   - nn_distance:           {"mean":..., "min":..., "p50":..., "p90":...}
+
+3) Per-run flat scalars (aliases for --which):
+   - memorization.nn_dist_mean / metrics.nn_dist_mean / nn_distance_mean
+   - memorization.nn_dist_min  / metrics.nn_dist_min  / nn_distance_min
+   - memorization.nn_dist_p50  / metrics.nn_dist_p50  / nn_distance_p50
+   - memorization.nn_dist_p90  / metrics.nn_dist_p90  / nn_distance_p90
 
 Outputs
 -------
@@ -49,13 +58,62 @@ except Exception:
 FIG_ROOT = Path(_FIG_ROOT)
 (FIG_ROOT / "diversity").mkdir(parents=True, exist_ok=True)
 
+# ---------------------------------------------------------------------------
 # Column aliases / fallbacks
-ALT_SCALAR_COLS = {
-    "mean": ["memorization.nn_dist_mean", "metrics.nn_dist_mean"],
-    "min":  ["memorization.nn_dist_min",  "metrics.nn_dist_min"],
-}
-ARRAY_COLS = ["memorization.nn_dists", "metrics.nn_dists"]
+# ---------------------------------------------------------------------------
 
+# Per-sample arrays (preferred)
+ARRAY_COLS = [
+    "memorization.nn_dists",
+    "metrics.nn_dists",
+    "nn_dists",
+]
+
+# Per-run nested dicts containing keys like {"mean","min","p50","p90"}
+DICT_COLS = [
+    "diversity.nn_distance",
+    "metrics.nn_distance",
+    "nn_distance",
+]
+
+# Per-run flat scalar aliases for each statistic
+ALT_SCALAR_COLS = {
+    "mean": [
+        "memorization.nn_dist_mean",
+        "metrics.nn_dist_mean",
+        "nn_distance_mean",
+        "diversity.nn_distance.mean",   # in case it's already flattened by loader
+        "metrics.nn_distance.mean",
+        "nn_distance.mean",
+    ],
+    "min": [
+        "memorization.nn_dist_min",
+        "metrics.nn_dist_min",
+        "nn_distance_min",
+        "diversity.nn_distance.min",
+        "metrics.nn_distance.min",
+        "nn_distance.min",
+    ],
+    "p50": [
+        "memorization.nn_dist_p50",
+        "metrics.nn_dist_p50",
+        "nn_distance_p50",
+        "diversity.nn_distance.p50",
+        "metrics.nn_distance.p50",
+        "nn_distance.p50",
+        "diversity.nn_distance.median",  # sometimes written as median
+        "metrics.nn_distance.median",
+        "nn_distance.median",
+    ],
+    "p90": [
+        "memorization.nn_dist_p90",
+        "metrics.nn_dist_p90",
+        "nn_distance_p90",
+        "diversity.nn_distance.p90",
+        "metrics.nn_distance.p90",
+        "nn_distance.p90",
+    ],
+}
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -102,35 +160,64 @@ def _collect_array(df: pd.DataFrame, col: str) -> np.ndarray:
     return _nonneg_dropna(np.concatenate(chunks, axis=0))
 
 
+def _collect_from_dict(df: pd.DataFrame, col: str, which: str) -> np.ndarray:
+    """
+    Collect a statistic from rows where column is a dict, e.g.,
+      row[col] == {"mean":..., "min":..., "p50":..., "p90":...}
+    """
+    if col not in df.columns:
+        return np.array([], dtype=float)
+    vals: List[float] = []
+    for v in df[col].tolist():
+        if isinstance(v, dict) and which in v:
+            try:
+                val = float(v[which])
+                if np.isfinite(val) and val >= 0.0:
+                    vals.append(val)
+            except Exception:
+                pass
+    if not vals:
+        return np.array([], dtype=float)
+    return np.asarray(vals, dtype=float)
+
+
 def _choose_source(df: pd.DataFrame, which: str) -> Tuple[str, np.ndarray]:
     """
     Determine which column to use for the requested 'which' statistic:
-      - Prefer array column (…nn_dists) if present.
-      - Else fall back to scalar columns (…nn_dist_mean/min) based on 'which'.
+      1) Prefer per-sample arrays (…nn_dists): returns all samples across runs.
+      2) Else try per-run nested dicts (…nn_distance) extracting 'which'.
+      3) Else fall back to scalar columns (…nn_dist_<which>), trying aliases.
     Returns (source_name, values).
     """
-    # Prefer per-sample arrays if available
+    # 1) Per-sample arrays
     for arr_col in ARRAY_COLS:
         if arr_col in df.columns:
             vals = _collect_array(df, arr_col)
             if vals.size:
                 return (arr_col, vals)
 
-    # Fallback to scalars (try all known aliases)
+    # 2) Nested dicts with the requested key
+    for dcol in DICT_COLS:
+        if dcol in df.columns:
+            vals = _collect_from_dict(df, dcol, which)
+            if vals.size:
+                return (dcol, vals)
+
+    # 3) Scalar aliases
     for col in ALT_SCALAR_COLS.get(which, []):
         if col in df.columns:
             vals = _collect_scalar(df, col)
             if vals.size:
                 return (col, vals)
 
-    # Final fallback: return the primary name even if empty (keeps messaging tidy)
-    primary = ALT_SCALAR_COLS[which][0]
+    # Final fallback: return a primary alias even if empty (keeps messaging tidy)
+    primary = (ARRAY_COLS[0] if which == "mean" else ALT_SCALAR_COLS[which][0])
     return (primary, np.array([], dtype=float))
 
 
-def _by_model(df: pd.DataFrame, source_col: str) -> Dict[str, np.ndarray]:
+def _by_model(df: pd.DataFrame, source_col: str, which: str) -> Dict[str, np.ndarray]:
     """
-    Split values by model. Works for both array and scalar sources.
+    Split values by model. Works for arrays, dicts, and scalars.
     Returns {model: 1D array of values}.
     """
     if "model" not in df.columns:
@@ -139,12 +226,24 @@ def _by_model(df: pd.DataFrame, source_col: str) -> Dict[str, np.ndarray]:
     out: Dict[str, List[float]] = {}
 
     if source_col in ARRAY_COLS:
-        # Per-run arrays: iterate rows and label by model
+        # Per-run arrays: iterate rows and label by model (concatenate arrays)
         for _, r in df.iterrows():
             m = str(r.get("model", "unknown"))
             arr = _to_1d_array(r.get(source_col))
             if arr.size:
                 out.setdefault(m, []).extend(arr.tolist())
+    elif source_col in DICT_COLS:
+        # Per-run dicts: take the chosen statistic per run
+        for _, r in df.iterrows():
+            m = str(r.get("model", "unknown"))
+            v = r.get(source_col)
+            if isinstance(v, dict) and which in v:
+                try:
+                    val = float(v[which])
+                    if np.isfinite(val) and val >= 0.0:
+                        out.setdefault(m, []).append(val)
+                except Exception:
+                    pass
     else:
         # Scalar per run
         for _, r in df.iterrows():
@@ -152,7 +251,12 @@ def _by_model(df: pd.DataFrame, source_col: str) -> Dict[str, np.ndarray]:
             v = r.get(source_col, np.nan)
             if pd.isna(v):
                 continue
-            out.setdefault(m, []).append(float(v))
+            try:
+                val = float(v)
+                if np.isfinite(val) and val >= 0.0:
+                    out.setdefault(m, []).append(val)
+            except Exception:
+                pass
 
     # Finalize
     return {k: _nonneg_dropna(np.array(v, dtype=float)) for k, v in out.items() if len(v) > 0}
@@ -240,8 +344,8 @@ def plot_violin_per_model(by_model: Dict[str, np.ndarray], which: str, out: Path
 def main() -> None:
     ap = argparse.ArgumentParser(description="Nearest-Neighbor distance distributions")
     ap.add_argument("--jsonl", default="artifacts/summaries/phase1_summaries.jsonl", help="Path to consolidated JSONL file")
-    ap.add_argument("--which", choices=["mean", "min"], default="mean",
-                    help="Choose scalar fallback when per-sample array is not present")
+    ap.add_argument("--which", choices=["mean", "min", "p50", "p90"], default="mean",
+                    help="Which statistic to use when per-sample arrays are not present")
     ap.add_argument("--bins", type=int, default=30, help="Number of histogram bins")
     ap.add_argument("--per-model", action="store_true", help="Overlay per-model histograms")
     ap.add_argument("--violin", action="store_true", help="Per-model violin summary (requires --per-model)")
@@ -256,7 +360,10 @@ def main() -> None:
 
     # Global values + source chosen
     source_col, values = _choose_source(df, which=args.which)
-    title_suffix = "arrays" if source_col in ARRAY_COLS else source_col.split(".")[-1]
+    title_suffix = (
+        "arrays" if source_col in ARRAY_COLS
+        else ("dict" if source_col in DICT_COLS else source_col.split(".")[-1])
+    )
     values = _maybe_clip(values, args.clip)
 
     # 1) Global histogram
@@ -266,7 +373,7 @@ def main() -> None:
 
     # 2) Per-model overlays and violin
     if args.per_model:
-        by_model = _by_model(df, source_col)
+        by_model = _by_model(df, source_col, args.which)
         # clip each model's vector if requested
         by_model = {m: _maybe_clip(v, args.clip) for m, v in by_model.items()}
         plot_hist_per_model(by_model, args.which, args.bins,

@@ -1,40 +1,119 @@
 # configs/config.yaml
 
-# ---- global knobs ----
 SEED: 42
-VAL_FRACTION: 0.5
 
-# dataset location (works for ALL trainers)
-DATA_DIR: "USTC-TFC2016_malware"  # or absolute path if you prefer
+# Storage (unchanged)
+DATA_DIR: "/home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc"
+paths:
+  artifacts: "/home/bruno.fonkeng/gencys/artifacts"
+  # NEW: where eval can drop a single JSONL we’ll parse
+  summaries_dir: "/home/bruno.fonkeng/gencys/artifacts/summaries"
 
-# keep this if you want, but it's optional once DATA_DIR is set
-data:
-  root: "USTC-TFC2016_malware"
-
-# image/label info
+# Dataset/info (unchanged)
 IMG_SHAPE: [40, 40, 1]
 NUM_CLASSES: 9
-
-# optional extras you already had
 scale: [0, 1]
 random_seeds: [42, 43, 44]
 
+# NEW: how many samples per class the synth step should generate
+synth:
+  n_per_class: 25
+  
 evaluator:
-  per_class_cap: 25
-paths:
-  artifacts: "artifacts"
+  per_class_cap: 200
+  save_grids: true
+  save_nn_stats: true       # ensures nn_dists / nn_dist_mean are written
+  compute_fid: true         # ensure FID is computed
+  compute_cfid: true        # optional, classwise
+  feature_extractor: "domain"  # whatever your 40x40x1 encoder key is
+  # optional: which split to compare against for FID/NN
+  fid_split: "val"          # or "test"
+  domain_encoder: "malware_encoder_v1"
 
-# diffusion-specific (fine as-is)
-SCHEDULE: cosine     # or "linear"
-TIMESTEPS: 1000
-BASE_FILTERS: 64
-DEPTH: 2
-TIME_EMB_DIM: 128
 
-# --- GaussianMixture stability knobs ---
-GMM_COMPONENTS: 6        # fewer comps = more stable; tune later
-GMM_COVARIANCE: diag     # 'diag' is much more robust than 'full' in 1600-D
-GMM_REG_COVAR: 1e-3      # stronger ridge term (default 1e-6 is too tiny)
-GMM_MAX_ITER: 300        # let EM settle
-GMM_TRAIN_GLOBAL: true   # keep the global fallback
 
+early_stop:
+  metric: "cFID_mean"
+  minimize: true
+  delta: 0.5
+  patience: 4
+  eval_every_steps: 2000
+
+# =========================
+# Model-specific updates
+# =========================
+
+# Diffusion — keep train params, add synth sampler knobs
+diffusion:
+  LR: 2.0e-4
+  BATCH: 256
+  EMA: 0.9999
+  SCHEDULE: cosine
+  TIMESTEPS: 1000
+  BASE_FILTERS: 64
+  DEPTH: 2
+  TIME_EMB_DIM: 128
+  TOTAL_STEPS: 200000
+  # NEW (sampling time):
+  SAMPLER_STEPS: 200         # how many steps to sample at synth time
+  GUIDANCE_WEIGHT: 1.5       # 1.0–2.0 is a good range to sweep later
+
+# cDCGAN / WGAN-GP
+gan:
+  # TTUR + a bit more D
+  LR_G: 1.0e-4               # was 2e-4
+  LR_D: 2.0e-4               # keep or set higher than G
+  BETAS: [0.5, 0.999]
+  D_UPDATES_PER_G: 2         # was 1, helps stability
+  BATCH: 128
+  TOTAL_STEPS: 150000
+  REG: "R1"
+  # NEW (if your code supports these flags; safe to keep present):
+  SPECTRAL_NORM: true
+  EMA:
+    ENABLED: true
+    DECAY: 0.999
+
+# VAE — reduce β and warm up faster (sharper reconstructions)
+vae:
+  LR: 1.0e-3
+  BATCH: 256
+  BETA: 1.0                  # was 2.0; try 0.5–1.0 if still too blurry
+  KL_WARMUP_STEPS: 2000      # was 10000
+  TOTAL_STEPS: 80000
+
+# Autoregressive — add decoding controls for synth
+autoregressive:
+  LR: 1.0e-3
+  BATCH: 256
+  TOTAL_STEPS: 100000
+  SAMPLING:
+    TEMPERATURE: 0.95
+    TOP_K: 100
+    TOP_P: 0.95
+
+# Restricted Boltzmann Machine — more conservative & capped
+restrictedboltzmann:
+  LR: 5.0e-4                 # was 5.0e-3
+  CD_K: 5                    # was 1
+  HIDDEN: 512
+  BATCH: 256
+  EPOCHS: 50
+  PER_CLASS_CAP: 25          # prevents RS from being swamped by RBM
+
+# Gaussian Mixture Model — fewer, stronger components per class
+gaussianmixture:
+  GMM_COMPONENTS: 5          # was 6
+  GMM_COVARIANCE: diag
+  GMM_REG_COVAR: 1e-3
+  GMM_MAX_ITER: 300
+  GMM_TRAIN_GLOBAL: true
+
+# Masked AutoFlow — modest capacity bump + tiny dequant noise
+maskedautoflow:
+  LR: 1.0e-3
+  BATCH: 256
+  DEPTH: 8
+  WIDTH: 256                # was 128
+  TOTAL_STEPS: 80000
+  DEQUANT_NOISE: 0.01       # add very small uniform noise before training

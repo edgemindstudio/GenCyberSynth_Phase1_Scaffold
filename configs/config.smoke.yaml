@@ -1,0 +1,40 @@
+# configs/config.yaml
+
+# ---- global knobs ----
+SEED: 42
+VAL_FRACTION: 0.5
+
+# dataset location (works for ALL trainers)
+DATA_DIR: "USTC-TFC2016_malware"  # or absolute path if you prefer
+
+# keep this if you want, but it's optional once DATA_DIR is set
+data:
+  root: "USTC-TFC2016_malware"
+
+# image/label info
+IMG_SHAPE: [40, 40, 1]
+NUM_CLASSES: 9
+
+# optional extras you already had
+scale: [0, 1]
+random_seeds: [42, 43, 44]
+
+evaluator:
+  per_class_cap: 25
+paths:
+  artifacts: "artifacts"
+
+# diffusion-specific (fine as-is)
+SCHEDULE: cosine     # or "linear"
+TIMESTEPS: 1000
+BASE_FILTERS: 64
+DEPTH: 2
+TIME_EMB_DIM: 128
+
+# --- GaussianMixture stability knobs ---
+GMM_COMPONENTS: 6        # fewer comps = more stable; tune later
+GMM_COVARIANCE: diag     # 'diag' is much more robust than 'full' in 1600-D
+GMM_REG_COVAR: 1e-3      # stronger ridge term (default 1e-6 is too tiny)
+GMM_MAX_ITER: 300        # let EM settle
+GMM_TRAIN_GLOBAL: true   # keep the global fallback
+

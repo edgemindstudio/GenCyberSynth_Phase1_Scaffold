@@ -285,7 +285,6 @@ def train_diffusion(
         model.save_weights(str(ckpt_dir / "DDPM_last.weights.h5"))
         model.save_weights(str(ckpt_dir / "DIFF_last.weights.h5"))  # alias
         # Legacy convenience files for older scripts
-        model.save_weights(str(ckpt_dir / "ddpm_last.h5"))  # legacy
 
         # Best model tracking (prefer validation if available)
         score_for_early_stop = val_loss if val_loss is not None else train_loss
@@ -294,7 +293,6 @@ def train_diffusion(
             patience_ctr = 0
             model.save_weights(str(ckpt_dir / "DDPM_best.weights.h5"))
             model.save_weights(str(ckpt_dir / "DIFF_best.weights.h5"))  # alias
-            model.save_weights(str(ckpt_dir / "ddpm_best.h5"))  # legacy
         else:
             patience_ctr += 1
             if patience_ctr >= patience:

@@ -260,6 +260,15 @@ def _train_from_cfg(cfg: Dict) -> None:
     ckpt_dir.mkdir(parents=True, exist_ok=True)
     sums_dir.mkdir(parents=True, exist_ok=True)
     tb_dir.mkdir(parents=True, exist_ok=True)
+    
+    # --- Data root
+    data_dir_str = _cfg_get(cfg, "DATA_DIR", _cfg_get(cfg, "data.root", None))
+    if not data_dir_str:
+        raise ValueError("DATA_DIR not set in config (or data.root).")
+    data_dir = Path(data_dir_str).expanduser()
+    if not data_dir.exists():
+        raise FileNotFoundError(f"DATA_DIR path not found: {data_dir}")
+
 
     # --- Load data
     try:

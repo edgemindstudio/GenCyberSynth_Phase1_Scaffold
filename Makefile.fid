@@ -1,0 +1,56 @@
+# ---- Clean FID/KID grid helpers (standalone) -------------------------------
+
+.RECIPEPREFIX := >
+PY               ?= python
+SUMMARIES_DIR    ?= artifacts/summaries
+FID_COMBINED_CSV ?= $(SUMMARIES_DIR)/fid_grid_combined.csv
+FID_BEST_CSV     ?= $(SUMMARIES_DIR)/fid_grid_best_per_model.csv
+FID_BEST_MD      ?= $(SUMMARIES_DIR)/fid_grid_best_per_model.md
+FID_BEST_PNG     ?= $(SUMMARIES_DIR)/fid_best_bar.png
+
+.PHONY: fid-submit-cpu fid-parse fid-best fid-plot fid-grid-all fid-show
+
+fid-submit-cpu:
+> @echo "Submitting CPU per-model FID/KID array…"
+> @export CUDA_VISIBLE_DEVICES=""; \
+> export TF_FORCE_CPU=1; \
+> export TF_CPP_MIN_LOG_LEVEL=2; \
+> export PER_CLASS_CAP="$(PER_CLASS_CAP)"; \
+> export TOTAL_CAP="$(TOTAL_CAP)"; \
+> export BATCH="$(BATCH)"; \
+> export BACKBONE="$(BACKBONE)"; \
+> export IMG_SIZE="$(IMG_SIZE)"; \
+> sbatch -p talon-large slurm/fid_kid_per_model_cpu.sbatch
+
+fid-parse:
+> @mkdir -p "$(SUMMARIES_DIR)"
+> $(PY) scripts/metrics/fid_parse.py "$(FID_COMBINED_CSV)"
+> @column -t -s, "$(FID_COMBINED_CSV)" | head
+
+fid-best: fid-parse
+> $(PY) scripts/metrics/fid_best.py "$(FID_COMBINED_CSV)" "$(SUMMARIES_DIR)"
+
+fid-plot: fid-best
+> MPLBACKEND=Agg $(PY) scripts/metrics/fid_plot.py "$(FID_BEST_CSV)" "$(FID_BEST_PNG)"
+
+fid-grid-all: fid-plot
+> @echo "Artifacts:"
+> @echo "  $(FID_COMBINED_CSV)"
+> @echo "  $(FID_BEST_CSV)"
+> @echo "  $(FID_BEST_MD)"
+> @echo "  $(FID_BEST_PNG)"
+
+fid-show: fid-parse
+> @(head -n1 "$(FID_COMBINED_CSV)"; tail -n +2 "$(FID_COMBINED_CSV)" | sort -t, -k9,9g) | column -t -s,
+.PHONY: fid-best-3d fid-plot-3d
+
+
+fid-best-3d: fid-parse
+> $(PY) scripts/metrics/fid_best_3d.py "$(FID_COMBINED_CSV)" "$(SUMMARIES_DIR)"
+
+fid-plot-3d: fid-best-3d
+> MPLBACKEND=Agg $(PY) scripts/metrics/fid_plot.py "$(SUMMARIES_DIR)/fid_grid_best_per_model_backbone_img.csv" "$(SUMMARIES_DIR)/fid_best_bar_backbone_img.png"
+
+.PHONY: fid-all
+fid-all: fid-parse fid-best fid-plot fid-best-3d fid-plot-3d fid-grid-all fid-show
+> @echo "FID pipeline complete."

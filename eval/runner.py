@@ -1,4 +1,5 @@
 # eval/runner.py
+
 """
 Evaluation runner for the GenCyberSynth scaffold.
 
@@ -16,6 +17,10 @@ Config (configs/config.yaml)
 evaluator:
   domain_encoder: "malware_encoder_v1"   # optional; used if supported by gcs_core
   per_class_cap: 200                     # max samples per class
+  save_nn_stats: true                    # write nn_dist_mean if we can compute it
+  compute_fid: true
+  compute_cfid: false
+  fid_split: "val"                       # or "test"
 paths:
   artifacts: "artifacts"                 # root output directory
 """
@@ -355,6 +360,76 @@ def evaluate_model_suite(
     else:
         metrics["note"] = "No synthetic images found (or --no-synth used); metrics skipped."
 
+    # ---------------------------------------------------------------------
+    # NEW: FID / CFID / NN-distance with graceful skips
+    # ---------------------------------------------------------------------
+    from pathlib import Path as _Path
+    synth_manifest = _Path(synth_root) / "manifest.json"
+    eval_cfg: Dict[str, Any] = _cfg_get(config, "evaluator", {}) or {}
+    want_fid: bool = bool(eval_cfg.get("compute_fid", True))
+    want_cfid: bool = bool(eval_cfg.get("compute_cfid", False))
+    want_nn: bool = bool(eval_cfg.get("save_nn_stats", True))
+    fid_split = (eval_cfg.get("fid_split") or "val").lower()  # "val" or "test"
+
+    # Figure out REAL split arrays if they are in scope (best-effort).
+    real_X = real_y = None
+    try:
+        if fid_split == "test":
+            real_X, real_y = X_test, y_test   # noqa: F821
+        else:
+            real_X, real_y = X_val, y_val     # noqa: F821
+    except NameError:
+        real_X = real_y = None
+
+    # Optional helpers
+    try:
+        from common.metrics.fid import compute_fid_features, fid_from_features  # type: ignore
+    except Exception:
+        compute_fid_features = fid_from_features = None
+    try:
+        from common.metrics.fid import compute_cfid  # type: ignore
+    except Exception:
+        compute_cfid = None
+    try:
+        from common.metrics.neighbors import compute_nn_dists  # type: ignore
+    except Exception:
+        compute_nn_dists = None
+    try:
+        from common.io import load_synth_images  # type: ignore
+    except Exception:
+        load_synth_images = None
+
+    _gen_extra: Dict[str, Any] = {}
+    _mem_extra: Dict[str, Any] = {}
+
+    if have_synth and synth_manifest.exists() and real_X is not None:
+        # FID
+        if want_fid and compute_fid_features and fid_from_features and load_synth_images:
+            try:
+                feats_real = compute_fid_features(real_X, config)
+                feats_synth = compute_fid_features(load_synth_images(synth_manifest), config)
+                _gen_extra["fid"] = float(fid_from_features(feats_real, feats_synth))
+            except Exception as e:
+                metrics.setdefault("_warnings", []).append(f"FID skipped: {type(e).__name__}: {e}")
+
+        # CFID (macro and per class)
+        if want_cfid and compute_cfid and load_synth_images and real_y is not None:
+            try:
+                cfid_macro, cfid_per_class = compute_cfid((real_X, real_y), synth_manifest, config)
+                _gen_extra["cfid_macro"] = float(cfid_macro)
+                _gen_extra["cfid_per_class"] = [float(x) for x in (cfid_per_class or [])]
+            except Exception as e:
+                metrics.setdefault("_warnings", []).append(f"CFID skipped: {type(e).__name__}: {e}")
+
+        # NN distances
+        if want_nn and compute_nn_dists and load_synth_images:
+            try:
+                dists = compute_nn_dists(load_synth_images(synth_manifest), real_X, config)
+                if dists:
+                    _mem_extra["nn_dist_mean"] = float(sum(dists) / len(dists))
+            except Exception as e:
+                metrics.setdefault("_warnings", []).append(f"NN distances skipped: {type(e).__name__}: {e}")
+
     # Placeholder for downstream utility; wire in your classifier when ready.
     metrics["downstream"] = {"macro_f1": None, "macro_auprc": None, "balanced_acc": None}
 
@@ -390,9 +465,8 @@ def evaluate_model_suite(
     except Exception:
         counts["num_fake"] = None
 
-
     # ---------------------------------------------------------------------
-    # Assemble plot-friendly summary & write files (using helper)
+    # Assemble plot-friendly summary & write files
     # ---------------------------------------------------------------------
     stamp = _now_ts()
     out_path = os.path.join(summaries_dir, f"summary_{stamp}.json")
@@ -400,8 +474,9 @@ def evaluate_model_suite(
     seed_ = int(_cfg_get(config, "seed", 0))
 
     gen = {
+        "fid": _gen_extra.get("fid"),
         "fid_macro": None,
-        "cfid_macro": metrics.get("cfid"),
+        "cfid_macro": _gen_extra.get("cfid_macro", metrics.get("cfid")),
         "kid": metrics.get("kid"),
         "ms_ssim": metrics.get("ms_ssim"),
     }
@@ -414,26 +489,33 @@ def evaluate_model_suite(
         "synthetic": (int(counts["num_fake"]) if counts.get("num_fake") is not None else None),
     }
 
-    # Build the exact record we intend to write (so we can return it even if read fails)
+    # Build a record (returned even if later IO read fails)
     rec = {
         "timestamp": datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%SZ"),
         "model": model_name,
         "seed": seed_,
         "run_id": f"{model_name}_{seed_}",
         "generative": {
+            "fid": gen["fid"],
             "fid_macro": gen["fid_macro"],
             "cfid_macro": gen["cfid_macro"],
             "kid": gen["kid"],
             "ms_ssim": gen["ms_ssim"],
         },
+        "memorization": (
+            {"nn_dist_mean": _mem_extra.get("nn_dist_mean")}
+            if _mem_extra else {}
+        ),
         "utility_real_only": {"macro_f1": util_real["macro_f1"]},
         "utility_real_plus_synth": {"macro_f1": util_rs["macro_f1"]},
         # legacy shims that plots/JSONL expect
         "metrics.cfid": gen["cfid_macro"],
         "metrics.cfid_macro": gen["cfid_macro"],
+        "metrics.fid": gen["fid"],
         "metrics.fid_macro": gen["fid_macro"],
         "metrics.kid": gen["kid"],
         "metrics.ms_ssim": gen["ms_ssim"],
+        "metrics.nn_dist_mean": _mem_extra.get("nn_dist_mean"),
         "metrics.downstream.macro_f1": util_rs["macro_f1"],
         "counts.num_real": counts_map["train_real"],
         "counts.num_fake": counts_map["synthetic"],
@@ -452,22 +534,32 @@ def evaluate_model_suite(
     )
     print(f"[eval] Saved evaluation summary → {out_path}")
 
-    # Also write a human-readable latest.json (fallback to `rec` if read fails)
+    # Augment the just-written file with any extra fields (so aggregators see them)
     try:
         with open(out_path, "r") as fsrc:
-            latest = json.loads(fsrc.read())
+            _cur = json.load(fsrc)
+        # merge generative + memorization + flattened metrics
+        _cur.setdefault("generative", {}).update({k: v for k, v in _gen_extra.items() if v is not None})
+        if _mem_extra:
+            _cur.setdefault("memorization", {}).update(_mem_extra)
+        _cur["metrics.fid"] = _cur.get("metrics.fid", _gen_extra.get("fid"))
+        if "nn_dist_mean" in _mem_extra:
+            _cur["metrics.nn_dist_mean"] = _mem_extra["nn_dist_mean"]
+        with open(out_path, "w") as fdst:
+            json.dump(_cur, fdst, indent=2)
     except Exception:
-        latest = rec  # safe fallback
+        pass
 
+    # Also write a human-readable latest.json mirroring the augmented file
     try:
+        with open(out_path, "r") as fsrc:
+            latest = json.load(fsrc)
         with open(os.path.join(summaries_dir, "latest.json"), "w") as fdst:
             json.dump(latest, fdst, indent=2)
     except Exception:
         pass
 
-    return latest
+    return rec
 
 
 __all__ = ["evaluate_model_suite"]
-
-

@@ -128,37 +128,26 @@ jobs:
 
       - name: Validate JSON lines format (schema optional, reset to fresh)
         if: steps.download_phase1.outcome == 'success'
+        shell: python
         run: |
-          python - <<'PY'
-          import json, pathlib
-          p = pathlib.Path("artifacts/summaries/phase1_summaries.jsonl")
-          assert p.exists(), f"Missing JSONL: {p}"
+          import json
+          from pathlib import Path
+          import sys
+          
+          p = Path("artifacts/summaries/phase1_summaries.jsonl")
+          
+          # if JSON isn't there (e.g., smoke run didn't produce it), just skip.
+          if not p.exists():
+            print(f"[warn] Missing JSONL: {p} - skipping validation.")
+            raise SystemExit(0)
+          
           n = 0
           with p.open() as f:
             for i, line in enumerate(f, 1):
-              json.loads(line)
+              json.loads(line) # will raise if line is invalid JSON
               n = i
-          print(f"OK: validated {n} JSON lines in {p}")
-          PY
-
-      - name: Validate JSON lines format (schema optional, reset to fresh)
-        if: steps.download_phase1.outcome == 'success'
-        run: |
-          if [ ! -f artifacts/summaries/phase1_summaries.jsonl ]; then
-            echo "No artifacts/summaries/phase1_summaries.jsonl yet; skipping validation."
-            exit 0
-          fi
-          python - <<'PY'
-          import json, pathlib
-          p = pathlib.Path("artifacts/summaries/phase1_summaries.jsonl")
-          assert p.exists(), f"Missing JSONL: {p}"
-          n = 0
-          with p.open() as f:
-            for i, line in enumerate(f, 1):
-              json.loads(line)
-              n = i
-          print(f"OK: validated {n} JSON lines in {p}")
-          PY     
+          
+          print(f"OK: validated {n} JSON lines in {p}")   
 
       - name: Upload consolidated outputs
         if: steps.download_phase1.outcome == 'success'

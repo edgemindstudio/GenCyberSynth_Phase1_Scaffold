@@ -11,7 +11,8 @@ SHELL := bash
 
 # -------- Globals (override on CLI) ------------------------------------------
 PY               ?= python
-CFG              ?= configs/config.yaml
+CFG              ?= configs/config.yaml           # full config (Talon / full runs)
+SMOKE_CFG        ?= configs/config.smoke.yaml     # CI/smoke config (repo-local paths)
 MODELS           ?= gan diffusion vae autoregressive maskedautoflow restrictedboltzmann gaussianmixture
 SMOKE_MODEL      ?= gan
 SEEDS            ?= 42 43 44
@@ -60,8 +61,8 @@ setup:
 # -------- Fast CI sanity (single model) --------------------------------------
 smoke:
 	echo "== SMOKE $(SMOKE_MODEL) =="
-	$(PY) -m app.main synth --model $(SMOKE_MODEL) --config $(CFG)
-	$(PY) -m app.main eval  --model $(SMOKE_MODEL) --config $(CFG)
+	$(PY) -m app.main synth --model $(SMOKE_MODEL) --config $(SMOKE_CFG)
+	$(PY) -m app.main eval  --model $(SMOKE_MODEL) --config $(SMOKE_CFG)
 
 # -------- Smoke for all models ----------------------------------------------
 smoke-all:

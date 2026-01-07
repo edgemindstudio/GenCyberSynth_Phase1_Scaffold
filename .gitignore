@@ -36,3 +36,11 @@ Makefile.before-*
 Makefile.cleanup.*
 Makefile.restore-*
 Makefile.fix*
+
+# --- Local datasets / generated data ---
+USTC-TFC2016_malware/
+
+# --- Local backups / scratch ---
+artifacts.repo_backup.*/
+overrides/
+

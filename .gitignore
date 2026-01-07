@@ -45,3 +45,6 @@ artifacts.repo_backup.*/
 overrides/
 
 phase1_table.csv
+
+# artifacts symlink or dir
+artifacts

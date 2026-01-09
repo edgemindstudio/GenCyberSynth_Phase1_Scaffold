@@ -25,6 +25,16 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      # ADDED: ensure artifacts is a real directory in CI (not a broken symlink)
+      - name: Ensure artifacts dir is real (not a symlink)
+        run: |
+          set -euxo pipefail
+          if [ -L artifacts ]; then
+            echo "artifacts is a symlink; replacing with a real directory"
+            rm artifacts
+          fi
+          mkdir -p artifacts artifacts/summaries artifacts/preview_grids
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -51,6 +61,14 @@ jobs:
 
       - name: Build preview grids
         run: make grids
+
+      # ADDED: quick visibility into what CI produced (helps if paths changed)
+      - name: Inspect artifacts (debug)
+        run: |
+          set -x
+          ls -la
+          ls -la artifacts || true
+          find artifacts -maxdepth 3 -type f | sed 's/^/ART: /' || true
 
       - name: Upload raw artifacts from smoke
         uses: actions/upload-artifact@v4
@@ -106,7 +124,7 @@ jobs:
           ls -la
           ls -la phase1-artifacts-raw || true
           find phase1-artifacts-raw -maxdepth 3 -type f | sed 's/^/RAW: /' || true
-          
+
       - name: Build consolidated JSONL (schema-aware)
         if: steps.download_phase1.outcome == 'success'
         run: |
@@ -133,21 +151,21 @@ jobs:
           import json
           from pathlib import Path
           import sys
-          
+
           p = Path("artifacts/summaries/phase1_summaries.jsonl")
-          
+
           # if JSON isn't there (e.g., smoke run didn't produce it), just skip.
           if not p.exists():
             print(f"[warn] Missing JSONL: {p} - skipping validation.")
             raise SystemExit(0)
-          
+
           n = 0
           with p.open() as f:
             for i, line in enumerate(f, 1):
               json.loads(line) # will raise if line is invalid JSON
               n = i
-          
-          print(f"OK: validated {n} JSON lines in {p}")   
+
+          print(f"OK: validated {n} JSON lines in {p}")
 
       - name: Upload consolidated outputs
         if: steps.download_phase1.outcome == 'success'

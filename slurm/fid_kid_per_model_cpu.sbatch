@@ -48,6 +48,6 @@ python -u scripts/metrics/local_fid_kid.py \
   --total_cap "$TOTAL_CAP" \
   --backbone "$BACKBONE" \
   --img_size "$IMG_SIZE" \
-  --batch "$BATCH"
+  --batch_size "$BATCH"
 
 echo "[fidkid-per-model] done $(date) model=$M"

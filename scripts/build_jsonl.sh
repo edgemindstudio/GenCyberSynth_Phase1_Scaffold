@@ -23,9 +23,9 @@ fi
 #   "${schema_arg[@]:-}" expands to nothing if the array is empty,
 #   avoiding the "unbound variable" error.
 _safe_schema_expansion() {
-  # shellcheck disable=SC2128
-  printf '%s\n' "${schema_arg[@]:-}"
+  printf '%s ' "${schema_arg[@]:-}"
 }
+
 
 run_pass () {
   local label="$1"

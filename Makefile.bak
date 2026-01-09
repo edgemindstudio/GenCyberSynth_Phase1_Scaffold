@@ -6,12 +6,12 @@ SHELL := bash
 .SILENT:
 
 .PHONY: help setup smoke smoke-all train synth eval onepass onepass-seeds onepass-all models-seeds \
-        normalize-summaries grids table scores-csv report clean-summaries clean-synth summaries-jsonl demo \
+        grids table scores-csv report clean-summaries clean-synth summaries-jsonl demo \
         submit-array submit-array-gpu monitor lastlog tailf slurm-help all
 
 # -------- Globals (override on CLI) ------------------------------------------
 PY               ?= python
-CFG              ?= configs/config.yaml           # full config (Talon / full runs)
+CFG              ?= configs/config.yaml           # full config (Talon, main runs)
 SMOKE_CFG        ?= configs/config.smoke.yaml     # CI/smoke config (repo-local paths)
 MODELS           ?= gan diffusion vae autoregressive maskedautoflow restrictedboltzmann gaussianmixture
 SMOKE_MODEL      ?= gan
@@ -60,9 +60,10 @@ setup:
 
 # -------- Fast CI sanity (single model) --------------------------------------
 smoke:
-	echo "== SMOKE $(SMOKE_MODEL) =="
-	$(PY) -m app.main synth --model $(SMOKE_MODEL) --config $(SMOKE_CFG)
-	$(PY) -m app.main eval  --model $(SMOKE_MODEL) --config $(SMOKE_CFG)
+        echo "== SMOKE $(SMOKE_MODEL) =="
+        $(PY) -m app.main synth --model $(SMOKE_MODEL) --config $(SMOKE_CFG)
+        $(PY) -m app.main eval  --model $(SMOKE_MODEL) --config $(SMOKE_CFG)
+
 
 # -------- Smoke for all models ----------------------------------------------
 smoke-all:
@@ -120,35 +121,16 @@ models-seeds:
 	done
 
 # -------- Tables / Grids / Report -------------------------------------------
-
-# -------- Summary schema harmonization --------------------------------------
-# Some summary writers emit a mix of nested objects (e.g., metrics:{...}) and
-# flattened 'dotted' keys (e.g., metrics.ms_ssim, metrics.downstream.macro_f1).
-#
-# scripts/collect_scores.py expects a consistent *nested* layout, so we run
-# scripts/normalize_summaries.py before building JSONL / tables to:
-#   - materialize counts.num_real / counts.num_fake into counts.{num_real,num_fake}
-#   - materialize metrics.ms_ssim into metrics.ms_ssim
-#   - keep cfid/fid_macro/cfid_macro consistent across summary variants
-#   - (optionally) inflate any dotted metrics.downstream.* shims into
-#     metrics.downstream.{macro_f1,macro_auprc,balanced_acc} when present
-.PHONY: normalize-summaries
-normalize-summaries:
-	@echo "Normalizing summaries (schema harmonization)…"
-	$(PY) scripts/normalize_summaries.py
-
-table: summaries-jsonl
-	@echo "Collecting phase-1 score table (collect_scores.py)…"
+table:
 	$(PY) scripts/collect_scores.py
 
-scores-csv: summaries-jsonl
-	@echo "Exporting consolidated JSONL → CSV (jsonl_to_csv.py)…"
+scores-csv:
 	$(PY) scripts/jsonl_to_csv.py
 
 grids:
 	$(PY) scripts/make_grids.py
 
-report: table
+report:
 	$(PY) scripts/phase1_report.py
 	echo "Report: artifacts/phase1_report.md"
 
@@ -193,7 +175,7 @@ figs-all: figs-core figs-diversity figs-imbalance figs-qual figs-hparams
 
 # -------- Consolidate per-model JSON summaries → one JSONL -------------------
 .PHONY: summaries-jsonl
-summaries-jsonl: normalize-summaries
+summaries-jsonl:
 	@echo "Building consolidated JSONL…"
 	@scripts/build_jsonl.sh
 

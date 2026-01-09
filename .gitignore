@@ -48,3 +48,12 @@ phase1_table.csv
 
 # artifacts symlink or dir
 artifacts
+
+# --- Local scratch / experiments ---
+hello.slurm
+hello_conda.slurm
+eval/runner.patched.py
+
+# Optional local presets (commit if you want them official)
+configs/config.gan_fast.yaml
+configs/config.gmm_stable.yaml

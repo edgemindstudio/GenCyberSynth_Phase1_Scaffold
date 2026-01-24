@@ -57,3 +57,6 @@ eval/runner.patched.py
 # Optional local presets (commit if you want them official)
 configs/config.gan_fast.yaml
 configs/config.gmm_stable.yaml
+
+# Local artifacts (do not commit)
+artifacts__local_*/

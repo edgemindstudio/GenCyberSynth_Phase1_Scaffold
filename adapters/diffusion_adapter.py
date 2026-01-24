@@ -42,22 +42,20 @@ DATA_DIR or data.root: string written back into the manifest as "dataset".
 from __future__ import annotations
 
 import json
-import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any, Dict
 
 import numpy as np
 
 from .base import Adapter
 
+
 # ---------------------------------------------------------------------
 # Small utilities
 # ---------------------------------------------------------------------
 def _cfg_get(cfg: Dict[str, Any], dotted: str, default=None):
-    """
-    Fetch a nested config value by dotted path, e.g. "paths.artifacts".
-    """
+    """Fetch a nested config value by dotted path, e.g. "paths.artifacts"."""
     cur: Any = cfg
     for key in dotted.split("."):
         if not isinstance(cur, dict) or key not in cur:
@@ -72,8 +70,7 @@ def _ensure_dir(p: Path) -> Path:
 
 
 def _to_uint8(img01: np.ndarray) -> np.ndarray:
-    img = np.clip(np.rint(img01 * 255.0), 0, 255).astype(np.uint8)
-    return img
+    return np.clip(np.rint(img01 * 255.0), 0, 255).astype(np.uint8)
 
 
 def _save_png(img01: np.ndarray, out_path: Path) -> None:
@@ -95,7 +92,6 @@ def _save_png(img01: np.ndarray, out_path: Path) -> None:
             mode = "L"
         Image.fromarray(_to_uint8(x), mode=mode).save(out_path)
     except Exception:
-        # Minimal fallback using matplotlib (slower; avoids adding hard deps)
         import matplotlib.pyplot as plt
 
         plt.figure(figsize=(1.6, 1.6))
@@ -109,6 +105,82 @@ def _save_png(img01: np.ndarray, out_path: Path) -> None:
         plt.close()
 
 
+def _normalize_manifest(manifest: Dict[str, Any], *, num_classes: int) -> Dict[str, Any]:
+    """
+    Normalize schema + add stable derived fields:
+      - Normalize "samples" -> "paths"
+      - Ensure paths is a list[{"path": str, "label": int}]
+      - Ensure per_class_counts has keys "0"..."{K-1}"
+      - Derive:
+          num_fake         = len(paths) if paths else sum(per_class_counts)
+          budget_per_class = min(per_class_counts) if available else None
+    """
+    if not isinstance(manifest, dict):
+        manifest = {}
+
+    # Normalize "samples" -> "paths"
+    if "paths" not in manifest and isinstance(manifest.get("samples"), list):
+        manifest["paths"] = manifest["samples"]
+
+    # Ensure paths exists + normalize entries
+    raw_paths = manifest.get("paths")
+    if not isinstance(raw_paths, list):
+        raw_paths = []
+
+    norm_paths = []
+    for it in raw_paths:
+        if not isinstance(it, dict):
+            continue
+        p = it.get("path")
+        y = it.get("label")
+        if isinstance(p, Path):
+            p = str(p)
+        if not isinstance(p, str) or not p:
+            continue
+        try:
+            y_int = int(y)
+        except Exception:
+            continue
+        norm_paths.append({"path": p, "label": y_int})
+    manifest["paths"] = norm_paths
+
+    # per_class_counts: prefer existing if valid, else derive from paths
+    pcc_in = manifest.get("per_class_counts")
+    pcc: Dict[str, int] = {}
+
+    if isinstance(pcc_in, dict) and len(pcc_in) > 0:
+        for k, v in pcc_in.items():
+            try:
+                kk = str(int(k))
+                vv = int(v)
+            except Exception:
+                continue
+            if 0 <= int(kk) < num_classes and vv >= 0:
+                pcc[kk] = vv
+    else:
+        for it in manifest["paths"]:
+            try:
+                kk = str(int(it["label"]))
+            except Exception:
+                continue
+            pcc[kk] = pcc.get(kk, 0) + 1
+
+    # Stabilize keys for all classes
+    manifest["per_class_counts"] = {str(k): int(pcc.get(str(k), 0)) for k in range(num_classes)}
+
+    # Derived: num_fake
+    if len(manifest["paths"]) > 0:
+        manifest["num_fake"] = int(len(manifest["paths"]))
+    else:
+        manifest["num_fake"] = int(sum(manifest["per_class_counts"].values()))
+
+    # Derived: budget_per_class (conservative)
+    vals = [int(v) for v in manifest["per_class_counts"].values() if v is not None]
+    manifest["budget_per_class"] = (min(vals) if vals and min(vals) > 0 else (min(vals) if vals else None))
+
+    return manifest
+
+
 # ---------------------------------------------------------------------
 # Adapter
 # ---------------------------------------------------------------------
@@ -117,10 +189,6 @@ class DiffusionAdapter(Adapter):
     name = "diffusion"
 
     def synth(self, config: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Generate S images per class using the diffusion backend and
-        return the manifest dictionary that was written to disk.
-        """
         artifacts_root = Path(_cfg_get(config, "paths.artifacts", "artifacts"))
         model_root = artifacts_root / "diffusion"
         synth_root = _ensure_dir(model_root / "synthetic")
@@ -145,32 +213,27 @@ class DiffusionAdapter(Adapter):
         candidates = [
             ckpt_dir / "DIFF_best.weights.h5",
             ckpt_dir / "DIFF_last.weights.h5",
-            ckpt_dir / "diffusion_best.h5",   # legacy
-            ckpt_dir / "diffusion_last.h5",   # legacy
+            ckpt_dir / "diffusion_best.h5",  # legacy
+            ckpt_dir / "diffusion_last.h5",  # legacy
         ]
         weights_path = next((p for p in candidates if p.exists()), None)
 
-        # Dataset tag for the manifest
         dataset = _cfg_get(config, "data.root", config.get("DATA_DIR", "USTC-TFC2016_40x40_gray"))
 
-        # Manifest scaffold
+        # Stub manifest (will be replaced on success)
         manifest: Dict[str, Any] = {
             "dataset": dataset,
             "seed": SEED,
             "created_at": datetime.now().isoformat(timespec="seconds"),
             "per_class_counts": {str(k): 0 for k in range(K)},
-            "paths": [],  # list of {"path": "...", "label": int}
+            "paths": [],
         }
 
-        # Attempt the full sampling path; on failure, emit a stub manifest
         try:
-            # Imports are scoped so that this adapter remains importable even
-            # if diffusion packages aren’t installed yet.
             import tensorflow as tf
             from diffusion.models import build_diffusion_model  # type: ignore
-            from diffusion.sample import sample_batch          # type: ignore
+            from diffusion.sample import sample_batch  # type: ignore
 
-            # Build model
             model = build_diffusion_model(
                 img_shape=(H, W, C),
                 num_classes=K,
@@ -181,7 +244,7 @@ class DiffusionAdapter(Adapter):
                 beta_1=beta_1,
             )
 
-            # Ensure variables exist before loading weights (Keras 3 safety)
+            # Keras 3: create variables before load_weights
             _ = model(
                 [
                     tf.zeros((1, H, W, C), dtype=tf.float32),
@@ -196,16 +259,16 @@ class DiffusionAdapter(Adapter):
                     model.load_weights(str(weights_path))
                     print(f"[diffusion] Loaded checkpoint: {weights_path}")
                 except Exception as e:
-                    print(f"[diffusion][warn] Failed to load {weights_path.name}: {e}\n"
-                          f"→ continuing with randomly initialized weights.")
+                    print(
+                        f"[diffusion][warn] Failed to load {weights_path.name}: {e}\n"
+                        f"→ continuing with randomly initialized weights."
+                    )
             else:
                 print(f"[diffusion][warn] no DDPM checkpoint in {ckpt_dir}; using random weights.")
 
-            # Deterministic sampling
             np.random.seed(SEED)
             tf.random.set_seed(SEED)
 
-            # Generate per class
             for k in range(K):
                 class_ids = np.full((S,), k, dtype=np.int32)
                 imgs01, _ = sample_batch(
@@ -214,13 +277,14 @@ class DiffusionAdapter(Adapter):
                     num_classes=K,
                     img_shape=(H, W, C),
                     T=T,
-                    alpha_hat=None,       # let sampler build a linear schedule
+                    alpha_hat=None,
                     class_ids=class_ids,
-                    seed=SEED + k,        # small offset per class
+                    seed=SEED + k,
                 )
 
                 cls_dir = synth_root / str(k) / str(SEED)
                 _ensure_dir(cls_dir)
+
                 for j in range(S):
                     out_path = cls_dir / f"diff_{j:05d}.png"
                     _save_png(imgs01[j], out_path)
@@ -229,9 +293,14 @@ class DiffusionAdapter(Adapter):
                 manifest["per_class_counts"][str(k)] = int(S)
 
         except Exception as e:
-            # Fallback: emit a stub manifest and clearly warn
             print(f"[diffusion][ERROR] Sampling failed: {type(e).__name__}: {e}")
             print("[diffusion] Emitting a stub manifest so the pipeline can proceed.")
+
+        # Normalize + derived fields (ALWAYS)
+        manifest = _normalize_manifest(manifest, num_classes=K)
+        manifest.setdefault("dataset", dataset)
+        manifest.setdefault("seed", SEED)
+        manifest.setdefault("created_at", datetime.now().isoformat(timespec="seconds"))
 
         # Persist manifest
         man_path = synth_root / "manifest.json"

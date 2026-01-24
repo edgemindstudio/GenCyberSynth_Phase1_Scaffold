@@ -109,6 +109,49 @@ class VAEAdapter(Adapter):
             print(f"[vae][ERROR] Sampling failed: {type(e).__name__}: {e}")
             print("[vae] Emitting a stub manifest so the pipeline can proceed.")
 
+        # --- Ensure manifest metadata is consistent with what was actually written ----
+        paths = manifest.get("paths") or manifest.get("samples") or []
+
+        # Normalize "samples" -> "paths" so downstream tools are consistent
+        if "paths" not in manifest and isinstance(manifest.get("samples"), list):
+            manifest["paths"] = manifest["samples"]
+            paths = manifest["paths"]
+
+        # Coerce path entries to the expected simple shape (best-effort)
+        norm_paths = []
+        for it in (paths or []):
+            if not isinstance(it, dict):
+                continue
+            p = it.get("path")
+            y = it.get("label")
+            try:
+                y_int = int(y)
+            except Exception:
+                continue
+            if isinstance(p, Path):
+                p = str(p)
+            norm_paths.append({"path": p, "label": y_int})
+        manifest["paths"] = norm_paths
+
+        # Per-class counts from ACTUAL written paths
+        pcc: Dict[str, int] = {}
+        for it in (manifest.get("paths") or []):
+            try:
+                y = str(int(it.get("label")))
+            except Exception:
+                continue
+            pcc[y] = pcc.get(y, 0) + 1
+
+        # Keep keys for all classes (stable schema), but overwrite with real counts
+        manifest["per_class_counts"] = {str(k): int(pcc.get(str(k), 0)) for k in range(K)}
+
+        # Totals + budget (derived from manifest truth)
+        manifest["num_fake"] = len(manifest.get("paths") or [])
+        
+        vals = [v for v in manifest["per_class_counts"].values() if isinstance(v, int) and v > 0]
+        manifest["budget_per_class"] = min(vals) if vals else None
+        # -----------------------------------------------------------------------------
+
         # Persist manifest (always write something)
         man_path = synth_root / "manifest.json"
         with open(man_path, "w") as f:

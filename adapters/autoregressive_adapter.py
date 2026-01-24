@@ -60,6 +60,82 @@ def _ensure_dir(p: Path) -> Path:
     return p
 
 
+def _normalize_manifest(manifest: Dict[str, Any], *, num_classes: int) -> Dict[str, Any]:
+    """
+    Normalize schema + add stable derived fields:
+      - Normalize "samples" -> "paths"
+      - Ensure paths is a list[{"path": str, "label": int}]
+      - Ensure per_class_counts has keys "0"..."{K-1}"
+      - Derive:
+          num_fake         = len(paths) if paths else sum(per_class_counts)
+          budget_per_class = min(per_class_counts) if available else None
+    """
+    if not isinstance(manifest, dict):
+        manifest = {}
+
+    # Normalize "samples" -> "paths"
+    if "paths" not in manifest and isinstance(manifest.get("samples"), list):
+        manifest["paths"] = manifest["samples"]
+
+    # Ensure paths exists and normalize entries
+    raw_paths = manifest.get("paths")
+    if not isinstance(raw_paths, list):
+        raw_paths = []
+
+    norm_paths = []
+    for it in raw_paths:
+        if not isinstance(it, dict):
+            continue
+        p = it.get("path")
+        y = it.get("label")
+        if isinstance(p, Path):
+            p = str(p)
+        if not isinstance(p, str) or not p:
+            continue
+        try:
+            y_int = int(y)
+        except Exception:
+            continue
+        norm_paths.append({"path": p, "label": y_int})
+    manifest["paths"] = norm_paths
+
+    # per_class_counts: prefer existing if valid, else derive from paths
+    pcc_in = manifest.get("per_class_counts")
+    pcc: Dict[str, int] = {}
+
+    if isinstance(pcc_in, dict) and len(pcc_in) > 0:
+        for k, v in pcc_in.items():
+            try:
+                kk = str(int(k))
+                vv = int(v)
+            except Exception:
+                continue
+            if 0 <= int(kk) < num_classes and vv >= 0:
+                pcc[kk] = vv
+    else:
+        for it in manifest["paths"]:
+            try:
+                kk = str(int(it["label"]))
+            except Exception:
+                continue
+            pcc[kk] = pcc.get(kk, 0) + 1
+
+    # Stabilize keys for all classes
+    manifest["per_class_counts"] = {str(k): int(pcc.get(str(k), 0)) for k in range(num_classes)}
+
+    # Derived: num_fake
+    if len(manifest["paths"]) > 0:
+        manifest["num_fake"] = int(len(manifest["paths"]))
+    else:
+        manifest["num_fake"] = int(sum(manifest["per_class_counts"].values()))
+
+    # Derived: budget_per_class
+    vals = [int(v) for v in manifest["per_class_counts"].values() if v is not None]
+    manifest["budget_per_class"] = (min(vals) if vals and min(vals) > 0 else (min(vals) if vals else None))
+
+    return manifest
+
+
 # ------------------------------
 # Adapter
 # ------------------------------
@@ -72,7 +148,7 @@ class AutoregressiveAdapter(Adapter):
         model_root = artifacts_root / "autoregressive"
         synth_root = _ensure_dir(model_root / "synthetic")
 
-        # Basic knobs with robust fallbacks (kept mainly for stub manifest)
+        # Basic knobs with robust fallbacks
         H, W, C = tuple(_cfg_get(config, "IMG_SHAPE", (40, 40, 1)))
         K = int(_cfg_get(config, "NUM_CLASSES", 9))
 
@@ -84,7 +160,7 @@ class AutoregressiveAdapter(Adapter):
 
         dataset = _cfg_get(config, "data.root", config.get("DATA_DIR", "USTC-TFC2016_40x40_gray"))
 
-        # Default manifest scaffold (will be overwritten on success)
+        # Default manifest scaffold (stub)
         manifest: Dict[str, Any] = {
             "dataset": dataset,
             "seed": seed,
@@ -94,29 +170,29 @@ class AutoregressiveAdapter(Adapter):
         }
 
         try:
-            # Imports are scoped so the adapter itself remains importable
-            # even if the AR package isn’t present yet.
             from autoregressive.sample import synth as ar_synth  # type: ignore
 
             # Deterministic sampling
             np.random.seed(seed)
             try:
-                import tensorflow as tf  # ensure TF seed set if available
+                import tensorflow as tf
                 tf.random.set_seed(seed)
             except Exception:
                 pass
 
-            # Call the project’s AR synth entrypoint
             print(f"[autoregressive] HWC={H,W,C}  K={K}  seed={seed}")
             man = ar_synth(config, str(synth_root), seed=seed)
-
-            # Persist (normalize to plain dict for safety)
-            manifest = dict(man)
+            manifest = dict(man) if isinstance(man, dict) else dict(manifest)
 
         except Exception as e:
-            # Fallback: emit a stub manifest and clearly warn
             print(f"[autoregressive][ERROR] Sampling failed: {type(e).__name__}: {e}")
             print("[autoregressive] Emitting a stub manifest so the pipeline can proceed.")
+
+        # Normalize + add stable derived fields (ALWAYS)
+        manifest = _normalize_manifest(manifest, num_classes=K)
+        manifest.setdefault("dataset", dataset)
+        manifest.setdefault("seed", seed)
+        manifest.setdefault("created_at", datetime.now().isoformat(timespec="seconds"))
 
         # Write manifest to disk (always)
         man_path = synth_root / "manifest.json"

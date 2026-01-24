@@ -47,7 +47,7 @@ from .base import Adapter
 # ------------------------------
 def _cfg_get(cfg: Dict[str, Any], dotted: str, default=None):
     """Fetch a nested config value by dotted path, e.g. 'paths.artifacts'."""
-    cur = cfg
+    cur: Any = cfg
     for key in dotted.split("."):
         if not isinstance(cur, dict) or key not in cur:
             return default
@@ -58,6 +58,82 @@ def _cfg_get(cfg: Dict[str, Any], dotted: str, default=None):
 def _ensure_dir(p: Path) -> Path:
     p.mkdir(parents=True, exist_ok=True)
     return p
+
+
+def _normalize_manifest(manifest: Dict[str, Any], *, num_classes: int) -> Dict[str, Any]:
+    """
+    Normalize schema + add stable derived fields:
+      - Normalize "samples" -> "paths"
+      - Ensure paths is list[{"path": str, "label": int}]
+      - Ensure per_class_counts has keys "0"..."{K-1}"
+      - Derive:
+          num_fake         = len(paths) if paths else sum(per_class_counts)
+          budget_per_class = min(per_class_counts) if available else None
+    """
+    if not isinstance(manifest, dict):
+        manifest = {}
+
+    # Normalize "samples" -> "paths"
+    if "paths" not in manifest and isinstance(manifest.get("samples"), list):
+        manifest["paths"] = manifest["samples"]
+
+    # Ensure paths exists + normalize entries
+    raw_paths = manifest.get("paths")
+    if not isinstance(raw_paths, list):
+        raw_paths = []
+
+    norm_paths = []
+    for it in raw_paths:
+        if not isinstance(it, dict):
+            continue
+        p = it.get("path")
+        y = it.get("label")
+        if isinstance(p, Path):
+            p = str(p)
+        if not isinstance(p, str) or not p:
+            continue
+        try:
+            y_int = int(y)
+        except Exception:
+            continue
+        norm_paths.append({"path": p, "label": y_int})
+    manifest["paths"] = norm_paths
+
+    # per_class_counts: prefer existing if valid, else derive from paths
+    pcc_in = manifest.get("per_class_counts")
+    pcc: Dict[str, int] = {}
+
+    if isinstance(pcc_in, dict) and len(pcc_in) > 0:
+        for k, v in pcc_in.items():
+            try:
+                kk = str(int(k))
+                vv = int(v)
+            except Exception:
+                continue
+            if 0 <= int(kk) < num_classes and vv >= 0:
+                pcc[kk] = vv
+    else:
+        for it in manifest["paths"]:
+            try:
+                kk = str(int(it["label"]))
+            except Exception:
+                continue
+            pcc[kk] = pcc.get(kk, 0) + 1
+
+    # Stabilize keys for all classes
+    manifest["per_class_counts"] = {str(k): int(pcc.get(str(k), 0)) for k in range(num_classes)}
+
+    # Derived: num_fake
+    if len(manifest["paths"]) > 0:
+        manifest["num_fake"] = int(len(manifest["paths"]))
+    else:
+        manifest["num_fake"] = int(sum(manifest["per_class_counts"].values()))
+
+    # Derived: budget_per_class (conservative)
+    vals = [int(v) for v in manifest["per_class_counts"].values() if v is not None]
+    manifest["budget_per_class"] = (min(vals) if vals and min(vals) > 0 else (min(vals) if vals else None))
+
+    return manifest
 
 
 # ------------------------------
@@ -114,6 +190,12 @@ class GMMAdapter(Adapter):
         except Exception as e:
             print(f"[gaussianmixture][ERROR] Sampling failed: {type(e).__name__}: {e}")
             print("[gaussianmixture] Emitting a stub manifest so the pipeline can proceed.")
+
+        # Normalize + derived fields (ALWAYS)
+        manifest = _normalize_manifest(manifest, num_classes=K)
+        manifest.setdefault("dataset", dataset)
+        manifest.setdefault("seed", seed)
+        manifest.setdefault("created_at", datetime.now().isoformat(timespec="seconds"))
 
         # Persist manifest (always write something)
         man_path = synth_root / "manifest.json"

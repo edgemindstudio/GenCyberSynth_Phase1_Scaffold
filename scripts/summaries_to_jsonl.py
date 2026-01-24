@@ -4,10 +4,20 @@ scripts/summaries_to_jsonl.py
 
 Consolidate per-model JSON summaries into a single JSONL.
 
+What it does
+------------
 - Scans for summary_*.json under artifacts/*/summaries/ (configurable).
 - Appends one JSON object per line to an output .jsonl.
 - Idempotent: skips files that were already ingested (tracked via source_path).
-- Optionally validates each JSON against a JSON Schema.
+- Optionally validates each JSON object against a JSON Schema.
+
+Why JSONL?
+----------
+JSONL (one JSON object per line) is:
+- easy to stream/process
+- easy to grep
+- easy to load into pandas
+- robust for large artifact collections
 
 IMPORTANT (Phase-1 pipeline requirement)
 ----------------------------------------
@@ -25,6 +35,23 @@ Some summaries store these nested under:
 
 So, before writing each record, we "promote" (best-effort) these keys to top-level
 WITHOUT deleting nested fields (safe + backwards compatible).
+
+NEW (Provenance / audit requirement)
+------------------------------------
+Reviewers need evidence of:
+- exactly which config file was used,
+- its hash,
+- the git commit,
+- evaluation caps,
+- synthetic budget per class.
+
+The CLI (app/main.py) injects cfg["run_meta"], and eval/runner.py persists it into
+summary_*.json / latest.json. This script ensures those audit fields are preserved in
+phase1_summaries.jsonl by:
+
+- keeping canonical nested "run_meta"
+- ensuring top-level shims exist:
+    config_path, config_sha1, git_commit, caps, budget_per_class
 """
 
 from __future__ import annotations
@@ -34,27 +61,49 @@ import json
 import sys
 from pathlib import Path
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 
+# -----------------------------------------------------------------------------
+# CLI arguments
+# -----------------------------------------------------------------------------
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
-    p.add_argument("--glob", default="artifacts/*/summaries/summary_*.json",
-                   help="Glob for input summary JSON files.")
-    p.add_argument("--out", default="artifacts/summaries/phase1_summaries.jsonl",
-                   help="Output JSONL path.")
-    p.add_argument("--schema", default=None,
-                   help="Optional path to a JSON schema file for validation.")
-    p.add_argument("--reset", action="store_true",
-                   help="Overwrite the output JSONL instead of appending.")
+    p.add_argument(
+        "--glob",
+        default="artifacts/*/summaries/summary_*.json",
+        help="Glob for input summary JSON files.",
+    )
+    p.add_argument(
+        "--out",
+        default="artifacts/summaries/phase1_summaries.jsonl",
+        help="Output JSONL path.",
+    )
+    p.add_argument(
+        "--schema",
+        default=None,
+        help="Optional path to a JSON schema file for validation.",
+    )
+    p.add_argument(
+        "--reset",
+        action="store_true",
+        help="Overwrite the output JSONL instead of appending.",
+    )
     return p.parse_args()
 
 
+# -----------------------------------------------------------------------------
+# Optional JSON Schema validation
+# -----------------------------------------------------------------------------
 def load_schema(schema_path: str | None):
+    """
+    Load an optional JSON schema. If jsonschema isn't installed or schema missing,
+    we skip validation without failing the build.
+    """
     if not schema_path:
         return None
     try:
-        import jsonschema  # type: ignore
+        import jsonschema  # type: ignore  # noqa: F401
     except Exception:
         print("jsonschema not installed; skipping validation.", file=sys.stderr)
         return None
@@ -65,11 +114,15 @@ def load_schema(schema_path: str | None):
         return None
 
 
+# -----------------------------------------------------------------------------
+# Idempotency: avoid duplicating lines for files we've already ingested
+# -----------------------------------------------------------------------------
 def existing_sources(out_path: Path) -> set[str]:
     """Return set of source_path values already in JSONL (for idempotency)."""
     seen: set[str] = set()
     if not out_path.exists():
         return seen
+
     with out_path.open("r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
@@ -79,32 +132,42 @@ def existing_sources(out_path: Path) -> set[str]:
                 obj = json.loads(line)
                 sp = obj.get("source_path")
                 if isinstance(sp, str):
-                    seen.add(sp)
+                    # Normalize so "./artifacts/..." and "artifacts/..." match
+                    sp_norm = str(Path(sp))
+                    seen.add(sp_norm)
             except Exception:
-                # If a line is malformed, ignore but don't crash.
                 continue
     return seen
 
 
+# -----------------------------------------------------------------------------
+# Helpers for missing fields / normalization
+# -----------------------------------------------------------------------------
 def make_run_id(model: str, src: Path) -> str:
-    # Derive a stable-ish id if filename embeds a timestamp; else fallback to UTC now.
+    """
+    Derive a stable-ish run_id if filename embeds a timestamp; else fallback to UTC now.
+
+    Expected filename pattern:
+      summary_YYYYMMDD_HHMMSS.json
+    """
     ts = None
     try:
-        # Try to find YYYYMMDD_HHMMSS in the filename
         stem = src.stem
-        # common pattern: summary_YYYYMMDD_HHMMSS
         parts = stem.split("_")
         if len(parts) >= 3:
             ymd, hms = parts[-2], parts[-1]
             ts = datetime.strptime(ymd + hms, "%Y%m%d%H%M%S")
     except Exception:
         ts = None
+
     if not ts:
         ts = datetime.now(timezone.utc)
+
     return f"{model}_{ts.strftime('%Y%m%dT%H%M%SZ')}"
 
 
 def _dig(d: Dict[str, Any], *path: str) -> Any:
+    """Safely fetch nested dict values by path; returns None if missing."""
     cur: Any = d
     for p in path:
         if not isinstance(cur, dict) or p not in cur:
@@ -114,6 +177,7 @@ def _dig(d: Dict[str, Any], *path: str) -> Any:
 
 
 def _first(*vals):
+    """Return the first non-None value from a list of candidates."""
     for v in vals:
         if v is not None:
             return v
@@ -121,12 +185,66 @@ def _first(*vals):
 
 
 def _set_if_missing(d: Dict[str, Any], k: str, v: Any) -> None:
+    """Set d[k]=v only if v is not None and d[k] is missing/None."""
     if v is None:
         return
     if d.get(k) is None:
         d[k] = v
 
 
+# -----------------------------------------------------------------------------
+# NEW: Audit/provenance preservation
+# -----------------------------------------------------------------------------
+_AUDIT_SHIMS = ("config_path", "config_sha1", "git_commit", "caps", "budget_per_class")
+
+
+def _attach_audit_fields(obj: Dict[str, Any]) -> None:
+    """
+    Ensure provenance/audit fields survive into the consolidated JSONL.
+
+    Canonical source (preferred):
+      obj["run_meta"] = {
+        "config_path": ...,
+        "config_sha1": ...,
+        "git_commit": ...,
+        "caps": {...},
+        "budget_per_class": ...
+      }
+
+    Compatibility shims (top-level; useful for older tools/greps):
+      obj["config_path"], obj["config_sha1"], obj["git_commit"], obj["caps"], obj["budget_per_class"]
+
+    Behavior:
+      - If run_meta exists → populate missing shims from run_meta.
+      - Else if shims exist → reconstruct run_meta (best effort).
+      - Else → do nothing (older summaries may not have provenance).
+    """
+    if not isinstance(obj, dict):
+        return
+
+    rm = obj.get("run_meta")
+    has_rm = isinstance(rm, dict) and bool(rm)
+
+    # Case 1: canonical run_meta exists → ensure shims exist too
+    if has_rm:
+        for k in _AUDIT_SHIMS:
+            _set_if_missing(obj, k, rm.get(k))
+        return
+
+    # Case 2: no run_meta, but top-level shims exist → reconstruct run_meta
+    if any(obj.get(k) is not None for k in _AUDIT_SHIMS):
+        obj["run_meta"] = {
+            "config_path": obj.get("config_path"),
+            "config_sha1": obj.get("config_sha1"),
+            "git_commit": obj.get("git_commit"),
+            "caps": obj.get("caps"),
+            "budget_per_class": obj.get("budget_per_class"),
+        }
+
+
+# -----------------------------------------------------------------------------
+# Metric promotion: keep your existing behavior (unchanged)
+# -----------------------------------------------------------------------------
 def promote_top_level_metrics(obj: Dict[str, Any]) -> None:
     """
     Promote frequently-used fields to top-level keys so JSONL -> CSV remains simple
@@ -193,12 +311,15 @@ def promote_top_level_metrics(obj: Dict[str, Any]) -> None:
     _set_if_missing(obj, "kid_mode", kid_mode)
 
 
+# -----------------------------------------------------------------------------
+# Main program
+# -----------------------------------------------------------------------------
 def main() -> int:
     args = parse_args()
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Build idempotency set
+    # Build idempotency set (unless --reset)
     seen = set()
     if not args.reset:
         seen = existing_sources(out_path)
@@ -207,7 +328,7 @@ def main() -> int:
     if args.reset and out_path.exists():
         out_path.unlink()
 
-    # Optional schema validation
+    # Optional schema validation setup
     schema_bundle = load_schema(args.schema)
     validator = None
     schema = None
@@ -220,6 +341,7 @@ def main() -> int:
             validator = None
             schema = None
 
+    # Discover files
     files = sorted(Path(".").glob(args.glob))
     if not files:
         print("No summary_*.json files found.", file=sys.stderr)
@@ -228,17 +350,21 @@ def main() -> int:
     written = 0
     with out_path.open("a", encoding="utf-8") as out:
         for f in files:
-            src = str(f)
+            # Normalize so "./artifacts/..." and "artifacts/..." match
+            src = str(Path(f))
+
+            # Idempotency: skip files already ingested
             if src in seen:
                 continue
 
+            # Load JSON summary
             try:
                 obj = json.loads(f.read_text(encoding="utf-8"))
             except Exception as e:
                 print(f"Skip {f}: {e}", file=sys.stderr)
                 continue
 
-            # Infer model from path artifacts/<model>/summaries/...
+            # Infer model from JSON or path artifacts/<model>/summaries/...
             parts = f.parts
             model = obj.get("model")
             if not isinstance(model, str):
@@ -247,15 +373,19 @@ def main() -> int:
                 else:
                     model = "unknown"
 
+            # Ensure required fields exist (non-destructive defaults)
             obj.setdefault("model", model)
             obj.setdefault("timestamp", datetime.now(timezone.utc).isoformat(timespec="seconds"))
             obj.setdefault("run_id", make_run_id(model, f))
             obj.setdefault("source_path", src)
 
+            # NEW: ensure audit/provenance fields survive into JSONL
+            _attach_audit_fields(obj)
+
             # Promote key metrics to top-level (critical for jsonl_to_csv simplicity)
             promote_top_level_metrics(obj)
 
-            # Optional validation
+            # Optional validation (note: schema may disallow new fields if additionalProperties=false)
             if validator and schema:
                 try:
                     validator(instance=obj, schema=schema)
@@ -263,6 +393,7 @@ def main() -> int:
                     print(f"Validation failed for {f}: {e}", file=sys.stderr)
                     obj["_schema_error"] = str(e)
 
+            # Write compact JSON (1 object per line)
             out.write(json.dumps(obj, ensure_ascii=False, separators=(",", ":")) + "\n")
             written += 1
 

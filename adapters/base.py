@@ -59,6 +59,8 @@ class ManifestOptional(TypedDict, total=False):
     """Optional manifest keys supported by the scaffold."""
     created_at: str  # ISO 8601 timestamp
     notes: str       # freeform text
+    num_fake: int    # total number of synthetic samples in `paths`
+    budget_per_class: int  # inferred per-class budget (usually min(per_class_counts))
 
 
 class Manifest(ManifestOptional):

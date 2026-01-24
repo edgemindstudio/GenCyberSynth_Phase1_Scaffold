@@ -2,6 +2,14 @@
 # scripts/build_jsonl.sh
 # Consolidate per-model summary_*.json → artifacts/summaries/phase1_summaries.jsonl
 # Works both locally and in CI (handles several artifact layouts).
+#
+# Behavior:
+#   - Default: idempotent append (summaries_to_jsonl.py skips already-ingested source_path)
+#   - Full rebuild: RESET_JSONL=1 forces a clean rebuild (passes --reset)
+#
+# Exit codes:
+#   - summaries_to_jsonl.py: 0 = wrote >=1 line, 2 = wrote 0 lines (no new files)
+#   - We treat 0 and 2 as success.
 
 set -euo pipefail
 
@@ -10,36 +18,46 @@ SCHEMA_PATH="${SCHEMA_PATH:-gcs-core/gcs_core/schemas/eval_summary.lite.schema.j
 
 echo "Building consolidated JSONL…"
 
-# Always initialize as an array (safe under set -u)
-declare -a schema_arg=()
-if [[ -f "${SCHEMA_PATH}" ]]; then
-  echo "Using schema: ${SCHEMA_PATH}"
-  schema_arg=(--schema "${SCHEMA_PATH}")
-else
-  echo "Schema not found → skipping JSON Schema validation (fast path)"
-fi
-
-# Safe expansion for empty arrays under bash 3.x + set -u:
-#   "${schema_arg[@]:-}" expands to nothing if the array is empty,
-#   avoiding the "unbound variable" error.
-_safe_schema_expansion() {
-  printf '%s ' "${schema_arg[@]:-}"
-}
-
-
 run_pass () {
   local label="$1"
   local glob="$2"
+
   if compgen -G "${glob}" >/dev/null; then
     echo "[${label}] ${glob}"
-    python scripts/summaries_to_jsonl.py \
-      --glob "${glob}" \
-      --out "${OUT_JSONL}" \
-      $(_safe_schema_expansion) \
-      --reset
-    echo "Built ${OUT_JSONL}"
-    return 0
+
+    # Build command as an array to avoid accidental empty args.
+    cmd=(python scripts/summaries_to_jsonl.py
+         --glob "${glob}"
+         --out  "${OUT_JSONL}")
+
+    # Optional schema
+    if [[ -f "${SCHEMA_PATH}" ]]; then
+      echo "Using schema: ${SCHEMA_PATH}"
+      cmd+=(--schema "${SCHEMA_PATH}")
+    else
+      echo "Schema not found → skipping JSON Schema validation (fast path)"
+    fi
+
+    # Optional reset (only when explicitly requested)
+    if [[ "${RESET_JSONL:-0}" == "1" ]]; then
+      cmd+=(--reset)
+    fi
+
+    # Run and accept rc=0 or rc=2 as success
+    set +e
+    "${cmd[@]}"
+    rc=$?
+    set -e
+
+    if [[ "${rc}" -eq 0 || "${rc}" -eq 2 ]]; then
+      echo "Built ${OUT_JSONL}"
+      return 0
+    fi
+
+    echo "ERROR: summaries_to_jsonl.py failed (exit=${rc})" >&2
+    return "${rc}"
   fi
+
   return 1
 }
 

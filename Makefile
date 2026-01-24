@@ -1,70 +1,61 @@
-# Makefile — CI-safe & Talon-ready (robust JSONL consolidation)
+# Makefile — CI-safe & Talon-ready (Phase-1 lock + gate; backfill runs separately on compute)
 
 SHELL := bash
 .ONESHELL:
 .SHELLFLAGS := -euo pipefail -c
 .SILENT:
 
+export PYTHONPATH := $(CURDIR)
+
 .PHONY: help setup smoke smoke-all train synth eval onepass onepass-seeds onepass-all models-seeds \
-        normalize-summaries grids table scores-csv report clean-summaries clean-synth summaries-jsonl demo \
+        phase1_freeze phase1_scores phase1_check phase1_backfill phase1_gate \
+        normalize-summaries paper1-jsonl table scores-csv grids report \
+        figs-core figs-diversity figs-imbalance figs-qual figs-hparams figs-all \
+        paper1_prepare paper1_build paper1 clean-summaries clean-synth demo \
         submit-array submit-array-gpu monitor lastlog tailf slurm-help all
 
 # -------- Globals (override on CLI) ------------------------------------------
 PY               ?= python
-CFG              ?= configs/config.yaml           # full config (Talon / full runs)
-SMOKE_CFG        ?= configs/config.smoke.yaml     # CI/smoke config (repo-local paths)
+CFG              ?= configs/config.yaml
+SMOKE_CFG        ?= configs/config.smoke.yaml
 MODELS           ?= gan diffusion vae autoregressive maskedautoflow restrictedboltzmann gaussianmixture
 SMOKE_MODEL      ?= gan
 SEEDS            ?= 42 43 44
 SYN_PER_CLASS    ?= 1000
 
-# Paths (override as needed)
-REAL_ROOT        ?= USTC-TFC2016_malware/real
-SYN_BASE         ?= artifacts/synthetic
+# Paper-1 lock defaults
+PHASE1_SUMMARY_NAME    ?= paper1.json
+PHASE1_MANIFEST_NAME   ?= paper1_manifest.json
+PHASE1_ALLOWED_BUDGETS ?= 2000
+
+# Paths
 SUMMARIES_DIR    ?= artifacts/summaries
 OUT_JSONL        ?= $(SUMMARIES_DIR)/phase1_summaries.jsonl
-ENCODER          ?= artifacts/domain_encoder.pt
-
-# Optional JSON Schema (used only if present)
-SCHEMA_PATH      ?= gcs-core/gcs_core/schemas/eval_summary.lite.schema.json
-
-# Where CI may download the artifacts bundle (actions/download-artifact)
-DOWNLOADED_PREFIX ?= phase1-artifacts-raw
 
 # -------- Help ---------------------------------------------------------------
 help:
 	echo "Targets:"
-	echo "  setup             - pip install -r requirements.txt & ensure dirs"
-	echo "  smoke             - quick synth+eval for one model (SMOKE_MODEL=$(SMOKE_MODEL))"
-	echo "  smoke-all         - quick synth+eval for ALL MODELS"
-	echo "  train/synth/eval  - loops over MODELS"
-	echo "  onepass           - train→synth→eval for one MODEL (make onepass MODEL=gan)"
-	echo "  onepass-seeds     - onepass over SEEDS for one MODEL"
-	echo "  onepass-all       - onepass across all MODELS"
-	echo "  models-seeds      - run custom CMD over MODELS (make models-seeds CMD='eval')"
-	echo "  grids             - build preview grids"
-	echo "  table             - legacy aggregate (collect_scores.py)"
-	echo "  scores-csv        - JSONL → tiny CSV (artifacts/phase1_scores.csv)"
-	echo "  summaries-jsonl   - consolidate per-model JSON → JSONL (handles CI path)"
-	echo "  clean-summaries   - remove JSON summaries and JSONL"
-	echo "  clean-synth       - remove synthetic artifacts"
-	echo "  demo              - run local Gradio viewer (demo/app.py)"
-	echo "  submit-array(*gpu)- Talon Slurm matrix jobs"
-	echo "  monitor/lastlog/tailf - Talon helpers"
-	echo "  all               - setup → synth → eval → grids → table → report"
+	echo "  phase1_freeze     - freeze snapshots + paper-lock manifests"
+	echo "  phase1_gate       - freeze → scores → check (fails fast)"
+	echo "  phase1_backfill   - backfill KID + downstream into paper1.json (RUN ON COMPUTE)"
+	echo "  paper1_prepare    - gate only (lightweight)"
+	echo "  paper1_build      - build JSONL/CSV/table/figs/report (lightweight-ish)"
+	echo "  paper1            - prepare + build (NO backfill)"
+	echo ""
+	echo "Common overrides:"
+	echo "  make paper1_prepare PHASE1_ALLOWED_BUDGETS=2000 PHASE1_SUMMARY_NAME=paper1.json PHASE1_MANIFEST_NAME=paper1_manifest.json"
 
 # -------- Setup --------------------------------------------------------------
 setup:
 	pip install -r requirements.txt
 	mkdir -p "$(SUMMARIES_DIR)"
 
-# -------- Fast CI sanity (single model) --------------------------------------
+# -------- Fast CI sanity -----------------------------------------------------
 smoke:
 	echo "== SMOKE $(SMOKE_MODEL) =="
 	$(PY) -m app.main synth --model $(SMOKE_MODEL) --config $(SMOKE_CFG)
 	$(PY) -m app.main eval  --model $(SMOKE_MODEL) --config $(SMOKE_CFG)
 
-# -------- Smoke for all models ----------------------------------------------
 smoke-all:
 	for m in $(MODELS); do \
 	  echo "== SMOKE $$m =="; \
@@ -92,17 +83,15 @@ eval:
 	done
 
 # -------- Convenient one-pass wrappers --------------------------------------
-# Usage: make onepass MODEL=gan
 onepass:
 	$(PY) -m app.main train --model $(MODEL) --config $(CFG) || true
 	$(PY) -m app.main synth --model $(MODEL) --config $(CFG)
 	$(PY) -m app.main eval  --model $(MODEL) --config $(CFG)
 
-# Usage: make onepass-seeds MODEL=gan
 onepass-seeds:
 	@for s in $(SEEDS); do \
 	  echo ">> MODEL=$(MODEL) SEED=$$s"; \
-	  $(MAKE) -s onepass MODEL=$(MODEL); \
+	  SEED=$$s $(MAKE) -s onepass MODEL=$(MODEL); \
 	done
 
 onepass-all:
@@ -110,8 +99,6 @@ onepass-all:
 	  $(MAKE) -s onepass MODEL=$$m; \
 	done
 
-# Run a custom subcommand over MODELS (current CLI only; flags reserved)
-# Example: make models-seeds CMD="eval"
 models-seeds:
 	@if [ -z "$$CMD" ]; then echo "Set CMD, e.g., make models-seeds CMD='eval'"; exit 2; fi
 	for m in $(MODELS); do \
@@ -119,29 +106,51 @@ models-seeds:
 	  $(PY) -m app.main $$CMD --model $$m --config $(CFG) || true; \
 	done
 
-# -------- Tables / Grids / Report -------------------------------------------
+# -------- Phase-1 lock + sanity gate ----------------------------------------
+# 1) Freeze paper snapshot(s) so later smoke runs can't change the paper build
+phase1_freeze:
+	PHASE1_ALLOWED_BUDGETS='$(PHASE1_ALLOWED_BUDGETS)' \
+	PHASE1_SUMMARY_NAME='$(PHASE1_SUMMARY_NAME)' \
+	PHASE1_MANIFEST_NAME='$(PHASE1_MANIFEST_NAME)' \
+	$(PY) tools/freeze_phase1_snapshots.py
 
-# -------- Summary schema harmonization --------------------------------------
-# Some summary writers emit a mix of nested objects (e.g., metrics:{...}) and
-# flattened 'dotted' keys (e.g., metrics.ms_ssim, metrics.downstream.macro_f1).
-#
-# scripts/collect_scores.py expects a consistent *nested* layout, so we run
-# scripts/normalize_summaries.py before building JSONL / tables to:
-#   - materialize counts.num_real / counts.num_fake into counts.{num_real,num_fake}
-#   - materialize metrics.ms_ssim into metrics.ms_ssim
-#   - keep cfid/fid_macro/cfid_macro consistent across summary variants
-#   - (optionally) inflate any dotted metrics.downstream.* shims into
-#     metrics.downstream.{macro_f1,macro_auprc,balanced_acc} when present
-.PHONY: normalize-summaries
+# 2) Build paper CSV from frozen snapshots (quick)
+phase1_scores:
+	PHASE1_SUMMARY_NAME="$(PHASE1_SUMMARY_NAME)" \
+	$(PY) tools/build_phase1_scores.py
+
+# 3) Enforce integrity (budget, num_fake, presence of required keys)
+phase1_check:
+	PHASE1_ALLOWED_BUDGETS="$(PHASE1_ALLOWED_BUDGETS)" \
+	PHASE1_SUMMARY_NAME="$(PHASE1_SUMMARY_NAME)" \
+	$(PY) tools/check_phase1_integrity.py
+
+# Backfill is intentionally separate — run on compute node (GPU ok)
+phase1_backfill:
+	PHASE1_SUMMARY_NAME='$(PHASE1_SUMMARY_NAME)' \
+	PHASE1_MANIFEST_NAME='$(PHASE1_MANIFEST_NAME)' \
+	$(PY) scripts/backfill_kid_and_downstream.py
+
+phase1_gate: phase1_freeze phase1_scores phase1_check
+	@echo "[phase1_gate] OK"
+
+# -------- Normalize + build JSONL from paper snapshots -----------------------
 normalize-summaries:
 	@echo "Normalizing summaries (schema harmonization)…"
 	$(PY) scripts/normalize_summaries.py
 
-table: summaries-jsonl
-	@echo "Collecting phase-1 score table (collect_scores.py)…"
-	$(PY) scripts/collect_scores.py
+paper1-jsonl: normalize-summaries
+	@echo "Building consolidated JSONL from $(PHASE1_SUMMARY_NAME)…"
+	PHASE1_SUMMARY_NAME='$(PHASE1_SUMMARY_NAME)' \
+	OUT_JSONL='$(OUT_JSONL)' \
+	$(PY) tools/build_paper1_jsonl.py
 
-scores-csv: summaries-jsonl
+# -------- Tables / CSV / Report ---------------------------------------------
+table: paper1-jsonl
+	@echo "Collecting phase-1 score table (collect_scores.py)…"
+	PHASE1_SUMMARY_NAME='$(PHASE1_SUMMARY_NAME)' $(PY) scripts/collect_scores.py
+
+scores-csv: paper1-jsonl
 	@echo "Exporting consolidated JSONL → CSV (jsonl_to_csv.py)…"
 	$(PY) scripts/jsonl_to_csv.py
 
@@ -152,57 +161,62 @@ report: table
 	$(PY) scripts/phase1_report.py
 	echo "Report: artifacts/phase1_report.md"
 
-# -------- Cleaning -----------------------------------------------------------
-clean-summaries:
-	rm -f "$(OUT_JSONL)" || true
-	find "$(SUMMARIES_DIR)" -type f -name 'summary_*.json' -delete || true
-	rm -f artifacts/*/summaries/latest.json || true
-	echo "Cleaned summaries."
+# -------- Figures ------------------------------------------------------------
+figs-core: paper1-jsonl
+	$(PY) -m scripts.plots.core.pareto_downstream_vs_similarity
+	$(PY) -m scripts.plots.core.per_class_delta_f1 || true
+	$(PY) -m scripts.plots.core.per_class_delta_f1 --heatmap || true
+	$(PY) -m scripts.plots.core.calibration_curves || true
 
-clean-synth:
-	find "$(SYN_BASE)" -type f -path "$(SYN_BASE)/*/seed*/*" -delete || true
-	echo "Cleaned synthetic artifacts."
+figs-diversity: paper1-jsonl
+	$(PY) -m scripts.plots.diversity.umap_projection || true
+	$(PY) -m scripts.plots.diversity.ms_ssim_hist || true
+	$(PY) -m scripts.plots.diversity.nn_distance_distrib || true
 
-# -------- Plotting Figures -------------------
-.PHONY: figs-core figs-diversity figs-imbalance figs-qual figs-hparams figs-all
+figs-imbalance: paper1-jsonl
+	$(PY) -m scripts.plots.imbalance.class_counts_before_after || true
+	$(PY) -m scripts.plots.imbalance.simple_stats_sanity --model=gan || true
 
-figs-core:
-	python scripts/plots/core/pareto_downstream_vs_similarity.py
-	python scripts/plots/core/per_class_delta_f1.py || true
-	python scripts/plots/core/per_class_delta_f1.py --heatmap || true
-	python scripts/plots/core/calibration_curves.py
+figs-qual: paper1-jsonl
+	$(PY) -m scripts.plots.qual.grids_panels || true
 
-figs-diversity:
-	python scripts/plots/diversity/umap_projection.py || true
-	python scripts/plots/diversity/ms_ssim_hist.py || true
-	python scripts/plots/diversity/nn_distance_distrib.py || true
-
-figs-imbalance:
-	python scripts/plots/imbalance/class_counts_before_after.py || true
-	python scripts/plots/imbalance/simple_stats_sanity.py --model=gan || true
-
-figs-qual:
-	python scripts/plots/qual/grids_panels.py
-
-figs-hparams:
-	python scripts/plots/hparams/parallel_coords.py || true
+# parallel_coords needs --cols; give it a sane default set
+figs-hparams: paper1-jsonl
+	$(PY) -m scripts.plots.hparams.parallel_coords \
+	  --cols metrics.kid metrics.downstream.macro_f1 metrics.ms_ssim metrics.downstream.balanced_acc \
+	  || true
 
 figs-all: figs-core figs-diversity figs-imbalance figs-qual figs-hparams
 	@echo "Figures → artifacts/figures/**"
 
+# -------- One-command Paper-1 build (NO backfill) -----------------------------
+paper1_prepare: phase1_gate
+	@echo "[paper1_prepare] OK"
 
-# -------- Consolidate per-model JSON summaries → one JSONL -------------------
-.PHONY: summaries-jsonl
-summaries-jsonl: normalize-summaries
-	@echo "Building consolidated JSONL…"
-	@scripts/build_jsonl.sh
+paper1_build: paper1-jsonl scores-csv table figs-all report
+	@echo "[paper1_build] OK"
 
+paper1: paper1_prepare paper1_build
+	@echo "[paper1] OK"
 
-# ---- Demo (local only) ------------------------------------------------------
+# -------- Cleaning -----------------------------------------------------------
+clean-summaries:
+	rm -f "$(OUT_JSONL)" || true
+	rm -f artifacts/phase1_scores.csv || true
+	rm -f artifacts/summaries/phase1_summaries.jsonl || true
+	rm -f artifacts/*/summaries/paper1.json || true
+	echo "Cleaned summaries."
+
+# Your synthetic lives at artifacts/<model>/synthetic/** (not artifacts/synthetic/**)
+clean-synth:
+	find artifacts -type f -path "artifacts/*/synthetic/**/*.png" -delete || true
+	find artifacts -type f -path "artifacts/*/synthetic/*manifest*.json" -delete || true
+	echo "Cleaned synthetic artifacts."
+
 demo:
 	$(PY) demo/app.py
 
-# ---- Talon helpers (Phase 3) -----------------------------------------------
+# -------- Talon helpers ------------------------------------------------------
 submit-array:
 	@echo "Submitting CPU matrix job…"
 	@sbatch --export=ALL,MODELS="$(MODELS)",SEEDS="$(SEEDS)",SYN_PER_CLASS="$(SYN_PER_CLASS)",REPO_DIR="$$(pwd)" \
@@ -224,11 +238,10 @@ tailf:
 	if [ -n "$$f" ]; then echo "Tailing $$f …"; tail -n 200 -f "$$f"; else echo "no .out yet"; fi
 
 slurm-help:
-	echo "# Submit CPU matrix (override on CLI as needed):"
-	echo "make submit-array MODELS='diffusion cdcgan cvae' SEEDS='42 43 44' SYN_PER_CLASS=1000"
+	echo "# Submit CPU matrix:"
+	echo "make submit-array MODELS='gan diffusion' SEEDS='42 43 44' SYN_PER_CLASS=1000"
 	echo "# Submit GPU matrix:"
 	echo "make submit-array-gpu MODELS='gan diffusion vae' SEEDS='42 43 44'"
 
-# -------- Everything ---------------------------------------------------------
-all: setup synth eval grids table report
+all: setup synth eval paper1
 	echo "All done."

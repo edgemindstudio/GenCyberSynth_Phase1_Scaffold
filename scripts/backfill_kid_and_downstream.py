@@ -17,6 +17,7 @@ Aligned with gcs-core/gcs_core/val_common.py schema:
 from __future__ import annotations
 
 import sys
+import os
 import json
 from pathlib import Path
 
@@ -51,24 +52,56 @@ NUM_CLASSES = 9
 VAL_FRACTION = 0.1
 
 SEED = 42
-MANIFEST_CAP_PER_CLASS = 200   # used for downstream + KID inputs
+# used for downstream + KID inputs
+MANIFEST_CAP_PER_CLASS = int(os.getenv("MANIFEST_CAP_PER_CLASS", "200")) 
 FID_CAP_PER_CLASS = 200         # passed into compute_all_metrics #was 50 before
 EPOCHS = 20                     # it was 5 before and now bump to 20 for paper-grade runs
 
 KID_SUBSET = 200
 KID_DEGREE = 3
 
+PHASE1_SUMMARY_NAME  = os.environ.get("PHASE1_SUMMARY_NAME", "paper1.json").strip()
+PHASE1_MANIFEST_NAME = os.environ.get("PHASE1_MANIFEST_NAME", "paper1_manifest.json").strip()
 
 # ---------------------------
 # Helpers
 # ---------------------------
 
+# def _find_summaries(model: str) -> list[Path]:
+    # sdir = ART / model / "summaries"
+    # if not sdir.exists():
+        # return []
+
+    # summary_name = os.environ.get("PHASE1_SUMMARY_NAME", "").strip()
+
+    ## If user pins a single file (paper1.json / latest.json), patch ONLY that
+    # if summary_name:
+        # p = sdir / summary_name
+        # return [p] if p.exists() else []
+
+    ## Otherwise default: patch all historical summaries
+    # return sorted(sdir.glob("summary_*.json"))
+    
 def _find_summaries(model: str) -> list[Path]:
     sdir = ART / model / "summaries"
-    return sorted(sdir.glob("summary_*.json")) if sdir.exists() else []
+    if not sdir.exists():
+        return []
+    locked = sdir / PHASE1_SUMMARY_NAME
+    if locked.exists():
+        return [locked]              # <-- ONLY patch paper1.json (or whatever name you set)
+    return sorted(sdir.glob("summary_*.json"))
 
+
+
+# def _manifest_path(model: str) -> Path:
+    # manifest_name = os.environ.get("PHASE1_MANIFEST_NAME", "manifest.json").strip()
+    # return ART / model / "synthetic" / manifest_name
 
 def _manifest_path(model: str) -> Path:
+    # Prefer frozen manifest for paper builds
+    p = ART / model / "synthetic" / PHASE1_MANIFEST_NAME
+    if p.exists():
+        return p
     return ART / model / "synthetic" / "manifest.json"
 
 
@@ -209,115 +242,125 @@ def main():
     print(f"[INFO] loaded real: train={xtr.shape}, val={xv.shape}, test={xt.shape}")
 
     for model in MODELS:
-        summaries = _find_summaries(model)
-        if not summaries:
-            print(f"[SKIP] {model}: no summaries")
+        try:
+            summaries = _find_summaries(model)
+            print(f"[INFO] {model}: patching summaries {[p.name for p in summaries]}")
+    
+            if not summaries:
+                print(f"[SKIP] {model}: no summaries")
+                continue
+    
+            manifest = _manifest_path(model)
+            print(f"[INFO] {model}: using manifest {manifest.name}")
+            
+            if not manifest.exists():
+                print(f"[SKIP] {model}: no manifest at {manifest}")
+                continue
+    
+            x_syn, y_syn = _load_manifest_xy(manifest, cap_per_class=MANIFEST_CAP_PER_CLASS, seed=SEED)
+            print(f"[INFO] {model}: loaded synth {x_syn.shape} from {manifest}")
+    
+            # Compute downstream utility via gcs_core
+            out = val_common.compute_all_metrics(
+                img_shape=IMG_SHAPE,
+                x_train_real=xtr, y_train_real=ytr,
+                x_val_real=xv,   y_val_real=yv,
+                x_test_real=xt,  y_test_real=yt,
+                x_synth=x_syn,   y_synth=y_syn,
+                fid_cap_per_class=FID_CAP_PER_CLASS,
+                seed=SEED,
+                epochs=EPOCHS,
+            )
+    
+            util_R = out.get("real_only")
+            util_RS = out.get("real_plus_synth")
+            if not isinstance(util_R, dict) or not isinstance(util_RS, dict):
+                raise RuntimeError(f"{model}: invalid util blocks from compute_all_metrics")
+    
+            mp_R, mr_R = _get_macro_pr(util_R)
+            mp_RS, mr_RS = _get_macro_pr(util_RS)
+    
+            # KID inputs (val real vs synth)
+            real_01 = val_common.to_01_hwc(xv, IMG_SHAPE)
+            fake_01 = val_common.to_01_hwc(x_syn, IMG_SHAPE)
+    
+            kid = _kid_inception_if_available(real_01, fake_01, subset=KID_SUBSET, seed=SEED)
+            if kid is None:
+                kid = _kid_cpu_fallback(real_01, fake_01, subset=KID_SUBSET, seed=SEED)
+                kid_mode = "cpu_fallback_poly_mmd_pixels_v1"
+            else:
+                kid_mode = "inception_poly_mmd_v1"
+    
+            # Patch ALL summaries for this model
+            for sp in summaries:
+                s = json.loads(sp.read_text())
+    
+                # ---- meta stamp: lets you detect backfill vs runtime ----
+                s.setdefault("metrics_meta", {})
+                s["metrics_meta"].update({
+                    "computed_at": "backfill",
+                    "metrics_version": "phase1_backfill_v2",
+                    "kid_mode": kid_mode,
+                    "gen_pr_mode": "downstream_macro",
+                })
+    
+                # ---- utility blocks (human-readable) ----
+                s["utility_real_only"] = {
+                    "macro_f1": util_R.get("macro_f1"),
+                    "macro_auprc": util_R.get("macro_auprc"),
+                    "bal_acc": util_R.get("bal_acc"),
+                    "balanced_acc": util_R.get("bal_acc"),
+                    "macro_precision": mp_R,
+                    "macro_recall": mr_R,
+                }
+                s["utility_real_plus_synth"] = {
+                    "macro_f1": util_RS.get("macro_f1"),
+                    "macro_auprc": util_RS.get("macro_auprc"),
+                    "bal_acc": util_RS.get("bal_acc"),
+                    "balanced_acc": util_RS.get("bal_acc"),
+                    "macro_precision": mp_RS,
+                    "macro_recall": mr_RS,
+                }
+    
+                # ---- structured downstream block (what your collector can read) ----
+                _set(s, ["metrics", "downstream", "macro_f1"], util_RS.get("macro_f1"))
+                _set(s, ["metrics", "downstream", "macro_auprc"], util_RS.get("macro_auprc"))
+                _set(s, ["metrics", "downstream", "balanced_acc"], util_RS.get("bal_acc"))
+                s["metrics.downstream.balanced_acc"] = util_RS.get("bal_acc")
+                _set(s, ["metrics", "downstream", "precision"], mp_RS)
+                _set(s, ["metrics", "downstream", "recall"], mr_RS)
+    
+                # ---- gen_precision / gen_recall (your “gen_*” columns) ----
+                _set(s, ["metrics", "gen_precision"], mp_RS)
+                _set(s, ["metrics", "gen_recall"], mr_RS)
+    
+                # ---- legacy flattened keys (keeps older scripts working) ----
+                s["metrics.kid"] = float(kid)
+                s["metrics.gen_precision"] = mp_RS
+                s["metrics.gen_recall"] = mr_RS
+                s["metrics.downstream.macro_f1"] = util_RS.get("macro_f1")
+                s["metrics.downstream.precision"] = mp_RS
+                s["metrics.downstream.recall"] = mr_RS
+    
+                # ---- KID fields (structured + legacy) ----
+                _set(s, ["metrics", "kid"], float(kid))
+                _set(s, ["generative", "kid"], float(kid))
+    
+                sp.write_text(json.dumps(s, indent=2, sort_keys=True))
+    
+            # Pretty print
+            mp_show = float(mp_RS) if mp_RS is not None else float("nan")
+            mr_show = float(mr_RS) if mr_RS is not None else float("nan")
+    
+            print(
+                f"[OK] {model}: patched {len(summaries)} summaries "
+                f"(kid={kid:.6g} | macro_f1={util_RS.get('macro_f1'):.4f} | bal_acc={util_RS.get('bal_acc'):.4f} "
+                f"| macro_P={mp_show:.4f} | macro_R={mr_show:.4f})"
+            )
+            
+        except Exception as e:
+            print(f"[FAIL] {model}: {e}")
             continue
-
-        manifest = _manifest_path(model)
-        if not manifest.exists():
-            print(f"[SKIP] {model}: no manifest at {manifest}")
-            continue
-
-        x_syn, y_syn = _load_manifest_xy(manifest, cap_per_class=MANIFEST_CAP_PER_CLASS, seed=SEED)
-        print(f"[INFO] {model}: loaded synth {x_syn.shape} from {manifest}")
-
-        # Compute downstream utility via gcs_core
-        out = val_common.compute_all_metrics(
-            img_shape=IMG_SHAPE,
-            x_train_real=xtr, y_train_real=ytr,
-            x_val_real=xv,   y_val_real=yv,
-            x_test_real=xt,  y_test_real=yt,
-            x_synth=x_syn,   y_synth=y_syn,
-            fid_cap_per_class=FID_CAP_PER_CLASS,
-            seed=SEED,
-            epochs=EPOCHS,
-        )
-
-        util_R = out.get("real_only")
-        util_RS = out.get("real_plus_synth")
-        if not isinstance(util_R, dict) or not isinstance(util_RS, dict):
-            raise RuntimeError(f"{model}: invalid util blocks from compute_all_metrics")
-
-        mp_R, mr_R = _get_macro_pr(util_R)
-        mp_RS, mr_RS = _get_macro_pr(util_RS)
-
-        # KID inputs (val real vs synth)
-        real_01 = val_common.to_01_hwc(xv, IMG_SHAPE)
-        fake_01 = val_common.to_01_hwc(x_syn, IMG_SHAPE)
-
-        kid = _kid_inception_if_available(real_01, fake_01, subset=KID_SUBSET, seed=SEED)
-        if kid is None:
-            kid = _kid_cpu_fallback(real_01, fake_01, subset=KID_SUBSET, seed=SEED)
-            kid_mode = "cpu_fallback_poly_mmd_pixels_v1"
-        else:
-            kid_mode = "inception_poly_mmd_v1"
-
-        # Patch ALL summaries for this model
-        for sp in summaries:
-            s = json.loads(sp.read_text())
-
-            # ---- meta stamp: lets you detect backfill vs runtime ----
-            s.setdefault("metrics_meta", {})
-            s["metrics_meta"].update({
-                "computed_at": "backfill",
-                "metrics_version": "phase1_backfill_v2",
-                "kid_mode": kid_mode,
-                "gen_pr_mode": "downstream_macro",
-            })
-
-            # ---- utility blocks (human-readable) ----
-            s["utility_real_only"] = {
-                "macro_f1": util_R.get("macro_f1"),
-                "macro_auprc": util_R.get("macro_auprc"),
-                "bal_acc": util_R.get("bal_acc"),
-                "balanced_acc": util_R.get("bal_acc"),
-                "macro_precision": mp_R,
-                "macro_recall": mr_R,
-            }
-            s["utility_real_plus_synth"] = {
-                "macro_f1": util_RS.get("macro_f1"),
-                "macro_auprc": util_RS.get("macro_auprc"),
-                "bal_acc": util_RS.get("bal_acc"),
-                "balanced_acc": util_RS.get("bal_acc"),
-                "macro_precision": mp_RS,
-                "macro_recall": mr_RS,
-            }
-
-            # ---- structured downstream block (what your collector can read) ----
-            _set(s, ["metrics", "downstream", "macro_f1"], util_RS.get("macro_f1"))
-            _set(s, ["metrics", "downstream", "macro_auprc"], util_RS.get("macro_auprc"))
-            _set(s, ["metrics", "downstream", "balanced_acc"], util_RS.get("bal_acc"))
-            _set(s, ["metrics", "downstream", "precision"], mp_RS)
-            _set(s, ["metrics", "downstream", "recall"], mr_RS)
-
-            # ---- gen_precision / gen_recall (your “gen_*” columns) ----
-            _set(s, ["metrics", "gen_precision"], mp_RS)
-            _set(s, ["metrics", "gen_recall"], mr_RS)
-
-            # ---- legacy flattened keys (keeps older scripts working) ----
-            s["metrics.kid"] = float(kid)
-            s["metrics.gen_precision"] = mp_RS
-            s["metrics.gen_recall"] = mr_RS
-            s["metrics.downstream.macro_f1"] = util_RS.get("macro_f1")
-            s["metrics.downstream.precision"] = mp_RS
-            s["metrics.downstream.recall"] = mr_RS
-
-            # ---- KID fields (structured + legacy) ----
-            _set(s, ["metrics", "kid"], float(kid))
-            _set(s, ["generative", "kid"], float(kid))
-
-            sp.write_text(json.dumps(s, indent=2, sort_keys=True))
-
-        # Pretty print
-        mp_show = float(mp_RS) if mp_RS is not None else float("nan")
-        mr_show = float(mr_RS) if mr_RS is not None else float("nan")
-
-        print(
-            f"[OK] {model}: patched {len(summaries)} summaries "
-            f"(kid={kid:.6g} | macro_f1={util_RS.get('macro_f1'):.4f} | bal_acc={util_RS.get('bal_acc'):.4f} "
-            f"| macro_P={mp_show:.4f} | macro_R={mr_show:.4f})"
-        )
 
 
 if __name__ == "__main__":

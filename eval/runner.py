@@ -48,6 +48,7 @@ paths:
   artifacts: "artifacts"                 # output root (model folders live under here)
 """
 
+
 from __future__ import annotations
 
 import json
@@ -844,6 +845,19 @@ def evaluate_model_suite(
 
     # seed_ = int(_cfg_get(config, "seed", 0))
     seed_ = int(config.get("SEED", config.get("seed", 0)))
+    
+    # ADDED BLOCK
+    # Optional tuning-lite: include config_id in run_id so cfgA/cfgB are distinguishable
+    rm = config.get("run_meta") if isinstance(config.get("run_meta"), dict) else {}
+    cfg_id = rm.get("config_id") or rm.get("config_tag")
+    bpc = rm.get("budget_per_class") or config.get("budget_per_class")
+    if cfg_id and bpc:
+        run_id = f"{model_name}_{cfg_id}_pc{int(bpc)}_s{seed_}"
+    elif cfg_id:
+        run_id = f"{model_name}_{cfg_id}_s{seed_}"
+    else:
+        run_id = f"{model_name}_s{seed_}"
+
 
     # Consolidate generative metrics into a single dict
     gen = {
@@ -870,7 +884,7 @@ def evaluate_model_suite(
         "timestamp": datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%SZ"),
         "model": model_name,
         "seed": seed_,
-        "run_id": f"{model_name}_{seed_}",
+        "run_id": run_id, # <-- Replaced. Before this line was "run_id": f"{model_name}_{seed_}",
         "generative": {
             "fid": gen["fid"],
             "fid_macro": gen["fid_macro"],

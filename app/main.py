@@ -153,8 +153,11 @@ def artifacts_root(cfg: Dict[str, Any], override: str | None = None) -> str:
     if override:
         return override
     return str(cfg.get("paths", {}).get("artifacts", "artifacts"))
+    
 
-
+# ---------------------------------------------------------------------------
+# Path helpers
+# ---------------------------------------------------------------------------
 def _manifest_path(model_name: str, arts_root: str) -> str:
     """
     Conventional location for the synthesis manifest.
@@ -162,6 +165,56 @@ def _manifest_path(model_name: str, arts_root: str) -> str:
         <artifacts>/<model>/synthetic/manifest.json
     """
     return os.path.join(arts_root, model_name, "synthetic", "manifest.json")
+
+
+def _infer_config_variant(cfg: Dict[str, Any]) -> str | None:
+    """
+    Best-effort inference of config variant letter (A/B/...) from run_meta.
+
+    Priority:
+      1) cfg["run_meta"]["config_variant"]  (preferred)
+      2) cfg["run_meta"]["config_id"]       (e.g., "gan_A" -> "A")
+    """
+    rm = cfg.get("run_meta")
+    if not isinstance(rm, dict):
+        return None
+
+    v = rm.get("config_variant")
+    if isinstance(v, str) and v:
+        return v
+
+    cid = rm.get("config_id")
+    if isinstance(cid, str) and "_" in cid:
+        maybe = cid.split("_")[-1]
+        return maybe if maybe else None
+
+    return None
+
+
+def _per_run_manifest_path(model_name: str, arts_root: str, cfg: Dict[str, Any]) -> str | None:
+    """
+    Seed/config-specific manifest path:
+      <arts>/<model>/synthetic/<model>_<CFG>_seed<SEED>/manifest.json
+
+    Returns None if we cannot determine CFG and SEED.
+    """
+    cfg_variant = _infer_config_variant(cfg)
+    seed = cfg.get("SEED")
+
+    if not isinstance(cfg_variant, str) or not cfg_variant:
+        return None
+
+    # YAML usually loads SEED as int, but allow string digits too.
+    if not isinstance(seed, int):
+        if isinstance(seed, str) and seed.isdigit():
+            seed = int(seed)
+        else:
+            return None
+
+    run_dir = os.path.join(
+        arts_root, model_name, "synthetic", f"{model_name}_{cfg_variant}_seed{seed}"
+    )
+    return os.path.join(run_dir, "manifest.json")
 
 
 # ---------------------------------------------------------------------------
@@ -224,18 +277,52 @@ def attach_run_meta(cfg: Dict[str, Any], args: argparse.Namespace) -> None:
     except Exception:
         budget_per_class = None
 
-    cfg["run_meta"] = {
-        "config_path": cfg_path,
-        "config_sha1": _sha1(cfg_path) if cfg_path else None,
-        "git_commit": _git_commit(repo_root),
-        "caps": {
-            # If you later split these caps, update here accordingly.
-            "manifest_cap_per_class": per_class_cap,
-            "fid_cap_per_class": per_class_cap,
-        },
-        "budget_per_class": budget_per_class,
+    # cfg["run_meta"] = {
+        # "config_path": cfg_path,
+        # "config_sha1": _sha1(cfg_path) if cfg_path else None,
+        # "git_commit": _git_commit(repo_root),
+        # "caps": {
+            # # If you later split these caps, update here accordingly.
+            # "manifest_cap_per_class": per_class_cap,
+            # "fid_cap_per_class": per_class_cap,
+        # },
+        # "budget_per_class": budget_per_class,
+    # }
+    
+    # Updated from above block to below
+    existing = cfg.get("run_meta")
+    existing = existing if isinstance(existing, dict) else {}
+    
+    rm = dict(existing)  # copy
+    rm.setdefault("config_path", cfg_path)
+    rm.setdefault("config_sha1", _sha1(cfg_path) if cfg_path else None)
+    rm.setdefault("git_commit", _git_commit(repo_root))
+    
+    # caps always refresh (safe)
+    rm["caps"] = {
+        "manifest_cap_per_class": per_class_cap,
+        "fid_cap_per_class": per_class_cap,
     }
+    
+    # budget: DO NOT overwrite if already set by overrides
+    if rm.get("budget_per_class") is None:
+        rm["budget_per_class"] = budget_per_class
 
+    cfg["run_meta"] = rm
+
+
+
+# ---------------------------------------------------------------------------
+# Helper Functions for Deep Merging Dicts
+# ---------------------------------------------------------------------------
+def deep_update(base: dict, upd: dict) -> dict:
+    for k, v in (upd or {}).items():
+        if isinstance(v, dict) and isinstance(base.get(k), dict):
+            deep_update(base[k], v)
+        else:
+            base[k] = v
+    return base
+    
 
 # ---------------------------------------------------------------------------
 # Command handlers
@@ -253,6 +340,10 @@ def cmd_train(args: argparse.Namespace) -> int:
     This lets each model family own its training code without complicating the CLI.
     """
     cfg = load_config(args.config)
+        
+    if args.overrides:
+        ov = load_config(args.overrides)
+        deep_update(cfg, ov)
 
     # Ensure cfg has paths key and apply artifacts override (so training can write consistently)
     cfg.setdefault("paths", {})
@@ -331,8 +422,13 @@ def cmd_synth(args: argparse.Namespace) -> int:
       2) Build adapter from registry
       3) adapter.synth(cfg) -> returns manifest dict (and should write manifest file)
       4) Ensure a conventional manifest path exists (write copy if adapter didn't)
+      5) ALSO write a per-run manifest (seed/config-specific) for tuning safety
     """
     cfg = load_config(args.config)
+
+    if args.overrides:
+        ov = load_config(args.overrides)
+        deep_update(cfg, ov)
 
     cfg.setdefault("paths", {})
     if args.artifacts:
@@ -357,12 +453,28 @@ def cmd_synth(args: argparse.Namespace) -> int:
     # Adapter is responsible for writing the manifest. We still return/handle it defensively.
     manifest = adapter.synth(cfg)
 
-    # Ensure the manifest exists at the conventional location (helpful for tooling)
+    # -----------------------------------------------------------------------
+    # Manifest paths
+    # -----------------------------------------------------------------------
     arts_root = artifacts_root(cfg, args.artifacts)
+
+    # Backwards-compatible (shared) manifest path
     expected_path = _manifest_path(args.model, arts_root)
 
+    # New: per-run (seed/config-specific) manifest path
+    per_run_path = _per_run_manifest_path(args.model, arts_root, cfg)
+
+    # Optional: expose these paths for adapters/tooling (does not break anything)
+    cfg.setdefault("paths", {})
+    cfg["paths"]["shared_manifest_path"] = expected_path
+    if per_run_path:
+        cfg["paths"]["per_run_manifest_path"] = per_run_path
+        cfg["paths"]["per_run_synth_dir"] = os.path.dirname(per_run_path)
+
+    # -----------------------------------------------------------------------
+    # Ensure shared manifest exists (tooling expects this)
+    # -----------------------------------------------------------------------
     if not os.path.exists(expected_path):
-        # Write a convenience copy if adapter returned a manifest but didn't write it there
         try:
             os.makedirs(os.path.dirname(expected_path), exist_ok=True)
             with open(expected_path, "w") as f:
@@ -373,6 +485,18 @@ def cmd_synth(args: argparse.Namespace) -> int:
             )
         except Exception as e:
             _warn(f"Could not save manifest copy to {expected_path}: {e}")
+
+    # -----------------------------------------------------------------------
+    # Also write per-run manifest (seed/config-specific)
+    # -----------------------------------------------------------------------
+    if per_run_path and not os.path.exists(per_run_path):
+        try:
+            os.makedirs(os.path.dirname(per_run_path), exist_ok=True)
+            with open(per_run_path, "w") as f:
+                json.dump(manifest, f, indent=2)
+            _info(f"Saved per-run manifest: {per_run_path}")
+        except Exception as e:
+            _warn(f"Could not save per-run manifest copy to {per_run_path}: {e}")
 
     _info(f"Synthesis complete. Manifest: {expected_path}")
     return 0
@@ -392,6 +516,10 @@ def cmd_eval(args: argparse.Namespace) -> int:
       - For auditability, ensure eval summary writer copies cfg["run_meta"].
     """
     cfg = load_config(args.config)
+    
+    if args.overrides:
+        ov = load_config(args.overrides)
+        deep_update(cfg, ov)
 
     cfg.setdefault("paths", {})
     if args.artifacts:
@@ -460,6 +588,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     # train
     p_t = sub.add_parser("train", help="Train the model (routes into <model>.train if available)")
+    p_t.add_argument("--overrides", default=None, help="Path to a YAML overrides file")
     p_t.add_argument("--model", required=True, help="Model family (e.g., gan, diffusion, vae, ...)")
     p_t.add_argument("--config", default="configs/config.yaml", help="Path to YAML config")
     p_t.add_argument("--artifacts", default=None, help="Override artifacts root directory")
@@ -467,6 +596,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     # synth
     p_s = sub.add_parser("synth", help="Generate synthetic images via an adapter")
+    p_s.add_argument("--overrides", default=None, help="Path to a YAML overrides file")
     p_s.add_argument("--model", required=True, help="Adapter name (e.g., diffusion, gan, vae, ...)")
     p_s.add_argument("--config", default="configs/config.yaml", help="Path to YAML config")
     p_s.add_argument("--artifacts", default=None, help="Override artifacts root directory")
@@ -474,6 +604,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     # eval
     p_e = sub.add_parser("eval", help="Run evaluation (uses gcs-core) on latest manifest")
+    p_e.add_argument("--overrides", default=None, help="Path to a YAML overrides file")
     p_e.add_argument("--model", required=True, help="Adapter name (e.g., diffusion, gan, vae, ...)")
     p_e.add_argument("--config", default="configs/config.yaml", help="Path to YAML config")
     p_e.add_argument("--artifacts", default=None, help="Override artifacts root directory")

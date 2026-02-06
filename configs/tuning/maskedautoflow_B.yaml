@@ -1,0 +1,6 @@
+run_meta: { config_id: maskedautoflow_B }
+maskedautoflow:
+  DEPTH: 8
+  WIDTH: 256
+  LR: 1.0e-3
+  BATCH: 256

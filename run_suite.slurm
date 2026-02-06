@@ -18,6 +18,15 @@ module load slurm/slurm/24.05.7
 source ~/miniforge3/etc/profile.d/conda.sh
 conda activate gcs_py310
 
+echo "[slurm] job_id=$SLURM_JOB_ID submit_dir=$SLURM_SUBMIT_DIR host=$(hostname)"
+cd "$SLURM_SUBMIT_DIR" || { echo "Cannot cd to submit dir"; exit 1; }
+
+# Sanity: show where python is and ensure we’re in repo root
+which python
+python -c "import os; print('[py] cwd=', os.getcwd())"
+python -c "import eval.runner, scripts; print('[py] runner=', eval.runner.__file__)"
+
+
 # --- Make TF quiet on CPU-only nodes ---
 export CUDA_VISIBLE_DEVICES=-1
 export TF_CPP_MIN_LOG_LEVEL=3

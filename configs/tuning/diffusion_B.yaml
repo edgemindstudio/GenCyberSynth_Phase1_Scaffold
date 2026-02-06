@@ -1,0 +1,5 @@
+run_meta: { config_id: diffusion_B }
+diffusion:
+  LR: 1.0e-4
+  BASE_FILTERS: 128
+  BATCH: 256

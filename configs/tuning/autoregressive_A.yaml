@@ -1,0 +1,8 @@
+run_meta: { config_id: autoregressive_A }
+autoregressive:
+  LR: 1.0e-3
+  BATCH: 256
+  SAMPLING:
+    TEMPERATURE: 0.95
+    TOP_K: 100
+    TOP_P: 0.95

@@ -1,0 +1,6 @@
+run_meta: { config_id: restrictedboltzmann_B }
+restrictedboltzmann:
+  HIDDEN: 512
+  CD_K: 5
+  EPOCHS: 50
+  LR: 5.0e-4

@@ -420,6 +420,78 @@ def _manifest_for_meta(man_path: str) -> Dict[str, Any] | None:
         pass
 
     return man
+    
+# ---------------------------------------------------------------------------
+# Manifest selection (shared + per-run)
+# ---------------------------------------------------------------------------
+def _infer_config_variant(config: dict) -> str | None:
+    """
+    Best-effort inference of config variant letter (A/B/...) from run_meta.
+
+    Priority:
+      1) config["run_meta"]["config_variant"]  (preferred)
+      2) config["run_meta"]["config_id"]       (e.g., "gan_A" -> "A")
+    """
+    rm = config.get("run_meta")
+    if not isinstance(rm, dict):
+        return None
+
+    v = rm.get("config_variant")
+    if isinstance(v, str) and v:
+        return v
+
+    cid = rm.get("config_id")
+    if isinstance(cid, str) and "_" in cid:
+        maybe = cid.split("_")[-1]
+        return maybe if maybe else None
+
+    return None
+
+
+def _per_run_manifest_path(synth_root: str, model_name: str, config: dict) -> str | None:
+    """
+    Seed/config-specific manifest path:
+
+      <synth_root>/<model>_<CFG>_seed<SEED>/manifest.json
+
+    where synth_root is:
+      <artifacts>/<model>/synthetic
+    """
+    cfg_variant = _infer_config_variant(config)
+    seed = config.get("SEED")
+
+    if not isinstance(cfg_variant, str) or not cfg_variant:
+        return None
+
+    # YAML loads SEED as int normally, but allow "42" too.
+    if not isinstance(seed, int):
+        if isinstance(seed, str) and seed.isdigit():
+            seed = int(seed)
+        else:
+            return None
+
+    run_dir = os.path.join(synth_root, f"{model_name}_{cfg_variant}_seed{seed}")
+    return os.path.join(run_dir, "manifest.json")
+
+
+def _select_manifest_path(synth_root: str, model_name: str, config: dict) -> str:
+    """
+    Prefer per-run manifest if it exists, else fall back to shared manifest.
+
+    Shared (backwards-compatible):
+      <synth_root>/manifest.json
+
+    Per-run (tuning-safe):
+      <synth_root>/<model>_<CFG>_seed<SEED>/manifest.json
+    """
+    shared = os.path.join(synth_root, "manifest.json")
+    per_run = _per_run_manifest_path(synth_root, model_name, config)
+
+    if per_run and os.path.exists(per_run):
+        return per_run
+
+    return shared
+
 
 # -----------------------------------------------------------------------------
 # Robust local MS-SSIM with SSIM fallback
@@ -581,7 +653,8 @@ def evaluate_model_suite(
 
     # We expect synthesis to have produced:
     #   {artifacts}/{model}/synthetic/manifest.json
-    man_path = os.path.join(synth_root, "manifest.json")
+    # man_path = os.path.join(synth_root, "manifest.json")
+    man_path = _select_manifest_path(synth_root, model_name, config)
     have_synth = (not no_synth) and os.path.exists(man_path)
     
     # ALWAYS use the normalized manifest for meta inference (even if metrics won't run)
@@ -589,6 +662,16 @@ def evaluate_model_suite(
     
     # Now run_meta will infer budget_per_class from per_class_counts reliably
     _ensure_run_meta(config, synth_manifest=synth_manifest_meta)
+    
+    # Record which manifest path this eval run actually used (audit-friendly)
+    try:
+        rm = config.get("run_meta")
+        rm = rm if isinstance(rm, dict) else {}
+        rm["manifest_path"] = man_path
+        config["run_meta"] = rm
+    except Exception:
+        pass
+
     _require_run_meta_ok(config)
 
 
@@ -710,9 +793,11 @@ def evaluate_model_suite(
     # (X_val/y_val or X_test/y_test) being in scope elsewhere. If not, it
     # gracefully skips.
     # ---------------------------------------------------------------------
-    from pathlib import Path as _Path
 
-    synth_manifest = _Path(synth_root) / "manifest.json"
+    # synth_manifest = _Path(synth_root) / "manifest.json"
+    # Use the same manifest path selected above (per-run preferred, shared fallback)
+    synth_manifest = Path(man_path)
+
     eval_cfg: Dict[str, Any] = _cfg_get(config, "evaluator", {}) or {}
 
     want_fid: bool = bool(eval_cfg.get("compute_fid", True))
@@ -825,9 +910,6 @@ def evaluate_model_suite(
                 
         elif have_synth and os.path.exists(man_path):
             man_json = _manifest_for_meta(man_path) or _load_manifest_local(man_path)
-            paths = man_json.get("paths", []) if isinstance(man_json, dict) else []
-            counts["num_fake"] = len(paths) if isinstance(paths, list) else None
-
 
             if isinstance(man_json, dict):
                 if isinstance(man_json.get("paths"), list):
@@ -908,8 +990,14 @@ def evaluate_model_suite(
         "counts.num_fake": counts_map["synthetic"],
     }
 
-    # Add audit fields to the returned record as well (helpful for logging/tests)
+    # Helpful, greppable field (top-level)
+    rec["manifest_path"] = man_path
     _attach_audit_fields(rec, config)
+    
+    rm = config.get("run_meta")
+    rm = rm if isinstance(rm, dict) else {}
+    rm["manifest_path"] = man_path
+    config["run_meta"] = rm
 
     # --- Primary write: phase2 summary writer --------------------------------
     # This function produces a clean, consistent JSON summary format used by your
@@ -936,26 +1024,44 @@ def evaluate_model_suite(
     try:
         with open(out_path, "r") as fsrc:
             _cur = json.load(fsrc)
+    except Exception as e:
+        print(f"[eval] ERROR: could not read summary for patching: {type(e).__name__}: {e}")
+        _cur = None  # keep going
+        
+    if _cur is not None:
+        # 1) Always patch manifest_path (safe, no dependencies)
+        _cur["manifest_path"] = man_path
+        rm2 = _cur.get("run_meta")
+        rm2 = rm2 if isinstance(rm2, dict) else {}
+        rm2["manifest_path"] = man_path
+        _cur["run_meta"] = rm2
+    
+        print(f"[eval] patched manifest_path into summary: {man_path}")
+    
+        # 2) Patch audit fields
+        try:
+            _attach_audit_fields(_cur, config)
+        except Exception as e:
+            print(f"[eval] WARNING: _attach_audit_fields failed: {type(e).__name__}: {e}")
+    
+        # 3) Merge extra computed metrics
+        try:
+            _cur.setdefault("generative", {}).update({k: v for k, v in _gen_extra.items() if v is not None})
+            if _mem_extra:
+                _cur.setdefault("memorization", {}).update(_mem_extra)
+            _cur["metrics.fid"] = _cur.get("metrics.fid", _gen_extra.get("fid"))
+            if "nn_dist_mean" in _mem_extra:
+                _cur["metrics.nn_dist_mean"] = _mem_extra["nn_dist_mean"]
+        except Exception as e:
+            print(f"[eval] WARNING: metric merge failed: {type(e).__name__}: {e}")
+    
+        # 4) Write patched file
+        try:
+            with open(out_path, "w") as fdst:
+                json.dump(_cur, fdst, indent=2)
+        except Exception as e:
+            print(f"[eval] ERROR: could not write patched summary: {type(e).__name__}: {e}")
 
-        # Persist audit metadata into the file that is actually written to disk
-        _attach_audit_fields(_cur, config)
-
-        # Merge extra computed metrics into the nested generative/memorization blocks
-        _cur.setdefault("generative", {}).update({k: v for k, v in _gen_extra.items() if v is not None})
-
-        if _mem_extra:
-            _cur.setdefault("memorization", {}).update(_mem_extra)
-
-        # Maintain flattened keys for older tools
-        _cur["metrics.fid"] = _cur.get("metrics.fid", _gen_extra.get("fid"))
-        if "nn_dist_mean" in _mem_extra:
-            _cur["metrics.nn_dist_mean"] = _mem_extra["nn_dist_mean"]
-
-        with open(out_path, "w") as fdst:
-            json.dump(_cur, fdst, indent=2)
-    except Exception:
-        # Never fail evaluation because summary patching failed
-        pass
 
     # --- latest.json ----------------------------------------------------------
     # A human-friendly "most recent summary" copy. Many quick scripts read this.
@@ -968,7 +1074,6 @@ def evaluate_model_suite(
         pass
 
     return rec
-
 
 __all__ = ["evaluate_model_suite"]
 

@@ -1,0 +1,5 @@
+run_meta: { config_id: gaussianmixture_A }
+gaussianmixture:
+  GMM_COMPONENTS: 9
+  GMM_COVARIANCE: diag
+  GMM_MAX_ITER: 300

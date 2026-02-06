@@ -76,3 +76,4 @@ artifacts.repo_backup.*
 
 # OS noise
 .DS_Store
+configs/_merged_*.yaml

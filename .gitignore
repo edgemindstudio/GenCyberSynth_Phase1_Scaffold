@@ -60,3 +60,19 @@ configs/config.gmm_stable.yaml
 
 # Local artifacts (do not commit)
 artifacts__local_*/
+
+# Slurm / cluster logs (keep out of git)
+*.out
+*.err
+gcs-suite.*.out
+gcs-suite.*.err
+slurm-tuning.*.out
+slurm-tuning.*.err
+
+# Local run dirs / artifacts
+logs/
+artifacts__local_*/
+artifacts.repo_backup.*
+
+# OS noise
+.DS_Store

@@ -11,7 +11,9 @@
 set -euo pipefail
 
 REPO="/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold"
-CFG="$REPO/configs/config.yaml"
+# CFG="$REPO/configs/config.yaml"
+CFG="${CFG:-$REPO/configs/config.yaml}"
+
 ARTS="/home/bruno.fonkeng/gencys/artifacts"
 
 MODELS=(gan diffusion autoregressive vae gaussianmixture restrictedboltzmann maskedautoflow)

@@ -205,9 +205,22 @@ def synth(cfg: dict, output_root: str, seed: int = 42) -> Dict:
     LR = float(_cfg_get(cfg, "LR", _cfg_get(cfg, "gan.lr", 2e-4)))
     BETA_1 = float(_cfg_get(cfg, "BETA_1", _cfg_get(cfg, "gan.beta_1", 0.5)))
 
+    # artifacts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
+    # ckpt_dir = Path(_cfg_get(cfg, "ARTIFACTS.gan_checkpoints",
+    #                          artifacts_root / "gan" / "checkpoints"))
+
     artifacts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
-    ckpt_dir = Path(_cfg_get(cfg, "ARTIFACTS.gan_checkpoints",
-                             artifacts_root / "gan" / "checkpoints"))
+
+    base_ckpt_dir = Path(
+        _cfg_get(
+            cfg,
+            "ARTIFACTS.gan_checkpoints",
+            artifacts_root / "gan" / "checkpoints",
+        )
+    )
+    ckpt_dir = base_ckpt_dir if base_ckpt_dir.name.startswith("seed") else base_ckpt_dir / f"seed{seed}"
+
+    print(f"[gan-synth] ckpt_dir={ckpt_dir}")
 
     # Seeds for reproducibility
     np.random.seed(int(seed))

@@ -188,7 +188,8 @@ def synth(cfg: dict, output_root: str, seed: int = 42) -> Dict:
     Generate S PNGs/class into {output_root}/{class}/{seed}/... and return a manifest.
 
     Expects checkpoints at:
-      artifacts/maskedautoflow/checkpoints/MAF_best.weights.h5 (or MAF_last.weights.h5)
+      artifacts/maskedautoflow/checkpoints/seed{seed}/MAF_best.weights.h5
+      (or MAF_last.weights.h5)
     """
     # Resolve shape/classes/count (support both NEW and LEGACY keys)
     H, W, C = tuple(_cfg_get(cfg, "IMG_SHAPE", _cfg_get(cfg, "img.shape", (40, 40, 1))))
@@ -197,11 +198,31 @@ def synth(cfg: dict, output_root: str, seed: int = 42) -> Dict:
     num_flows = int(_cfg_get(cfg, "NUM_FLOWS", 5))
     hidden_dims = tuple(int(h) for h in _cfg_get(cfg, "HIDDEN_DIMS", (128, 128)))
 
+    # artifacts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
+    # ckpt_dir = Path(_cfg_get(cfg, "ARTIFACTS.maskedautoflow_checkpoints",
+    #                          artifacts_root / "maskedautoflow" / "checkpoints"))
+    # sums_dir = Path(_cfg_get(cfg, "ARTIFACTS.maskedautoflow_summaries",
+    #                          artifacts_root / "maskedautoflow" / "summaries"))
+
     artifacts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
-    ckpt_dir = Path(_cfg_get(cfg, "ARTIFACTS.maskedautoflow_checkpoints",
-                             artifacts_root / "maskedautoflow" / "checkpoints"))
-    sums_dir = Path(_cfg_get(cfg, "ARTIFACTS.maskedautoflow_summaries",
-                             artifacts_root / "maskedautoflow" / "summaries"))
+
+    base_ckpt_dir = Path(
+        _cfg_get(
+            cfg,
+            "ARTIFACTS.maskedautoflow_checkpoints",
+            artifacts_root / "maskedautoflow" / "checkpoints",
+        )
+    )
+    ckpt_dir = base_ckpt_dir if base_ckpt_dir.name.startswith("seed") else base_ckpt_dir / f"seed{seed}"
+
+    base_sums_dir = Path(
+        _cfg_get(
+            cfg,
+            "ARTIFACTS.maskedautoflow_summaries",
+            artifacts_root / "maskedautoflow" / "summaries",
+        )
+    )
+    sums_dir = base_sums_dir if base_sums_dir.name.startswith("seed") else base_sums_dir / f"seed{seed}"
 
     # Load model & sample
     model = load_maf_from_checkpoints(ckpt_dir, (H, W, C), num_flows=num_flows, hidden_dims=hidden_dims)

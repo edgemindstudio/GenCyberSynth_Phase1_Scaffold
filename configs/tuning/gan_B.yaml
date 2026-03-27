@@ -1,6 +1,15 @@
-run_meta: { config_id: gan_B }
+# configs/tuning/gan_B.yaml
+TUNING_LITE: true
+
+train:
+  epochs: 20
+  batch_size: 256
+
 gan:
-  LR_G: 1.0e-4
-  LR_D: 2.0e-4
-  D_UPDATES_PER_G: 2
-  BATCH: 128
+  latent_dim: 128
+  lr: 1.0e-4
+  beta_1: 0.5
+
+run_meta:
+  config_id: gan_B
+  config_variant: B

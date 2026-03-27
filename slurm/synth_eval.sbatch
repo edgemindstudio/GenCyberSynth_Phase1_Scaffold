@@ -22,7 +22,9 @@ MODELS=(autoregressive gan diffusion vae gaussianmixture restrictedboltzmann mas
 M=${MODELS[$SLURM_ARRAY_TASK_ID]}
 
 # paths
-CFG="$REPO/configs/config.yaml"
+# CFG="$REPO/configs/config.yaml"
+CFG="${CFG:-$REPO/configs/config.yaml}"
+
 ARTS="${SCRATCH:-$HOME}/gencys/artifacts"
 
 echo "PWD=$(pwd)"

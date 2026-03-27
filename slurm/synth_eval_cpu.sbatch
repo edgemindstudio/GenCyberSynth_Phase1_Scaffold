@@ -15,7 +15,10 @@ cd "$REPO"
 export PYTHONPATH="$REPO:${PYTHONPATH:-}"
 MODELS=(autoregressive vae gaussianmixture restrictedboltzmann maskedautoflow)
 M=${MODELS[$SLURM_ARRAY_TASK_ID]}
-CFG="$REPO/configs/config.yaml"
+
+# CFG="$REPO/configs/config.yaml"
+CFG="${CFG:-$REPO/configs/config.yaml}"
+
 ARTS="${SCRATCH:-$HOME}/gencys/artifacts"
 echo "CPU synth+eval -> $M"
 python -m app.main synth --model "$M" --config "$CFG" --artifacts "$ARTS"

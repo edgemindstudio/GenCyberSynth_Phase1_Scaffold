@@ -58,18 +58,49 @@ def _cfg_get(cfg: Dict, dotted: str, default=None):
     return cur
 
 
+# def _default_artifact_paths(cfg: Dict) -> tuple[Path, Path, Path]:
+#     """
+#     Standardize artifact directories with sensible defaults:
+#       artifacts/maskedautoflow/checkpoints
+#       artifacts/maskedautoflow/synthetic
+#       artifacts/maskedautoflow/summaries
+#     """
+#     artifacts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
+#     arts = cfg.get("ARTIFACTS", {})
+#     ckpt = Path(arts.get("maskedautoflow_checkpoints", artifacts_root / "maskedautoflow" / "checkpoints"))
+#     synth = Path(arts.get("maskedautoflow_synthetic", artifacts_root / "maskedautoflow" / "synthetic"))
+#     sums = Path(arts.get("maskedautoflow_summaries", artifacts_root / "maskedautoflow" / "summaries"))
+#     return ckpt, synth, sums
+
 def _default_artifact_paths(cfg: Dict) -> tuple[Path, Path, Path]:
     """
-    Standardize artifact directories with sensible defaults:
-      artifacts/maskedautoflow/checkpoints
-      artifacts/maskedautoflow/synthetic
-      artifacts/maskedautoflow/summaries
+    Standardize artifact directories with seed-aware defaults:
+      artifacts/maskedautoflow/checkpoints/seed{SEED}
+      artifacts/maskedautoflow/synthetic/seed{SEED}
+      artifacts/maskedautoflow/summaries/seed{SEED}
     """
     artifacts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
     arts = cfg.get("ARTIFACTS", {})
-    ckpt = Path(arts.get("maskedautoflow_checkpoints", artifacts_root / "maskedautoflow" / "checkpoints"))
-    synth = Path(arts.get("maskedautoflow_synthetic", artifacts_root / "maskedautoflow" / "synthetic"))
-    sums = Path(arts.get("maskedautoflow_summaries", artifacts_root / "maskedautoflow" / "summaries"))
+    seed = int(_cfg_get(cfg, "SEED", 42))
+
+    ckpt = Path(
+        arts.get(
+            "maskedautoflow_checkpoints",
+            artifacts_root / "maskedautoflow" / "checkpoints" / f"seed{seed}",
+        )
+    )
+    synth = Path(
+        arts.get(
+            "maskedautoflow_synthetic",
+            artifacts_root / "maskedautoflow" / "synthetic" / f"seed{seed}",
+        )
+    )
+    sums = Path(
+        arts.get(
+            "maskedautoflow_summaries",
+            artifacts_root / "maskedautoflow" / "summaries" / f"seed{seed}",
+        )
+    )
     return ckpt, synth, sums
 
 
@@ -371,6 +402,7 @@ def _train_from_cfg(cfg: Dict) -> Dict[str, Any]:
 
     # ---- Artifacts ----
     ckpt_dir, _synth_dir, sums_dir = _default_artifact_paths(cfg)
+    print(f"[maf-paths] ckpts={ckpt_dir} | summaries={sums_dir}")
     (ckpt_dir).mkdir(parents=True, exist_ok=True)
     (sums_dir).mkdir(parents=True, exist_ok=True)
     tb_dir = sums_dir / "tb"

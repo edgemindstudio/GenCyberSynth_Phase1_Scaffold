@@ -145,9 +145,22 @@ def synth(cfg: dict, output_root: str, seed: int = 42) -> Dict:
     K = int(_cfg_get(cfg, "NUM_CLASSES", _cfg_get(cfg, "num_classes", 9)))
     S = int(_cfg_get(cfg, "SAMPLES_PER_CLASS", _cfg_get(cfg, "samples_per_class", 25)))
 
+    # artifacts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
+    # ckpt_dir = Path(_cfg_get(cfg, "ARTIFACTS.autoregressive_checkpoints",
+    #                          artifacts_root / "autoregressive" / "checkpoints"))
+
     artifacts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
-    ckpt_dir = Path(_cfg_get(cfg, "ARTIFACTS.autoregressive_checkpoints",
-                             artifacts_root / "autoregressive" / "checkpoints"))
+
+    base_ckpt_dir = Path(
+        _cfg_get(
+            cfg,
+            "ARTIFACTS.autoregressive_checkpoints",
+            artifacts_root / "autoregressive" / "checkpoints",
+        )
+    )
+    ckpt_dir = base_ckpt_dir if base_ckpt_dir.name.startswith("seed") else base_ckpt_dir / f"seed{seed}"
+
+    print(f"[ar-synth] ckpt_dir={ckpt_dir}")
 
     model = load_ar_from_checkpoints(ckpt_dir, img_shape=(H, W, C), num_classes=K)
 

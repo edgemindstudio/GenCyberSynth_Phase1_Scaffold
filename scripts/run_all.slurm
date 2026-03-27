@@ -29,7 +29,9 @@ python -V
 models=(gan vae diffusion autoregressive restrictedboltzmann gaussianmixture maskedautoflow)
 MODEL="${models[$SLURM_ARRAY_TASK_ID]}"
 SCRIPT="${MODEL}/train.py"
-CONFIG="configs/config.yaml"
+
+# CONFIG="configs/config.yaml"
+CONFIG="${CFG:-configs/config.yaml}"
 
 echo "TASK=$SLURM_ARRAY_TASK_ID MODEL=$MODEL"
 echo "SCRIPT=$SCRIPT"

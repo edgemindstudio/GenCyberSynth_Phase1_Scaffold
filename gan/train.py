@@ -81,13 +81,25 @@ def _artifacts_root(cfg: dict) -> Path:
     return Path(cfg.get("paths", {}).get("artifacts", "artifacts"))
 
 
-def _ensure_dirs(arts_root: Path) -> dict[str, Path]:
-    """Create and return common artifact dirs for GAN training."""
+# def _ensure_dirs(arts_root: Path) -> dict[str, Path]:
+#     """Create and return common artifact dirs for GAN training."""
+#     paths = {
+#         "ckpts": arts_root / "gan" / "checkpoints",
+#         "synthetic": arts_root / "gan" / "synthetic",
+#         "summaries": arts_root / "gan" / "summaries",
+#         "tensorboard": arts_root / "tensorboard",
+#     }
+#     for p in paths.values():
+#         p.mkdir(parents=True, exist_ok=True)
+#     return paths
+
+def _ensure_dirs(arts_root: Path, seed: int) -> dict[str, Path]:
+    """Create and return seed-aware artifact dirs for GAN training."""
     paths = {
-        "ckpts": arts_root / "gan" / "checkpoints",
-        "synthetic": arts_root / "gan" / "synthetic",
-        "summaries": arts_root / "gan" / "summaries",
-        "tensorboard": arts_root / "tensorboard",
+        "ckpts": arts_root / "gan" / "checkpoints" / f"seed{seed}",
+        "synthetic": arts_root / "gan" / "synthetic" / f"seed{seed}",
+        "summaries": arts_root / "gan" / "summaries" / f"seed{seed}",
+        "tensorboard": arts_root / "gan" / "tensorboard" / f"seed{seed}",
     }
     for p in paths.values():
         p.mkdir(parents=True, exist_ok=True)
@@ -96,7 +108,6 @@ def _ensure_dirs(arts_root: Path) -> dict[str, Path]:
 
 def _to_float(x) -> float:
     """Convert Keras/TF returns (float | list | tuple | 0-D np/TF tensor) to float."""
-    # if it's a list/tuple like [loss, acc], take the loss
     if isinstance(x, (list, tuple)):
         x = x[0]
     try:
@@ -106,11 +117,12 @@ def _to_float(x) -> float:
         try:
             return float(_np.asarray(x).reshape(-1)[0])
         except Exception:
-            # last resort
             return float(_np.array(x).reshape(()).item())
 
 
-def _save_grid(images01: np.ndarray, img_shape: Tuple[int, int, int], rows: int, cols: int, out_path: Path) -> None:
+def _save_grid(
+    images01: np.ndarray, img_shape: Tuple[int, int, int], rows: int, cols: int, out_path: Path
+) -> None:
     """Save a grid from images in [0,1] to PNG (for quick inspection)."""
     import matplotlib.pyplot as plt
 
@@ -156,7 +168,7 @@ def run_from_file(
     d_weights: Path | None = None,
     sample_after: bool = False,
     samples_per_class: int = 0,
-    seed: int = 42,
+    seed: int | None = None,
 ) -> int:
     """
     Train a Conditional DCGAN using hyperparameters loaded from YAML at `cfg_path`.
@@ -166,33 +178,95 @@ def run_from_file(
     int
         0 on success (for CLI compatibility).
     """
-    _set_seeds(seed)
     _enable_gpu_mem_growth()
 
     import yaml
     with open(cfg_path, "r") as f:
         cfg = yaml.safe_load(f) or {}
 
-    # ---- Resolve config knobs with sensible defaults ----
-    IMG_SHAPE   = tuple(cfg.get("IMG_SHAPE", (40, 40, 1)))
-    NUM_CLASSES = int(cfg.get("NUM_CLASSES", 9))
-    LATENT_DIM  = int(cfg.get("LATENT_DIM", 100))
-    EPOCHS      = int(epochs if epochs is not None else cfg.get("EPOCHS", 5000))
-    BATCH_SIZE  = int(batch_size if batch_size is not None else cfg.get("BATCH_SIZE", 256))
-    LR          = float(cfg.get("LR", 2e-4))
-    BETA_1      = float(cfg.get("BETA_1", 0.5))
+    # Resolve seed: CLI override wins; otherwise use config SEED; fallback 42
+    seed = int(seed if seed is not None else cfg.get("SEED", 42))
+    _set_seeds(seed)
+
+    # -----------------------------------------------------------------
+    # Canonical config blocks + backward-compatible fallbacks
+    # -----------------------------------------------------------------
+    train_cfg = cfg.get("train", {}) or {}
+    gan_cfg = cfg.get("gan", {}) or {}
+
+    IMG_SHAPE = tuple(cfg.get("IMG_SHAPE", train_cfg.get("IMG_SHAPE", (40, 40, 1))))
+    NUM_CLASSES = int(cfg.get("NUM_CLASSES", train_cfg.get("NUM_CLASSES", 9)))
+
+    # Latent dim: prefer gan.latent_dim, fallback to top-level LATENT_DIM
+    LATENT_DIM = int(
+        gan_cfg.get("latent_dim", cfg.get("LATENT_DIM", 100))
+    )
+
+    # Epochs: prefer CLI override, then train.epochs, then legacy top-level EPOCHS, then 5000
+    EPOCHS = int(
+        epochs if epochs is not None else
+        train_cfg.get("epochs", cfg.get("EPOCHS", 5000))
+    )
+
+    # Batch size: prefer CLI override, then train.batch_size, then legacy top-level BATCH_SIZE
+    BATCH_SIZE = int(
+        batch_size if batch_size is not None else
+        train_cfg.get("batch_size", cfg.get("BATCH_SIZE", 256))
+    )
+
+    # LR/Beta1: prefer gan.* then legacy top-level LR/BETA_1
+    LR = float(
+        gan_cfg.get("lr", cfg.get("LR", 2e-4))
+    )
+    BETA_1 = float(
+        gan_cfg.get("beta_1", cfg.get("BETA_1", 0.5))
+    )
 
     # DATA_DIR can be provided as DATA_DIR or legacy DATA_PATH
-    DATA_DIR = Path(cfg.get("DATA_DIR", cfg.get("DATA_PATH", Path(cfg_path).resolve().parents[1] / "USTC-TFC2016_malware")))
+    DATA_DIR = Path(
+        cfg.get(
+            "DATA_DIR",
+            cfg.get("DATA_PATH", Path(cfg_path).resolve().parents[1] / "USTC-TFC2016_malware"),
+        )
+    )
 
+    # -----------------------------------------------------------------
+    # Tuning-lite safety fuse (prevents accidental 5000-epoch runs)
+    # -----------------------------------------------------------------
+    TUNING_LITE = bool(cfg.get("TUNING_LITE", False))
+    if TUNING_LITE and EPOCHS > 200:
+        raise ValueError(
+            f"TUNING_LITE is true but epochs={EPOCHS} (>200). "
+            "Refusing to run. Set train.epochs (recommended) or EPOCHS to a small value."
+        )
+
+    # -----------------------------------------------------------------
+    # Artifacts + TensorBoard
+    # -----------------------------------------------------------------
     arts_root = _artifacts_root(cfg)
-    paths = _ensure_dirs(arts_root)
+    # paths = _ensure_dirs(arts_root)
+    paths = _ensure_dirs(arts_root, seed)
     tb_run_dir = paths["tensorboard"] / datetime.now().strftime("%Y%m%d-%H%M%S")
     writer = tf.summary.create_file_writer(str(tb_run_dir))
 
+    # -----------------------------------------------------------------
+    # Log effective config sources (super helpful for Slurm debugging)
+    # -----------------------------------------------------------------
     _log(
         f"Config: HWC={IMG_SHAPE}, K={NUM_CLASSES}, Z={LATENT_DIM}, "
         f"epochs={EPOCHS}, bs={BATCH_SIZE}, lr={LR}, beta1={BETA_1}"
+    )
+    _log(
+        "Effective sources: "
+        f"train.epochs={train_cfg.get('epochs', None)}; "
+        f"EPOCHS={cfg.get('EPOCHS', None)}; "
+        f"train.batch_size={train_cfg.get('batch_size', None)}; "
+        f"BATCH_SIZE={cfg.get('BATCH_SIZE', None)}; "
+        f"gan.latent_dim={gan_cfg.get('latent_dim', None)}; "
+        f"LATENT_DIM={cfg.get('LATENT_DIM', None)}; "
+        f"gan.lr={gan_cfg.get('lr', None)}; LR={cfg.get('LR', None)}; "
+        f"gan.beta_1={gan_cfg.get('beta_1', None)}; BETA_1={cfg.get('BETA_1', None)}; "
+        f"TUNING_LITE={TUNING_LITE}"
     )
     _log(f"DATA_DIR={DATA_DIR}")
     _log(f"TensorBoard → {tb_run_dir}")
@@ -263,14 +337,13 @@ def run_from_file(
             d_loss_real = D.train_on_batch([real_imgs, real_lbls], real_y)
             d_loss_fake = D.train_on_batch([gen_imgs, fake_lbls], fake_y)
 
-            # Keras returns [loss, acc] when compiled with metrics; normalize to scalar
             if isinstance(d_loss_real, (list, tuple)) and isinstance(d_loss_fake, (list, tuple)):
                 d_loss = 0.5 * (float(d_loss_real[0]) + float(d_loss_fake[0]))
             else:
                 d_loss = 0.5 * (float(d_loss_real) + float(d_loss_fake))
 
             # ---- Train Generator (via combined; D is frozen in this graph) ----
-            D.trainable = False  # reflects intent; actual freezing is in Combined graph
+            D.trainable = False
             z = np.random.normal(0.0, 1.0, size=(BATCH_SIZE, LATENT_DIM)).astype(np.float32)
             g_lbls_int = np.random.randint(0, NUM_CLASSES, size=(BATCH_SIZE,))
             g_lbls = tf.keras.utils.to_categorical(g_lbls_int, NUM_CLASSES).astype(np.float32)
@@ -296,7 +369,7 @@ def run_from_file(
         # FID (optional; lower is better)
         fid_val = None
         if (compute_fid_01 is not None) and (epoch % max(1, eval_every) == 0):
-            n_fid = min(200, x_val01.shape[0])  # keep it lightweight
+            n_fid = min(200, x_val01.shape[0])
             real01 = x_val01[:n_fid]
             z = np.random.normal(0.0, 1.0, size=(n_fid, LATENT_DIM)).astype(np.float32)
             labels_int = np.random.randint(0, NUM_CLASSES, size=(n_fid,))
@@ -308,7 +381,6 @@ def run_from_file(
             except Exception:
                 fid_val = None
 
-            # Checkpoint “best by FID”
             if fid_val is not None and fid_val < best_fid:
                 best_fid = fid_val
                 G.save_weights(str(paths["ckpts"] / "G_best.weights.h5"))
@@ -317,14 +389,12 @@ def run_from_file(
                     json.dump({"epoch": epoch, "best_fid": best_fid, "timestamp": _now_ts()}, f)
                 _log(f"[BEST] Epoch {epoch} new best FID={best_fid:.4f} → saved *_best.weights.h5")
 
-        # Periodic “last” + snapshot
         if (epoch % max(1, save_every) == 0) or (epoch == EPOCHS):
             G.save_weights(str(paths["ckpts"] / "G_last.weights.h5"))
             D.save_weights(str(paths["ckpts"] / "D_last.weights.h5"))
             G.save_weights(str(paths["ckpts"] / f"G_epoch_{epoch:04d}.weights.h5"))
             D.save_weights(str(paths["ckpts"] / f"D_epoch_{epoch:04d}.weights.h5"))
 
-        # Console + TensorBoard
         if fid_val is not None:
             _log(f"Epoch {epoch:04d} | D_loss {d_loss_ep:.4f} | G_loss {g_loss_ep:.4f} | FID {fid_val:.4f}")
         else:
@@ -369,11 +439,9 @@ def train(cfg_or_argv):
 
     Returns 0 on success.
     """
-    # argv style → call main() directly
     if isinstance(cfg_or_argv, (list, tuple)):
         return main(cfg_or_argv)
 
-    # dict style → write a temp YAML and invoke main() with --config
     if isinstance(cfg_or_argv, dict):
         import tempfile, yaml
         with tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False) as f:
@@ -389,7 +457,6 @@ def train(cfg_or_argv):
 # ---------------------------------------------------------------------
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Train Conditional DCGAN")
-    # Default to scaffold-root /configs/config.yaml
     default_cfg = Path(__file__).resolve().parents[2] / "configs" / "config.yaml"
     parser.add_argument("--config", type=Path, default=default_cfg, help="Path to config.yaml")
 
@@ -413,7 +480,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--sample-after", action="store_true", help="Generate per-class samples after training")
     parser.add_argument("--samples-per-class", type=int, default=0, help="Samples per class if --sample-after")
 
-    parser.add_argument("--seed", type=int, default=42, help="Random seed")
+    # parser.add_argument("--seed", type=int, default=42, help="Random seed")
+    parser.add_argument("--seed", type=int, default=None, help="Random seed (overrides config SEED)")
     args = parser.parse_args(argv)
 
     return run_from_file(

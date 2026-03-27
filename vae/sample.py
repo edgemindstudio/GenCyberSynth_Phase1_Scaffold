@@ -203,9 +203,30 @@ def synth(cfg: dict, output_root: str, seed: int = 42) -> Dict:
     BETA_1 = float(_cfg_get(cfg, "BETA_1", _cfg_get(cfg, "vae.beta_1", 0.5)))
     BETA_KL = float(_cfg_get(cfg, "BETA_KL", _cfg_get(cfg, "vae.beta_kl", 1.0)))
 
+    # artifacts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
+    # default_weights = artifacts_root / "vae" / "checkpoints" / "D_best.weights.h5"
+    # weights_path = Path(_cfg_get(cfg, "ARTIFACTS.vae_decoder_weights", str(default_weights)))
+
     artifacts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
-    default_weights = artifacts_root / "vae" / "checkpoints" / "D_best.weights.h5"
+
+    base_ckpt_dir = Path(
+        _cfg_get(
+            cfg,
+            "ARTIFACTS.vae_checkpoints",
+            _cfg_get(
+                cfg,
+                "ARTIFACTS.checkpoints",
+                artifacts_root / "vae" / "checkpoints",
+            ),
+        )
+    )
+    ckpt_dir = base_ckpt_dir if base_ckpt_dir.name.startswith("seed") else base_ckpt_dir / f"seed{seed}"
+
+    default_weights = ckpt_dir / "D_best.weights.h5"
     weights_path = Path(_cfg_get(cfg, "ARTIFACTS.vae_decoder_weights", str(default_weights)))
+
+    print(f"[vae-synth] ckpt_dir={ckpt_dir}")
+    print(f"[vae-synth] weights_path={weights_path}")
 
     set_seeds(int(seed))
     tf.keras.utils.set_random_seed(int(seed))

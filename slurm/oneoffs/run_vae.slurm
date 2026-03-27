@@ -15,6 +15,8 @@ conda activate gcs_py310
 export CUDA_VISIBLE_DEVICES=""
 export TF_CPP_MIN_LOG_LEVEL=1
 cd "$SLURM_SUBMIT_DIR"
-python -m app.main train --model vae --config configs/config.yaml
-python -m app.main synth --model vae --config configs/config.yaml --artifacts "${SCRATCH:-$HOME}/gencys/artifacts"
-python -m app.main eval  --model vae --config configs/config.yaml --artifacts "${SCRATCH:-$HOME}/gencys/artifacts"
+
+# python -m app.main train --model vae --config configs/config.yaml
+python -m app.main train --model vae --config "${CFG:-configs/config.yaml}"
+python -m app.main synth --model vae --config "${CFG:-configs/config.yaml}" --artifacts "${SCRATCH:-$HOME}/gencys/artifacts"
+python -m app.main eval  --model vae --config "${CFG:-configs/config.yaml}" --artifacts "${SCRATCH:-$HOME}/gencys/artifacts"

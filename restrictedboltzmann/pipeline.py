@@ -140,9 +140,35 @@ class RBMPipeline:
         )
 
         # Artifacts
+        # arts = self.cfg.ARTIFACTS or {}
+        # self.ckpt_dir = Path(arts.get("checkpoints", "artifacts/restrictedboltzmann/checkpoints"))
+        # self.synth_dir = Path(arts.get("synthetic", "artifacts/restrictedboltzmann/synthetic"))
+        # _ensure_dir(self.ckpt_dir)
+        # _ensure_dir(self.synth_dir)
+
+        # Artifacts (seed-aware)
         arts = self.cfg.ARTIFACTS or {}
-        self.ckpt_dir = Path(arts.get("checkpoints", "artifacts/restrictedboltzmann/checkpoints"))
-        self.synth_dir = Path(arts.get("synthetic", "artifacts/restrictedboltzmann/synthetic"))
+        seed = int(self.cfg.SEED) if self.cfg.SEED is not None else 42
+
+        base_ckpt_dir = Path(
+            arts.get(
+                "checkpoints",
+                arts.get(
+                    "rbm_ckpts",
+                    "artifacts/restrictedboltzmann/checkpoints",
+                ),
+            )
+        )
+        self.ckpt_dir = base_ckpt_dir if base_ckpt_dir.name.startswith("seed") else base_ckpt_dir / f"seed{seed}"
+
+        base_synth_dir = Path(
+            arts.get(
+                "synthetic",
+                "artifacts/restrictedboltzmann/synthetic",
+            )
+        )
+        self.synth_dir = base_synth_dir if base_synth_dir.name.startswith("seed") else base_synth_dir / f"seed{seed}"
+
         _ensure_dir(self.ckpt_dir)
         _ensure_dir(self.synth_dir)
 

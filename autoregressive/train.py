@@ -31,7 +31,6 @@ from common.data import load_dataset_npy, to_01, one_hot
 # Model builder (assumed available in your repo)
 from autoregressive.models import build_conditional_pixelcnn
 
-
 # Try dict first; fall back to argv if it complains
 try:
     pass
@@ -68,16 +67,17 @@ def _cfg_get(cfg: Dict, dotted: str, default=None):
 # Data helpers
 # ---------------------------------------------------------------------
 def make_datasets(
-    x_train01: np.ndarray,
-    y_train_1h: np.ndarray,
-    x_val01: np.ndarray,
-    y_val_1h: np.ndarray,
-    batch_size: int,
-    shuffle_buffer: int = 10240,
+        x_train01: np.ndarray,
+        y_train_1h: np.ndarray,
+        x_val01: np.ndarray,
+        y_val_1h: np.ndarray,
+        batch_size: int,
+        shuffle_buffer: int = 10240,
 ) -> Tuple[tf.data.Dataset, tf.data.Dataset]:
     """
     Build shuffling, batched tf.data pipelines for training and validation.
     """
+
     def _ds(x, y, training=False):
         ds = tf.data.Dataset.from_tensor_slices((x, y))
         if training:
@@ -86,7 +86,7 @@ def make_datasets(
         return ds
 
     train_ds = _ds(x_train01, y_train_1h, training=True)
-    val_ds   = _ds(x_val01,   y_val_1h,   training=False)
+    val_ds = _ds(x_val01, y_val_1h, training=False)
     return train_ds, val_ds
 
 
@@ -103,17 +103,17 @@ def make_writer(tensorboard_dir: str | Path | None) -> Optional[tf.summary.Summa
 # Core training loop
 # ---------------------------------------------------------------------
 def fit_autoregressive(
-    *,
-    model: tf.keras.Model,
-    optimizer: tf.keras.optimizers.Optimizer,
-    train_ds: tf.data.Dataset,
-    val_ds: tf.data.Dataset,
-    epochs: int,
-    checkpoint_dir: Path,
-    writer: Optional[tf.summary.SummaryWriter] = None,
-    patience: int = 10,
-    save_every: int = 25,
-    from_logits: bool = False,
+        *,
+        model: tf.keras.Model,
+        optimizer: tf.keras.optimizers.Optimizer,
+        train_ds: tf.data.Dataset,
+        val_ds: tf.data.Dataset,
+        epochs: int,
+        checkpoint_dir: Path,
+        writer: Optional[tf.summary.SummaryWriter] = None,
+        patience: int = 10,
+        save_every: int = 25,
+        from_logits: bool = False,
 ) -> None:
     """
     Train an autoregressive conditional model with early stopping & checkpoints.
@@ -128,13 +128,13 @@ def fit_autoregressive(
 
     bce = tf.keras.losses.BinaryCrossentropy(from_logits=from_logits)
     train_loss_metric = tf.keras.metrics.Mean(name="train_loss")
-    val_loss_metric   = tf.keras.metrics.Mean(name="val_loss")
+    val_loss_metric = tf.keras.metrics.Mean(name="val_loss")
 
     @tf.function(reduce_retracing=True)
     def train_step(x, y1h):
         with tf.GradientTape() as tape:
             probs = model([x, y1h], training=True)
-            loss  = bce(x, probs)
+            loss = bce(x, probs)
         grads = tape.gradient(loss, model.trainable_variables)
         optimizer.apply_gradients(zip(grads, model.trainable_variables))
         train_loss_metric.update_state(loss)
@@ -142,7 +142,7 @@ def fit_autoregressive(
     @tf.function(reduce_retracing=True)
     def val_step(x, y1h):
         probs = model([x, y1h], training=False)
-        loss  = bce(x, probs)
+        loss = bce(x, probs)
         val_loss_metric.update_state(loss)
 
     best_val = np.inf
@@ -185,7 +185,7 @@ def fit_autoregressive(
 
         # --- Best checkpoint & early stopping
         if val_loss < best_val - 1e-6:
-            best_val  = val_loss
+            best_val = val_loss
             no_improve = 0
             model.save_weights(str(checkpoint_dir / "AR_best.weights.h5"))
         else:
@@ -242,25 +242,55 @@ def _train_from_cfg(cfg: Dict) -> None:
     img_shape = (H, W, C)
 
     # --- Hyperparameters
-    epochs     = int(_cfg_get(cfg, "EPOCHS", 200))
+    epochs = int(_cfg_get(cfg, "EPOCHS", 200))
     batch_size = int(_cfg_get(cfg, "BATCH_SIZE", 256))
-    patience   = int(_cfg_get(cfg, "PATIENCE", 10))
+    patience = int(_cfg_get(cfg, "PATIENCE", 10))
     save_every = int(_cfg_get(cfg, "SAVE_EVERY", 25))
-    lr         = float(_cfg_get(cfg, "LR", 2e-4))
+    lr = float(_cfg_get(cfg, "LR", 2e-4))
     from_logits = bool(_cfg_get(cfg, "FROM_LOGITS", False))
-    seed       = int(_cfg_get(cfg, "SEED", 42))
+    seed = int(_cfg_get(cfg, "SEED", 42))
     tf.keras.utils.set_random_seed(seed)
 
-    # --- Artifact paths
+    # # --- Artifact paths
+    # artifacts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
+    # model_root = artifacts_root / "autoregressive"
+    # ckpt_dir = Path(_cfg_get(cfg, "ARTIFACTS.autoregressive_checkpoints", model_root / "checkpoints"))
+    # sums_dir = Path(_cfg_get(cfg, "ARTIFACTS.autoregressive_summaries", model_root / "summaries"))
+    # tb_dir = Path(_cfg_get(cfg, "ARTIFACTS.autoregressive_tensorboard", model_root / "tensorboard"))
+    # ckpt_dir.mkdir(parents=True, exist_ok=True)
+    # sums_dir.mkdir(parents=True, exist_ok=True)
+    # tb_dir.mkdir(parents=True, exist_ok=True)
+
+    # --- Artifact paths (seed-aware to avoid parallel job collisions)
     artifacts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
     model_root     = artifacts_root / "autoregressive"
-    ckpt_dir = Path(_cfg_get(cfg, "ARTIFACTS.autoregressive_checkpoints", model_root / "checkpoints"))
-    sums_dir = Path(_cfg_get(cfg, "ARTIFACTS.autoregressive_summaries",   model_root / "summaries"))
-    tb_dir   = Path(_cfg_get(cfg, "ARTIFACTS.autoregressive_tensorboard", model_root / "tensorboard"))
+
+    ckpt_dir = Path(
+        _cfg_get(
+            cfg,
+            "ARTIFACTS.autoregressive_checkpoints",
+            model_root / "checkpoints" / f"seed{seed}",
+        )
+    )
+    sums_dir = Path(
+        _cfg_get(
+            cfg,
+            "ARTIFACTS.autoregressive_summaries",
+            model_root / "summaries" / f"seed{seed}",
+        )
+    )
+    tb_dir = Path(
+        _cfg_get(
+            cfg,
+            "ARTIFACTS.autoregressive_tensorboard",
+            model_root / "tensorboard" / f"seed{seed}",
+        )
+    )
+
     ckpt_dir.mkdir(parents=True, exist_ok=True)
     sums_dir.mkdir(parents=True, exist_ok=True)
     tb_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # --- Data root
     data_dir_str = _cfg_get(cfg, "DATA_DIR", _cfg_get(cfg, "data.root", None))
     if not data_dir_str:
@@ -268,7 +298,6 @@ def _train_from_cfg(cfg: Dict) -> None:
     data_dir = Path(data_dir_str).expanduser()
     if not data_dir.exists():
         raise FileNotFoundError(f"DATA_DIR path not found: {data_dir}")
-
 
     # --- Load data
     try:
@@ -295,7 +324,7 @@ def _train_from_cfg(cfg: Dict) -> None:
 
     # --- Build model & optimizer
     model = build_conditional_pixelcnn(img_shape, K)
-    opt   = tf.keras.optimizers.Adam(learning_rate=lr, beta_1=0.5)
+    opt = tf.keras.optimizers.Adam(learning_rate=lr, beta_1=0.5)
 
     # --- TensorBoard writer (optional)
     writer = make_writer(tb_dir)

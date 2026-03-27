@@ -16,7 +16,10 @@ cd "$REPO"
 export PYTHONPATH="$REPO:${PYTHONPATH:-}"
 MODELS=(gan diffusion)
 M=${MODELS[$SLURM_ARRAY_TASK_ID]}
-CFG="$REPO/configs/config.yaml"
+
+# CFG="$REPO/configs/config.yaml"
+CFG="${CFG:-$REPO/configs/config.yaml}"
+
 ARTS="${SCRATCH:-$HOME}/gencys/artifacts"
 echo "GPU synth+eval -> $M"
 python -m app.main synth --model "$M" --config "$CFG" --artifacts "$ARTS"

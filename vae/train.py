@@ -79,17 +79,35 @@ def _cfg_get(cfg: Dict, dotted: str, default=None):
     return cur
 
 
+# def _normalize_artifacts(cfg: Dict) -> Dict:
+#     """
+#     Fill ARTIFACTS with sensible defaults, honoring paths.artifacts if present.
+#     """
+#     arts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
+#     cfg.setdefault("ARTIFACTS", {})
+#     A = cfg["ARTIFACTS"]
+#     A.setdefault("checkpoints", str(arts_root / "vae" / "checkpoints"))
+#     A.setdefault("synthetic",   str(arts_root / "vae" / "synthetic"))
+#     A.setdefault("summaries",   str(arts_root / "vae" / "summaries"))
+#     A.setdefault("tensorboard", str(arts_root / "tensorboard"))
+#     return cfg
+
+
 def _normalize_artifacts(cfg: Dict) -> Dict:
     """
-    Fill ARTIFACTS with sensible defaults, honoring paths.artifacts if present.
+    Fill ARTIFACTS with seed-aware defaults, honoring paths.artifacts if present.
     """
     arts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
+    seed = int(_cfg_get(cfg, "SEED", 42))
+
     cfg.setdefault("ARTIFACTS", {})
     A = cfg["ARTIFACTS"]
-    A.setdefault("checkpoints", str(arts_root / "vae" / "checkpoints"))
-    A.setdefault("synthetic",   str(arts_root / "vae" / "synthetic"))
-    A.setdefault("summaries",   str(arts_root / "vae" / "summaries"))
-    A.setdefault("tensorboard", str(arts_root / "tensorboard"))
+
+    A.setdefault("checkpoints", str(arts_root / "vae" / "checkpoints" / f"seed{seed}"))
+    A.setdefault("synthetic",   str(arts_root / "vae" / "synthetic" / f"seed{seed}"))
+    A.setdefault("summaries",   str(arts_root / "vae" / "summaries" / f"seed{seed}"))
+    A.setdefault("tensorboard", str(arts_root / "vae" / "tensorboard" / f"seed{seed}"))
+
     return cfg
 
 

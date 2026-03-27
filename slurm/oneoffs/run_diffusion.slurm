@@ -22,6 +22,7 @@ cd "$SLURM_SUBMIT_DIR"
 python -V
 
 # Train → Synth → Eval
-python -m app.main train --model diffusion --config configs/config.yaml
-python -m app.main synth --model diffusion --config configs/config.yaml --artifacts "${SCRATCH:-$HOME}/gencys/artifacts"
-python -m app.main eval  --model diffusion --config configs/config.yaml --artifacts "${SCRATCH:-$HOME}/gencys/artifacts"
+# python -m app.main train --model diffusion --config configs/config.yaml
+python -m app.main train --model diffusion --config "${CFG:-configs/config.yaml}"
+python -m app.main synth --model diffusion --config "${CFG:-configs/config.yaml}" --artifacts "${SCRATCH:-$HOME}/gencys/artifacts"
+python -m app.main eval  --model diffusion --config "${CFG:-configs/config.yaml}" --artifacts "${SCRATCH:-$HOME}/gencys/artifacts"

@@ -1,3 +1,5 @@
+# adapters/restrictedboltzmann_adapter.py
+
 from __future__ import annotations
 
 import json
@@ -92,10 +94,27 @@ class RBMAdapter(Adapter):
         model_root = artifacts_root / "restrictedboltzmann"
         synth_root = _ensure_dir(model_root / "synthetic")
 
+        artifacts_root = Path(_cfg_get(config, "paths.artifacts", "artifacts"))
+        model_root = artifacts_root / "restrictedboltzmann"
+
+        seed = int(config["SEED"]) if "SEED" in config else int(_cfg_get(config, "random_seeds", [42])[0])
+
+        base_synth_root = Path(
+            _cfg_get(
+                config,
+                "ARTIFACTS.restrictedboltzmann_synthetic",
+                model_root / "synthetic",
+            )
+        )
+
+        synth_root = _ensure_dir(
+            base_synth_root if base_synth_root.name.startswith("seed")
+            else base_synth_root / f"seed{seed}"
+        )
+
         H, W, C = tuple(_cfg_get(config, "IMG_SHAPE", (40, 40, 1)))
         K = int(_cfg_get(config, "NUM_CLASSES", 9))
 
-        seed = int(config["SEED"]) if "SEED" in config else int(_cfg_get(config, "random_seeds", [42])[0])
         dataset = _cfg_get(config, "data.root", config.get("DATA_DIR", "USTC-TFC2016_40x40_gray"))
 
         manifest: Dict[str, Any] = {
@@ -124,7 +143,7 @@ class RBMAdapter(Adapter):
             print(f"[restrictedboltzmann][ERROR] Sampling failed: {type(e).__name__}: {e}")
             print("[restrictedboltzmann] Emitting a stub manifest so the pipeline can proceed.")
 
-        # ✅ Normalize ONCE (right before writing)
+        # Normalize ONCE (right before writing)
         manifest = _normalize_manifest(manifest, num_classes=K)
         manifest.setdefault("dataset", dataset)
         manifest.setdefault("seed", seed)

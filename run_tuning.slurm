@@ -33,6 +33,8 @@ export TF_ENABLE_ONEDNN_OPTS=0
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-8}
 export MKL_NUM_THREADS=${OMP_NUM_THREADS}
 export OPENBLAS_NUM_THREADS=${OMP_NUM_THREADS}
+export TF_XLA_FLAGS=--tf_xla_auto_jit=0
+
 
 # -----------------------
 # Helpers

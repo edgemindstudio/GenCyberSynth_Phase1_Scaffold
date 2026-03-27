@@ -207,12 +207,27 @@ def synth(cfg: dict, output_root: str, seed: int = 42) -> dict:
     hidden = int(_cfg_get(cfg, "RBM_HIDDEN", 256))
     gibbs_k = int(_cfg_get(cfg, "RBM_GIBBS_K", _cfg_get(cfg, "CD_K", 1)))
 
+    # artifacts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
+    # ckpt_root = Path(_cfg_get(
+    #     cfg,
+    #     "ARTIFACTS.restrictedboltzmann_checkpoints",
+    #     artifacts_root / "restrictedboltzmann" / "checkpoints",
+    # ))
+
     artifacts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
-    ckpt_root = Path(_cfg_get(
-        cfg,
-        "ARTIFACTS.restrictedboltzmann_checkpoints",
-        artifacts_root / "restrictedboltzmann" / "checkpoints",
-    ))
+
+    base_ckpt_root = Path(
+        _cfg_get(
+            cfg,
+            "ARTIFACTS.restrictedboltzmann_checkpoints",
+            _cfg_get(
+                cfg,
+                "ARTIFACTS.rbm_ckpts",
+                artifacts_root / "restrictedboltzmann" / "checkpoints",
+            ),
+        )
+    )
+    ckpt_root = base_ckpt_root if base_ckpt_root.name.startswith("seed") else base_ckpt_root / f"seed{seed}"
 
     out_root = Path(output_root)
     out_root.mkdir(parents=True, exist_ok=True)

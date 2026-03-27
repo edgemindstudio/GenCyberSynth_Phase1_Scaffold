@@ -13,7 +13,7 @@ It tries the following in order:
    - Loads weights if a checkpoint is found (best → last → legacy).
    - Samples S images per class via `diffusion.sample.sample_batch`.
    - Saves PNGs under:  {artifacts}/diffusion/synthetic/<class>/<seed>/...
-   - Writes a JSON manifest to: {artifacts}/diffusion/synthetic/manifest.json
+   - Writes a JSON manifest to: man_path = synth_root / "manifest.json"
 
 2) Fallback: if anything critical fails (imports, build, etc.), it will still
    emit a stub manifest so the pipeline doesn’t crash. The stub contains zero
@@ -191,13 +191,24 @@ class DiffusionAdapter(Adapter):
     def synth(self, config: Dict[str, Any]) -> Dict[str, Any]:
         artifacts_root = Path(_cfg_get(config, "paths.artifacts", "artifacts"))
         model_root = artifacts_root / "diffusion"
-        synth_root = _ensure_dir(model_root / "synthetic")
+
+        SEED = int(config.get("SEED", 42))
+
+        base_synth_root = Path(
+            _cfg_get(
+                config,
+                "ARTIFACTS.diffusion_synthetic",
+                model_root / "synthetic",
+            )
+        )
+        synth_root = _ensure_dir(
+            base_synth_root if base_synth_root.name.startswith("seed") else base_synth_root / f"seed{SEED}"
+        )
 
         # Basic knobs (with robust fallbacks)
         H, W, C = tuple(_cfg_get(config, "IMG_SHAPE", (40, 40, 1)))
         K = int(_cfg_get(config, "NUM_CLASSES", 9))
         S = int(_cfg_get(config, "SAMPLES_PER_CLASS", 25))
-        SEED = int(config.get("SEED", 42))
 
         # Diffusion hyperparams (sampling-side)
         T = int(_cfg_get(config, "diffusion.steps", 200))
@@ -209,13 +220,20 @@ class DiffusionAdapter(Adapter):
 
         # Checkpoints
         default_ckpt_dir = artifacts_root / "diffusion" / "checkpoints"
-        ckpt_dir = Path(_cfg_get(config, "ARTIFACTS.diffusion_checkpoints", default_ckpt_dir))
+        base_ckpt_dir = Path(_cfg_get(config, "ARTIFACTS.diffusion_checkpoints", default_ckpt_dir))
+        ckpt_dir = base_ckpt_dir if base_ckpt_dir.name.startswith("seed") else base_ckpt_dir / f"seed{SEED}"
+
+        print(f"[diffusion] ckpt_dir={ckpt_dir}")
+
         candidates = [
+            ckpt_dir / "DDPM_best.weights.h5",
+            ckpt_dir / "DDPM_last.weights.h5",
             ckpt_dir / "DIFF_best.weights.h5",
             ckpt_dir / "DIFF_last.weights.h5",
             ckpt_dir / "diffusion_best.h5",  # legacy
             ckpt_dir / "diffusion_last.h5",  # legacy
         ]
+
         weights_path = next((p for p in candidates if p.exists()), None)
 
         dataset = _cfg_get(config, "data.root", config.get("DATA_DIR", "USTC-TFC2016_40x40_gray"))

@@ -14,6 +14,9 @@ source ~/miniforge3/etc/profile.d/conda.sh
 conda activate gcs_py310
 export CUDA_VISIBLE_DEVICES=""
 cd "$SLURM_SUBMIT_DIR"
-python -m app.main train --model gaussianmixture --config configs/config.yaml
-python -m app.main synth --model gaussianmixture --config configs/config.yaml --artifacts "${SCRATCH:-$HOME}/gencys/artifacts"
-python -m app.main eval  --model gaussianmixture --config configs/config.yaml --artifacts "${SCRATCH:-$HOME}/gencys/artifacts"
+
+# python -m app.main train --model gaussianmixture --config configs/config.yaml
+python -m app.main train --model gaussianmixture --config "${CFG:-configs/config.yaml}"
+
+python -m app.main synth --model gaussianmixture --config "${CFG:-configs/config.yaml}" --artifacts "${SCRATCH:-$HOME}/gencys/artifacts"
+python -m app.main eval  --model gaussianmixture --config "${CFG:-configs/config.yaml}" --artifacts "${SCRATCH:-$HOME}/gencys/artifacts"

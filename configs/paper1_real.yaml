@@ -12,12 +12,26 @@
 SEED: 42
 random_seeds: [42, 43, 44]
 
+# --- compat: legacy flat keys used by GAN/VAE pipelines ---
+SAMPLES_PER_CLASS: 2000
+LATENT_DIM: 100
+EPOCHS: 5000
+BATCH_SIZE: 256
+LR: 2.0e-4
+BETA_1: 0.5
+
+
 # Real dataset (NHWC .npy)
 DATA_DIR: "/home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc"
 
+# paths:
+  # artifacts: "/home/bruno.fonkeng/gencys/artifacts"
+  # summaries_dir: "/home/bruno.fonkeng/gencys/artifacts/summaries"
+  
 paths:
-  artifacts: "/home/bruno.fonkeng/gencys/artifacts"
-  summaries_dir: "/home/bruno.fonkeng/gencys/artifacts/summaries"
+  artifacts: "/home/bruno.fonkeng/gencys/artifacts_paper1_real"
+  summaries_dir: "/home/bruno.fonkeng/gencys/artifacts_paper1_real/summaries"
+
 
 IMG_SHAPE: [40, 40, 1]
 NUM_CLASSES: 9
@@ -36,6 +50,7 @@ synth:
   # Optional: if your synth generator supports deterministic ordering/caps
   # (leave out if unused by your code)
   # shuffle: true
+
 
 # =========================
 # Evaluator (must be fixed for fair comparison)
@@ -94,7 +109,22 @@ diffusion:
   SAMPLER_STEPS: 200
   GUIDANCE_WEIGHT: 1.5
 
+# -------------------------
+# Unified training controls
+# -------------------------
+train:
+  # GAN trainer reads these.
+  # Pick values you want for Paper 1.
+  epochs: 5000
+  batch_size: 256
+
+# -------------------------
+# GAN-compat keys (GAN reads gan.lr, gan.beta_1, gan.latent_dim)
+# -------------------------
 gan:
+  latent_dim: 100
+  lr: 2.0e-4
+  beta_1: 0.5
   LR_G: 1.0e-4
   LR_D: 2.0e-4
   BETAS: [0.5, 0.999]
@@ -106,6 +136,7 @@ gan:
   EMA:
     ENABLED: true
     DECAY: 0.999
+
 
 vae:
   LR: 1.0e-3

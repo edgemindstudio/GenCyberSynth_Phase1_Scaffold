@@ -26,5 +26,7 @@ export OPENBLAS_NUM_THREADS=${OMP_NUM_THREADS}
 cd "$SLURM_SUBMIT_DIR"
 python -V
 echo "[info] starting AR full training…"
-python -m app.main train --model autoregressive --config configs/config.yaml
+
+# python -m app.main train --model autoregressive --config configs/config.yaml
+python -m app.main train --model autoregressive --config "${CFG:-configs/config.yaml}"
 echo "[done] training"

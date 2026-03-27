@@ -22,7 +22,9 @@ python -V
 # Pick the model: gan | vae | diffusion | autoregressive | restrictedboltzmann | gaussianmixture | maskedautoflow
 MODEL="${MODEL:-gan}"
 SCRIPT="${MODEL}/train.py"
-CONFIG="configs/config.yaml"
+
+# CONFIG="configs/config.yaml"
+CONFIG="${CFG:-configs/config.yaml}"
 
 echo "MODEL=${MODEL}"
 echo "SCRIPT=${SCRIPT}"

@@ -24,7 +24,7 @@ export OPENBLAS_NUM_THREADS=${OMP_NUM_THREADS}
 
 cd "$SLURM_SUBMIT_DIR"
 
-CFG="configs/config.yaml"
+# CFG="configs/config.yaml"
 ARTS="${SCRATCH:-$HOME}/gencys/artifacts"
 
 echo "[info] MODEL=maskedautoflow"
@@ -34,13 +34,16 @@ echo "[info] ARTS=${ARTS}"
 
 # Train (best-effort), then synth + eval
 set +e
-python -m app.main train --model maskedautoflow --config "${CFG}"
+
+# python -m app.main train --model maskedautoflow --config "${CFG}"
+python -m app.main train --model maskedautoflow --config "${CFG:-configs/config.yaml}"
+
 rc=$?
 set -e
 if [[ $rc -ne 0 ]]; then
   echo "[warn] train returned rc=$rc, continuing to synth/eval."
 fi
 
-python -m app.main synth --model maskedautoflow --config "${CFG}" --artifacts "${ARTS}"
-python -m app.main eval  --model maskedautoflow --config "${CFG}" --artifacts "${ARTS}"
+python -m app.main synth --model maskedautoflow --config "${CFG:-configs/config.yaml}" --artifacts "${ARTS}"
+python -m app.main eval  --model maskedautoflow --config "${CFG:-configs/config.yaml}" --artifacts "${ARTS}"
 echo "[done] maskedautoflow"

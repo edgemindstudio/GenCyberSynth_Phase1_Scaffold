@@ -75,17 +75,49 @@ def _cfg_get(cfg: Dict, dotted: str, default=None):
     return cur
 
 
+# def _normalize_artifacts(cfg: Dict) -> Dict:
+#     """
+#     Normalize artifact paths, honoring `paths.artifacts` if present,
+#     with sane defaults under artifacts/gaussianmixture/* .
+#     """
+#     arts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
+#     cfg.setdefault("ARTIFACTS", {})
+#     A = cfg["ARTIFACTS"]
+#     A.setdefault("gaussianmixture_checkpoints", str(arts_root / "gaussianmixture" / "checkpoints"))
+#     A.setdefault("gaussianmixture_synthetic", str(arts_root / "gaussianmixture" / "synthetic"))
+#     A.setdefault("gaussianmixture_summaries", str(arts_root / "gaussianmixture" / "summaries"))
+#     return cfg
+
 def _normalize_artifacts(cfg: Dict) -> Dict:
     """
     Normalize artifact paths, honoring `paths.artifacts` if present,
-    with sane defaults under artifacts/gaussianmixture/* .
+    and make them seed-aware by default.
     """
     arts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
+
+    if "SEED" in cfg:
+        seed = int(cfg["SEED"])
+    else:
+        seed = int(_cfg_get(cfg, "random_seeds", [42])[0])
+
     cfg.setdefault("ARTIFACTS", {})
     A = cfg["ARTIFACTS"]
-    A.setdefault("gaussianmixture_checkpoints", str(arts_root / "gaussianmixture" / "checkpoints"))
-    A.setdefault("gaussianmixture_synthetic",   str(arts_root / "gaussianmixture" / "synthetic"))
-    A.setdefault("gaussianmixture_summaries",   str(arts_root / "gaussianmixture" / "summaries"))
+
+    def _seedify(p: Path) -> str:
+        return str(p if p.name.startswith("seed") else p / f"seed{seed}")
+
+    A.setdefault(
+        "gaussianmixture_checkpoints",
+        _seedify(arts_root / "gaussianmixture" / "checkpoints"),
+    )
+    A.setdefault(
+        "gaussianmixture_synthetic",
+        _seedify(arts_root / "gaussianmixture" / "synthetic"),
+    )
+    A.setdefault(
+        "gaussianmixture_summaries",
+        _seedify(arts_root / "gaussianmixture" / "summaries"),
+    )
     return cfg
 
 
@@ -101,19 +133,19 @@ def _default_artifact_paths(cfg: Dict) -> Tuple[Path, Path, Path]:
 # Core training
 # =============================================================================
 def train_per_class_gmms(
-    *,
-    x_train: np.ndarray,          # (N,H,W,C) in [0,1]
-    y_train: np.ndarray,          # (N,) ints or (N,K) one-hot
-    img_shape: Tuple[int, int, int],
-    num_classes: int,
-    ckpt_dir: Path,
-    n_components: int = 10,
-    covariance_type: str = "full",
-    reg_covar: float = 1e-6,
-    max_iter: int = 200,
-    random_state: int = 42,
-    train_global_fallback: bool = True,
-    verbose: bool = True,
+        *,
+        x_train: np.ndarray,  # (N,H,W,C) in [0,1]
+        y_train: np.ndarray,  # (N,) ints or (N,K) one-hot
+        img_shape: Tuple[int, int, int],
+        num_classes: int,
+        ckpt_dir: Path,
+        n_components: int = 10,
+        covariance_type: str = "full",
+        reg_covar: float = 1e-6,
+        max_iter: int = 200,
+        random_state: int = 42,
+        train_global_fallback: bool = True,
+        verbose: bool = True,
 ) -> None:
     """
     Fit one GaussianMixture per class and save to ckpt_dir.
@@ -128,6 +160,9 @@ def train_per_class_gmms(
 
     y_int = _to_int_labels(y_train, num_classes)
     X_flat = flatten_images(x_train) if x_train.ndim == 4 else x_train.reshape((-1, D))
+
+    # scikit-learn recommends float64 for numerical stability in GMM EM
+    X_flat = X_flat.astype(np.float64, copy=False)
 
     # Optional: global fallback GMM trained on all data
     if train_global_fallback:
@@ -184,15 +219,19 @@ def run_train(cfg: Dict) -> None:
       - trains per-class GMMs (+ optional global fallback)
       - writes a preview grid PNG
     """
+
     # -------- Defaults --------
     cfg = dict(cfg)  # shallow copy
     cfg.setdefault("SEED", 42)
     cfg.setdefault("VAL_FRACTION", 0.5)
+
+    # Back-compat defaults (top-level), but allow nested gaussianmixture.* to override.
     cfg.setdefault("GMM_COMPONENTS", 10)
     cfg.setdefault("GMM_COVARIANCE", "full")
     cfg.setdefault("GMM_REG_COVAR", 1e-6)
     cfg.setdefault("GMM_MAX_ITER", 200)
     cfg.setdefault("GMM_TRAIN_GLOBAL", True)
+
     _normalize_artifacts(cfg)
 
     seed = int(cfg["SEED"])
@@ -200,12 +239,14 @@ def run_train(cfg: Dict) -> None:
     num_classes = int(cfg.get("NUM_CLASSES", cfg.get("num_classes", 9)))
     data_dir = Path(cfg.get("DATA_DIR", _cfg_get(cfg, "data.root", "data")))
 
-    # GMM knobs
-    n_components = int(cfg["GMM_COMPONENTS"])
-    covariance_type = cfg["GMM_COVARIANCE"]
-    reg_covar = float(cfg["GMM_REG_COVAR"])
-    max_iter = int(cfg["GMM_MAX_ITER"])
-    train_global_fallback = bool(cfg["GMM_TRAIN_GLOBAL"])
+    # -------- GMM knobs (prefer gaussianmixture.*) --------
+    gm = cfg.get("gaussianmixture", {}) if isinstance(cfg.get("gaussianmixture"), dict) else {}
+
+    n_components = int(gm.get("GMM_COMPONENTS", cfg["GMM_COMPONENTS"]))
+    covariance_type = str(gm.get("GMM_COVARIANCE", cfg["GMM_COVARIANCE"]))
+    reg_covar = float(gm.get("GMM_REG_COVAR", cfg["GMM_REG_COVAR"]))
+    max_iter = int(gm.get("GMM_MAX_ITER", cfg["GMM_MAX_ITER"]))
+    train_global_fallback = bool(gm.get("GMM_TRAIN_GLOBAL", cfg["GMM_TRAIN_GLOBAL"]))
 
     ckpt_dir, synth_dir, sums_dir = _default_artifact_paths(cfg)
     _ensure_dirs(ckpt_dir, synth_dir, sums_dir)
@@ -222,23 +263,24 @@ def run_train(cfg: Dict) -> None:
         # Minimal fallback loader (expects 4 files under DATA_DIR)
         x_train = np.load(data_dir / "train_data.npy").astype("float32")
         y_train = np.load(data_dir / "train_labels.npy")
-        x_test  = np.load(data_dir / "test_data.npy").astype("float32")
-        y_test  = np.load(data_dir / "test_labels.npy")
+        x_test = np.load(data_dir / "test_data.npy").astype("float32")
+        y_test = np.load(data_dir / "test_labels.npy")
 
         if x_train.max() > 1.5:
             x_train = x_train / 255.0
-            x_test  = x_test  / 255.0
+            x_test = x_test / 255.0
 
         H, W, C = img_shape
         x_train = x_train.reshape((-1, H, W, C))
-        x_test  = x_test.reshape((-1, H, W, C))
+        x_test = x_test.reshape((-1, H, W, C))
 
         n_val = int(len(x_test) * float(cfg.get("VAL_FRACTION", 0.5)))
         x_val, y_val = x_test[:n_val], y_test[:n_val]
         x_test, y_test = x_test[n_val:], y_test[n_val:]
 
     # -------- Train per-class GMMs --------
-    print(f"[config] GMM components={n_components}, cov='{covariance_type}', reg_covar={reg_covar}, max_iter={max_iter}")
+    print(
+        f"[config] GMM components={n_components}, cov='{covariance_type}', reg_covar={reg_covar}, max_iter={max_iter}")
     print(f"[paths]  ckpts={ckpt_dir.resolve()} | synthetic={synth_dir.resolve()} | summaries={sums_dir.resolve()}")
 
     train_per_class_gmms(

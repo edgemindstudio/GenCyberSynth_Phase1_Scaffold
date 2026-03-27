@@ -146,17 +146,29 @@ class MAFAdapter(Adapter):
     def synth(self, config: Dict[str, Any]) -> Dict[str, Any]:
         artifacts_root = Path(_cfg_get(config, "paths.artifacts", "artifacts"))
         model_root = artifacts_root / "maskedautoflow"
-        synth_root = _ensure_dir(model_root / "synthetic")
-
-        # Minimal knobs (used for stub and logging)
-        H, W, C = tuple(_cfg_get(config, "IMG_SHAPE", (40, 40, 1)))
-        K = int(_cfg_get(config, "NUM_CLASSES", 9))
 
         # Seed preference: SEED, else first from random_seeds, else 42
         if "SEED" in config:
             seed = int(config["SEED"])
         else:
             seed = int(_cfg_get(config, "random_seeds", [42])[0])
+
+        base_synth_root = Path(
+            _cfg_get(
+                config,
+                "ARTIFACTS.maskedautoflow_synthetic",
+                model_root / "synthetic",
+            )
+        )
+
+        synth_root = _ensure_dir(
+            base_synth_root if base_synth_root.name.startswith("seed")
+            else base_synth_root / f"seed{seed}"
+        )
+
+        # Minimal knobs (used for stub and logging)
+        H, W, C = tuple(_cfg_get(config, "IMG_SHAPE", (40, 40, 1)))
+        K = int(_cfg_get(config, "NUM_CLASSES", 9))
 
         dataset = _cfg_get(config, "data.root", config.get("DATA_DIR", "USTC-TFC2016_40x40_gray"))
 

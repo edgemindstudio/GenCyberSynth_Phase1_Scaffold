@@ -64,17 +64,33 @@ class VAEAdapter(Adapter):
     def synth(self, config: Dict[str, Any]) -> Dict[str, Any]:
         artifacts_root = Path(_cfg_get(config, "paths.artifacts", "artifacts"))
         model_root = artifacts_root / "vae"
-        synth_root = _ensure_dir(model_root / "synthetic")
-
-        # For stub + logging
-        H, W, C = tuple(_cfg_get(config, "IMG_SHAPE", (40, 40, 1)))
-        K = int(_cfg_get(config, "NUM_CLASSES", 9))
 
         # Seed preference: SEED, else first from random_seeds, else 42
         if "SEED" in config:
             seed = int(config["SEED"])
         else:
             seed = int(_cfg_get(config, "random_seeds", [42])[0])
+
+        base_synth_root = Path(
+            _cfg_get(
+                config,
+                "ARTIFACTS.vae_synthetic",
+                _cfg_get(
+                    config,
+                    "ARTIFACTS.synthetic",
+                    model_root / "synthetic",
+                ),
+            )
+        )
+
+        synth_root = _ensure_dir(
+            base_synth_root if base_synth_root.name.startswith("seed")
+            else base_synth_root / f"seed{seed}"
+        )
+
+        # For stub + logging
+        H, W, C = tuple(_cfg_get(config, "IMG_SHAPE", (40, 40, 1)))
+        K = int(_cfg_get(config, "NUM_CLASSES", 9))
 
         dataset = _cfg_get(config, "data.root", config.get("DATA_DIR", "USTC-TFC2016_40x40_gray"))
 
@@ -99,7 +115,7 @@ class VAEAdapter(Adapter):
             except Exception:
                 pass
 
-            print(f"[vae] HWC={H,W,C}  K={K}  seed={seed}")
+            print(f"[vae] HWC={H, W, C}  K={K}  seed={seed}")
             man = vae_synth(config, str(synth_root), seed=seed)
 
             # Normalize to a plain dict in case a custom mapping is returned
@@ -147,7 +163,7 @@ class VAEAdapter(Adapter):
 
         # Totals + budget (derived from manifest truth)
         manifest["num_fake"] = len(manifest.get("paths") or [])
-        
+
         vals = [v for v in manifest["per_class_counts"].values() if isinstance(v, int) and v > 0]
         manifest["budget_per_class"] = min(vals) if vals else None
         # -----------------------------------------------------------------------------

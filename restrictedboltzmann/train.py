@@ -94,13 +94,33 @@ def _coerce_cfg(cfg_or_argv) -> Dict:
     raise TypeError(f"Unsupported config payload type: {type(cfg_or_argv)}")
 
 
+# def _normalize_artifacts(cfg: Dict) -> Dict:
+#     """Honor paths.artifacts and derive RBM subpaths."""
+#     arts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
+#     cfg.setdefault("ARTIFACTS", {})
+#     A = cfg["ARTIFACTS"]
+#     A.setdefault("rbm_ckpts",     str(arts_root / "restrictedboltzmann" / "checkpoints"))
+#     A.setdefault("rbm_summaries", str(arts_root / "restrictedboltzmann" / "summaries"))
+#     return cfg
+
+
 def _normalize_artifacts(cfg: Dict) -> Dict:
-    """Honor paths.artifacts and derive RBM subpaths."""
+    """Honor paths.artifacts and derive seed-aware RBM subpaths."""
     arts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
+    seed = int(_cfg_get(cfg, "SEED", 42))
+
     cfg.setdefault("ARTIFACTS", {})
     A = cfg["ARTIFACTS"]
-    A.setdefault("rbm_ckpts",     str(arts_root / "restrictedboltzmann" / "checkpoints"))
-    A.setdefault("rbm_summaries", str(arts_root / "restrictedboltzmann" / "summaries"))
+
+    A.setdefault(
+        "rbm_ckpts",
+        str(arts_root / "restrictedboltzmann" / "checkpoints" / f"seed{seed}")
+    )
+    A.setdefault(
+        "rbm_summaries",
+        str(arts_root / "restrictedboltzmann" / "summaries" / f"seed{seed}")
+    )
+
     return cfg
 
 

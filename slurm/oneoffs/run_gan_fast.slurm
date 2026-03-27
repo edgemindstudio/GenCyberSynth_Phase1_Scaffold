@@ -21,11 +21,12 @@ export TF_CPP_MIN_LOG_LEVEL=1
 cd "$SLURM_SUBMIT_DIR"
 
 # Train quickly on CPU with the merged config
-python -m app.main train --model gan --config configs/config.gan_fast.yaml
+# python -m app.main train --model gan --config configs/config.gan_fast.yaml
+# python -m app.main synth --model gan --config configs/config.gan_fast.yaml --artifacts "${SCRATCH:-$HOME}/gencys/artifacts"
+# python -m app.main eval  --model gan --config configs/config.gan_fast.yaml --artifacts "${SCRATCH:-$HOME}/gencys/artifacts"
 
-# Synthesize and evaluate using same fast config + standard artifacts root
-python -m app.main synth --model gan --config configs/config.gan_fast.yaml \
-  --artifacts "${SCRATCH:-$HOME}/gencys/artifacts"
+CFG="${CFG:-configs/paper1_config.yaml}"
 
-python -m app.main eval  --model gan --config configs/config.gan_fast.yaml \
-  --artifacts "${SCRATCH:-$HOME}/gencys/artifacts"
+python -m app.main train --model gan --config "$CFG"
+python -m app.main synth --model gan --config "$CFG" --artifacts "${SCRATCH:-$HOME}/gencys/artifacts"
+python -m app.main eval  --model gan --config "$CFG" --artifacts "${SCRATCH:-$HOME}/gencys/artifacts"

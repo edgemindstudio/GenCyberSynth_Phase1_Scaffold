@@ -90,9 +90,38 @@ class VAEPipeline:
         self.samples_per_class: int = int(self.cfg.get("SAMPLES_PER_CLASS", d["SAMPLES_PER_CLASS"]))
 
         # Artifacts
+        # arts = self.cfg.get("ARTIFACTS", d["ARTIFACTS"])
+        # self.ckpt_dir = Path(arts.get("checkpoints", d["ARTIFACTS"]["checkpoints"]))
+        # self.synth_dir = Path(arts.get("synthetic",   d["ARTIFACTS"]["synthetic"]))
+        # _ensure_dir(self.ckpt_dir)
+        # _ensure_dir(self.synth_dir)
+        
+        # Artifacts (seed-aware)
         arts = self.cfg.get("ARTIFACTS", d["ARTIFACTS"])
-        self.ckpt_dir = Path(arts.get("checkpoints", d["ARTIFACTS"]["checkpoints"]))
-        self.synth_dir = Path(arts.get("synthetic",   d["ARTIFACTS"]["synthetic"]))
+        seed = int(self.cfg.get("SEED", 42))
+
+        base_ckpt_dir = Path(
+            arts.get(
+                "checkpoints",
+                arts.get(
+                    "vae_checkpoints",
+                    d["ARTIFACTS"]["checkpoints"],
+                ),
+            )
+        )
+        self.ckpt_dir = base_ckpt_dir if base_ckpt_dir.name.startswith("seed") else base_ckpt_dir / f"seed{seed}"
+
+        base_synth_dir = Path(
+            arts.get(
+                "synthetic",
+                arts.get(
+                    "vae_synthetic",
+                    d["ARTIFACTS"]["synthetic"],
+                ),
+            )
+        )
+        self.synth_dir = base_synth_dir if base_synth_dir.name.startswith("seed") else base_synth_dir / f"seed{seed}"
+
         _ensure_dir(self.ckpt_dir)
         _ensure_dir(self.synth_dir)
 

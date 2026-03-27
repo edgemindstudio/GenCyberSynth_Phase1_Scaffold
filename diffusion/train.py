@@ -358,12 +358,34 @@ def _train_from_cfg(cfg: Dict) -> Dict[str, float]:
     seed        = int(_cfg_get(cfg, "SEED", 42))
     tf.keras.utils.set_random_seed(seed)
 
-    # Artifacts
+    # # Artifacts
+    # arts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
+    # model_root = arts_root / "diffusion"
+    # ckpt_dir = Path(_cfg_get(cfg, "ARTIFACTS.diffusion_checkpoints", model_root / "checkpoints"))
+    # tb_dir   = Path(_cfg_get(cfg, "ARTIFACTS.diffusion_tensorboard",  arts_root / "tensorboard" / "diffusion"))
+    # ckpt_dir.mkdir(parents=True, exist_ok=True); tb_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Artifacts (seed-aware to avoid parallel job collisions)
     arts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
     model_root = arts_root / "diffusion"
-    ckpt_dir = Path(_cfg_get(cfg, "ARTIFACTS.diffusion_checkpoints", model_root / "checkpoints"))
-    tb_dir   = Path(_cfg_get(cfg, "ARTIFACTS.diffusion_tensorboard",  arts_root / "tensorboard" / "diffusion"))
-    ckpt_dir.mkdir(parents=True, exist_ok=True); tb_dir.mkdir(parents=True, exist_ok=True)
+
+    ckpt_dir = Path(
+        _cfg_get(
+            cfg,
+            "ARTIFACTS.diffusion_checkpoints",
+            model_root / "checkpoints" / f"seed{seed}",
+        )
+    )
+    tb_dir = Path(
+        _cfg_get(
+            cfg,
+            "ARTIFACTS.diffusion_tensorboard",
+            model_root / "tensorboard" / f"seed{seed}",
+        )
+    )
+
+    ckpt_dir.mkdir(parents=True, exist_ok=True)
+    tb_dir.mkdir(parents=True, exist_ok=True)
 
     # Data
     # Data (shared loader: returns [0,1] HWC + one-hot labels; test is split into (val, test))

@@ -132,11 +132,28 @@ def write_phase2_summary(
             "kid":        _to_jsonable(_get(generative, "kid")),
             "ms_ssim":    _to_jsonable(_get(generative, "ms_ssim")),
         },
+        # "utility_real_only": {
+        #     "macro_f1": _to_jsonable(_get(util_real, "macro_f1")),
+        # },
+        # "utility_real_plus_synth": {
+        #     "macro_f1": _to_jsonable(_get(util_rs, "macro_f1")),
+        # },
+
         "utility_real_only": {
             "macro_f1": _to_jsonable(_get(util_real, "macro_f1")),
+            "macro_auprc": _to_jsonable(_get(util_real, "macro_auprc")),
+            "bal_acc": _to_jsonable(_get(util_real, "bal_acc")),
+            "balanced_acc": _to_jsonable(_get(util_real, "balanced_acc")),
+            "macro_precision": _to_jsonable(_get(util_real, "macro_precision")),
+            "macro_recall": _to_jsonable(_get(util_real, "macro_recall")),
         },
         "utility_real_plus_synth": {
             "macro_f1": _to_jsonable(_get(util_rs, "macro_f1")),
+            "macro_auprc": _to_jsonable(_get(util_rs, "macro_auprc")),
+            "bal_acc": _to_jsonable(_get(util_rs, "bal_acc")),
+            "balanced_acc": _to_jsonable(_get(util_rs, "balanced_acc")),
+            "macro_precision": _to_jsonable(_get(util_rs, "macro_precision")),
+            "macro_recall": _to_jsonable(_get(util_rs, "macro_recall")),
         },
 
         # Legacy shims (phase-1 compatible)
@@ -145,7 +162,16 @@ def write_phase2_summary(
         "metrics.fid_macro":           _to_jsonable(_get(generative, "fid_macro")),
         "metrics.kid":                 _to_jsonable(_get(generative, "kid")),
         "metrics.ms_ssim":             _to_jsonable(_get(generative, "ms_ssim")),
+        # "metrics.downstream.macro_f1": _to_jsonable(_get(util_rs, "macro_f1")),
+
         "metrics.downstream.macro_f1": _to_jsonable(_get(util_rs, "macro_f1")),
+        "metrics.downstream.macro_auprc": _to_jsonable(_get(util_rs, "macro_auprc")),
+        "metrics.downstream.bal_acc": _to_jsonable(_get(util_rs, "bal_acc")),
+        "metrics.downstream.balanced_acc": _to_jsonable(_get(util_rs, "balanced_acc")),
+        "metrics.downstream.precision": _to_jsonable(_get(util_rs, "macro_precision")),
+        "metrics.downstream.recall": _to_jsonable(_get(util_rs, "macro_recall")),
+        "metrics.gen_precision": _to_jsonable(_get(util_rs, "macro_precision")),
+        "metrics.gen_recall": _to_jsonable(_get(util_rs, "macro_recall")),
 
         # Counts (optional but helpful)
         "counts.num_real": _to_jsonable(_get(counts, "train_real")),

@@ -257,8 +257,17 @@ def synth(cfg: dict, output_root: str, seed: int = 42) -> dict:
 
     # Where checkpoints live
     artifacts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
-    ckpt_dir = Path(_cfg_get(cfg, "ARTIFACTS.gaussianmixture_checkpoints",
-                             artifacts_root / "gaussianmixture" / "checkpoints"))
+
+    base_ckpt_dir = Path(
+        _cfg_get(
+            cfg,
+            "ARTIFACTS.gaussianmixture_checkpoints",
+            artifacts_root / "gaussianmixture" / "checkpoints",
+        )
+    )
+    ckpt_dir = base_ckpt_dir if base_ckpt_dir.name.startswith("seed") else base_ckpt_dir / f"seed{seed}"
+
+    print(f"[gmm-synth] ckpt_dir={ckpt_dir}")
 
     # Load models and draw a balanced batch (your existing helpers)
     models, fallback = load_gmms_from_dir(ckpt_dir, K)

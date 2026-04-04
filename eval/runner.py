@@ -48,7 +48,6 @@ paths:
   artifacts: "artifacts"                 # output root (model folders live under here)
 """
 
-
 from __future__ import annotations
 
 import json
@@ -121,8 +120,8 @@ def _infer_budget_per_class(config: Dict[str, Any], synth_manifest: Dict[str, An
 
 
 def _ensure_run_meta(
-    config: Dict[str, Any],
-    synth_manifest: Dict[str, Any] | None = None
+        config: Dict[str, Any],
+        synth_manifest: Dict[str, Any] | None = None
 ) -> Dict[str, Any]:
     rm = config.get("run_meta")
     rm = rm if isinstance(rm, dict) else {}
@@ -205,6 +204,7 @@ def _require_run_meta_ok(config: Dict[str, Any]) -> None:
     if missing:
         raise RuntimeError(f"provenance.require=true but missing run_meta fields: {missing}")
 
+
 # -----------------------------------------------------------------------------
 # Local fallbacks if gcs_core.* is missing
 # -----------------------------------------------------------------------------
@@ -236,10 +236,10 @@ def _load_manifest_local(manifest_path: str) -> Dict[str, Any]:
 
 
 def _read_image(
-    path: Path,
-    *,
-    min_hw: int = 11,
-    target_hw: tuple[int, int] | None = None,
+        path: Path,
+        *,
+        min_hw: int = 11,
+        target_hw: tuple[int, int] | None = None,
 ) -> Optional["np.ndarray"]:
     """
     Minimal image reader -> float32 HWC in [0,1].
@@ -274,8 +274,8 @@ def _read_image(
 
 
 def _load_images_local(
-    manifest: Dict[str, Any],
-    per_class_cap: int = 200,
+        manifest: Dict[str, Any],
+        per_class_cap: int = 200,
 ) -> Tuple["np.ndarray", "np.ndarray"]:
     """
     Load up to `per_class_cap` images per class from a manifest using local IO.
@@ -420,7 +420,8 @@ def _manifest_for_meta(man_path: str) -> Dict[str, Any] | None:
         pass
 
     return man
-    
+
+
 # ---------------------------------------------------------------------------
 # Manifest selection (shared + per-run)
 # ---------------------------------------------------------------------------
@@ -565,8 +566,8 @@ def _ms_ssim_intra_class_local(imgs, labels, max_pairs_per_class: int = 200) -> 
 
         for _ in range(n_pairs):
             i, j = rng.choice(idx, size=2, replace=False)
-            a = tf.convert_to_tensor(x[i : i + 1])  # (1,H,W,3)
-            b = tf.convert_to_tensor(x[j : j + 1])  # (1,H,W,3)
+            a = tf.convert_to_tensor(x[i: i + 1])  # (1,H,W,3)
+            b = tf.convert_to_tensor(x[j: j + 1])  # (1,H,W,3)
 
             v: float | None = None
 
@@ -605,12 +606,12 @@ def _attach_audit_fields(summary: Dict[str, Any], cfg: Dict[str, Any]) -> None:
         summary["config_sha1"] = rm.get("config_sha1")
         summary["git_commit"] = rm.get("git_commit")
         summary["caps"] = rm.get("caps")
-        
+
         # Budget should reflect what was actually generated (manifest-derived)
         bpc = rm.get("budget_per_class")
         if bpc is None:
             bpc = cfg.get("budget_per_class")
-        
+
         summary["budget_per_class"] = bpc
         summary["run_meta"]["budget_per_class"] = bpc
 
@@ -623,9 +624,9 @@ def _attach_audit_fields(summary: Dict[str, Any], cfg: Dict[str, Any]) -> None:
 # Public API
 # -----------------------------------------------------------------------------
 def evaluate_model_suite(
-    config: Dict[str, Any],
-    model_name: str,
-    no_synth: bool = False,
+        config: Dict[str, Any],
+        model_name: str,
+        no_synth: bool = False,
 ) -> Dict[str, Any]:
     """
     Evaluate a single model family.
@@ -656,13 +657,13 @@ def evaluate_model_suite(
     # man_path = os.path.join(synth_root, "manifest.json")
     man_path = _select_manifest_path(synth_root, model_name, config)
     have_synth = (not no_synth) and os.path.exists(man_path)
-    
+
     # ALWAYS use the normalized manifest for meta inference (even if metrics won't run)
     synth_manifest_meta = _manifest_for_meta(man_path) if os.path.exists(man_path) else None
-    
+
     # Now run_meta will infer budget_per_class from per_class_counts reliably
     _ensure_run_meta(config, synth_manifest=synth_manifest_meta)
-    
+
     # Record which manifest path this eval run actually used (audit-friendly)
     try:
         rm = config.get("run_meta")
@@ -673,7 +674,6 @@ def evaluate_model_suite(
         pass
 
     _require_run_meta_ok(config)
-
 
     # Evaluator params
     per_class_cap = int(_cfg_get(config, "evaluator.per_class_cap", 200))
@@ -903,11 +903,11 @@ def evaluate_model_suite(
         rm = config.get("run_meta") if isinstance(config.get("run_meta"), dict) else {}
         if rm.get("num_fake") is not None:
             counts["num_fake"] = int(rm.get("num_fake"))
-            
+
         # elif have_synth and os.path.exists(man_path):
-            # with open(man_path, "r") as f:
-                # man_json = json.load(f)
-                
+        # with open(man_path, "r") as f:
+        # man_json = json.load(f)
+
         elif have_synth and os.path.exists(man_path):
             man_json = _manifest_for_meta(man_path) or _load_manifest_local(man_path)
 
@@ -927,7 +927,7 @@ def evaluate_model_suite(
 
     # seed_ = int(_cfg_get(config, "seed", 0))
     seed_ = int(config.get("SEED", config.get("seed", 0)))
-    
+
     # ADDED BLOCK
     # Optional tuning-lite: include config_id in run_id so cfgA/cfgB are distinguishable
     rm = config.get("run_meta") if isinstance(config.get("run_meta"), dict) else {}
@@ -940,7 +940,6 @@ def evaluate_model_suite(
     else:
         run_id = f"{model_name}_s{seed_}"
 
-
     # Consolidate generative metrics into a single dict
     gen = {
         "fid": _gen_extra.get("fid"),
@@ -950,9 +949,153 @@ def evaluate_model_suite(
         "ms_ssim": metrics.get("ms_ssim"),
     }
 
-    # Utility blocks (placeholders for now)
-    util_real = {"macro_f1": None}
-    util_rs = {"macro_f1": None}
+    # # Utility blocks (placeholders for now)
+    # util_real = {"macro_f1": None}
+    # util_rs = {"macro_f1": None}
+
+    # Downstream utility (REAL vs REAL+SYNTH)
+    metrics["downstream"] = {
+        "macro_f1": None,
+        "macro_auprc": None,
+        "bal_acc": None,
+        "balanced_acc": None,
+        "precision": None,
+        "recall": None,
+    }
+
+    util_real = {
+        "macro_f1": None,
+        "macro_auprc": None,
+        "bal_acc": None,
+        "balanced_acc": None,
+        "macro_precision": None,
+        "macro_recall": None,
+    }
+    util_rs = {
+        "macro_f1": None,
+        "macro_auprc": None,
+        "bal_acc": None,
+        "balanced_acc": None,
+        "macro_precision": None,
+        "macro_recall": None,
+    }
+
+    delta_macro_f1 = None
+    delta_macro_auprc = None
+    delta_bal_acc = None
+
+    # Load real train/val/test so downstream utility can be computed
+    x_train_real = y_train_real = x_val_real = y_val_real = x_test_real = y_test_real = None
+    try:
+        from common.data import load_dataset_npy
+
+        data_dir = _cfg_get(
+            config,
+            "DATA_DIR",
+            _cfg_get(config, "data.root", "/home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc"),
+        )
+        img_shape = tuple(_cfg_get(config, "IMG_SHAPE", (40, 40, 1)))
+        num_classes = int(_cfg_get(config, "NUM_CLASSES", 9))
+        val_fraction = float(_cfg_get(config, "VAL_FRACTION", 0.1))
+
+        x_train_real, y_train_real, x_val_real, y_val_real, x_test_real, y_test_real = load_dataset_npy(
+            data_dir,
+            img_shape=img_shape,
+            num_classes=num_classes,
+            val_fraction=val_fraction,
+        )
+    except Exception as e:
+        metrics.setdefault("_warnings", []).append(
+            f"Real-data load skipped for downstream utility: {type(e).__name__}: {e}"
+        )
+
+    if (
+            val_common is not None
+            and x_train_real is not None and y_train_real is not None
+            and x_val_real is not None and y_val_real is not None
+            and x_test_real is not None and y_test_real is not None
+            # and x_synth is not None and y_synth is not None
+            # and len(x_synth) > 0
+            and imgs is not None and labels is not None
+            and len(imgs) > 0
+    ):
+        try:
+            utility_epochs = int(_cfg_get(config, "evaluator.utility_epochs", 10))
+
+            # util_bundle = val_common.compute_all_metrics(
+            #     img_shape=tuple(x_train_real.shape[1:]),
+            #     x_train_real=x_train_real, y_train_real=y_train_real,
+            #     x_val_real=x_val_real, y_val_real=y_val_real,
+            #     x_test_real=x_test_real, y_test_real=y_test_real,
+            #     x_synth=x_synth, y_synth=y_synth,
+            #     per_class_cap=per_class_cap,
+            #     seed=seed_,
+            #     epochs=utility_epochs,
+            #     compute_fid=False,
+            #     compute_cfid=False,
+            #     compute_similarity=False,
+            #     compute_diversity=False,
+            # )
+
+            imgs_for_util = imgs
+            labels_for_util = labels
+
+            if (
+                    imgs_for_util is not None
+                    and x_train_real is not None
+                    and getattr(imgs_for_util, "ndim", 0) == 4
+                    and imgs_for_util.shape[-1] == 3
+                    and x_train_real.ndim == 4
+                    and x_train_real.shape[-1] == 1
+            ):
+                imgs_for_util = imgs_for_util.mean(axis=-1, keepdims=True).astype("float32")
+
+            util_bundle = val_common.compute_all_metrics(
+                img_shape=tuple(x_train_real.shape[1:]),
+                x_train_real=x_train_real, y_train_real=y_train_real,
+                x_val_real=x_val_real, y_val_real=y_val_real,
+                x_test_real=x_test_real, y_test_real=y_test_real,
+                x_synth=imgs_for_util, y_synth=labels_for_util,
+                fid_cap_per_class=per_class_cap,
+                seed=seed_,
+                epochs=utility_epochs,
+            )
+
+            util_real = (
+                    util_bundle.get("utility_real_only")
+                    or util_bundle.get("real_only")
+                    or util_real
+            )
+            util_rs = (
+                    util_bundle.get("utility_real_plus_synth")
+                    or util_bundle.get("real_plus_synth")
+                    or util_rs
+            )
+
+            if util_real.get("balanced_acc") is None and util_real.get("bal_acc") is not None:
+                util_real["balanced_acc"] = util_real["bal_acc"]
+            if util_rs.get("balanced_acc") is None and util_rs.get("bal_acc") is not None:
+                util_rs["balanced_acc"] = util_rs["bal_acc"]
+
+            deltas = util_bundle.get("deltas") or util_bundle.get("deltas_RS_minus_R") or {}
+            delta_macro_f1 = deltas.get("delta_macro_f1", deltas.get("macro_f1"))
+            delta_macro_auprc = deltas.get("delta_macro_auprc", deltas.get("macro_auprc"))
+            delta_bal_acc = deltas.get("delta_bal_acc", deltas.get("balanced_accuracy", deltas.get("bal_acc")))
+
+            metrics["downstream"]["macro_f1"] = util_rs.get("macro_f1")
+            metrics["downstream"]["macro_auprc"] = util_rs.get("macro_auprc")
+            metrics["downstream"]["bal_acc"] = util_rs.get("bal_acc")
+            metrics["downstream"]["balanced_acc"] = util_rs.get("balanced_acc")
+            metrics["downstream"]["precision"] = util_rs.get("macro_precision")
+            metrics["downstream"]["recall"] = util_rs.get("macro_recall")
+
+            metrics["gen_precision"] = util_rs.get("macro_precision")
+            metrics["gen_recall"] = util_rs.get("macro_recall")
+
+        except Exception as e:
+            metrics.setdefault("_warnings", []).append(
+                f"Downstream utility skipped: {type(e).__name__}: {e}"
+            )
 
     # Cast counts to plain ints if present
     counts_map = {
@@ -966,7 +1109,7 @@ def evaluate_model_suite(
         "timestamp": datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%SZ"),
         "model": model_name,
         "seed": seed_,
-        "run_id": run_id, # <-- Replaced. Before this line was "run_id": f"{model_name}_{seed_}",
+        "run_id": run_id,  # <-- Replaced. Before this line was "run_id": f"{model_name}_{seed_}",
         "generative": {
             "fid": gen["fid"],
             "fid_macro": gen["fid_macro"],
@@ -993,7 +1136,7 @@ def evaluate_model_suite(
     # Helpful, greppable field (top-level)
     rec["manifest_path"] = man_path
     _attach_audit_fields(rec, config)
-    
+
     rm = config.get("run_meta")
     rm = rm if isinstance(rm, dict) else {}
     rm["manifest_path"] = man_path
@@ -1027,7 +1170,7 @@ def evaluate_model_suite(
     except Exception as e:
         print(f"[eval] ERROR: could not read summary for patching: {type(e).__name__}: {e}")
         _cur = None  # keep going
-        
+
     if _cur is not None:
         # 1) Always patch manifest_path (safe, no dependencies)
         _cur["manifest_path"] = man_path
@@ -1035,15 +1178,15 @@ def evaluate_model_suite(
         rm2 = rm2 if isinstance(rm2, dict) else {}
         rm2["manifest_path"] = man_path
         _cur["run_meta"] = rm2
-    
+
         print(f"[eval] patched manifest_path into summary: {man_path}")
-    
+
         # 2) Patch audit fields
         try:
             _attach_audit_fields(_cur, config)
         except Exception as e:
             print(f"[eval] WARNING: _attach_audit_fields failed: {type(e).__name__}: {e}")
-    
+
         # 3) Merge extra computed metrics
         try:
             _cur.setdefault("generative", {}).update({k: v for k, v in _gen_extra.items() if v is not None})
@@ -1054,14 +1197,13 @@ def evaluate_model_suite(
                 _cur["metrics.nn_dist_mean"] = _mem_extra["nn_dist_mean"]
         except Exception as e:
             print(f"[eval] WARNING: metric merge failed: {type(e).__name__}: {e}")
-    
+
         # 4) Write patched file
         try:
             with open(out_path, "w") as fdst:
                 json.dump(_cur, fdst, indent=2)
         except Exception as e:
             print(f"[eval] ERROR: could not write patched summary: {type(e).__name__}: {e}")
-
 
     # --- latest.json ----------------------------------------------------------
     # A human-friendly "most recent summary" copy. Many quick scripts read this.
@@ -1074,6 +1216,7 @@ def evaluate_model_suite(
         pass
 
     return rec
+
 
 __all__ = ["evaluate_model_suite"]
 
@@ -1113,4 +1256,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

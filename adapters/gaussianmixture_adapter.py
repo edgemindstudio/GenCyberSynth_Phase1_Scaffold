@@ -153,6 +153,19 @@ class GMMAdapter(Adapter):
         else:
             seed = int(_cfg_get(config, "random_seeds", [42])[0])
 
+        # base_synth_root = Path(
+        #     _cfg_get(
+        #         config,
+        #         "ARTIFACTS.gaussianmixture_synthetic",
+        #         model_root / "synthetic",
+        #     )
+        # )
+        #
+        # synth_root = _ensure_dir(
+        #     base_synth_root if base_synth_root.name.startswith("seed")
+        #     else base_synth_root / f"seed{seed}"
+        # )
+
         base_synth_root = Path(
             _cfg_get(
                 config,
@@ -161,10 +174,21 @@ class GMMAdapter(Adapter):
             )
         )
 
-        synth_root = _ensure_dir(
-            base_synth_root if base_synth_root.name.startswith("seed")
-            else base_synth_root / f"seed{seed}"
-        )
+        # Match eval/runner.py manifest discovery:
+        #   shared:  <synthetic>/manifest.json
+        #   per-run: <synthetic>/<model>_<CFG>_seed<SEED>/manifest.json
+        cfg_variant = None
+        rm = config.get("run_meta")
+        if isinstance(rm, dict):
+            if isinstance(rm.get("config_variant"), str) and rm.get("config_variant"):
+                cfg_variant = rm.get("config_variant")
+            elif isinstance(rm.get("config_id"), str) and "_" in rm.get("config_id"):
+                cfg_variant = rm.get("config_id").split("_")[-1]
+
+        if cfg_variant:
+            synth_root = _ensure_dir(base_synth_root / f"gaussianmixture_{cfg_variant}_seed{seed}")
+        else:
+            synth_root = _ensure_dir(base_synth_root)
 
         # Minimal knobs (used for stub and logging)
         H, W, C = tuple(_cfg_get(config, "IMG_SHAPE", (40, 40, 1)))
@@ -209,10 +233,21 @@ class GMMAdapter(Adapter):
         manifest.setdefault("seed", seed)
         manifest.setdefault("created_at", datetime.now().isoformat(timespec="seconds"))
 
-        # Persist manifest (always write something)
+        # # Persist manifest (always write something)
+        # man_path = synth_root / "manifest.json"
+        # with open(man_path, "w") as f:
+        #     json.dump(manifest, f, indent=2)
+        # print(f"[gaussianmixture] Wrote manifest → {man_path}")
+
         man_path = synth_root / "manifest.json"
         with open(man_path, "w") as f:
             json.dump(manifest, f, indent=2)
         print(f"[gaussianmixture] Wrote manifest → {man_path}")
+
+        # Also mirror to shared manifest for backward compatibility
+        shared_man_path = base_synth_root / "manifest.json"
+        with open(shared_man_path, "w") as f:
+            json.dump(manifest, f, indent=2)
+        print(f"[gaussianmixture] Mirrored manifest → {shared_man_path}")
 
         return manifest

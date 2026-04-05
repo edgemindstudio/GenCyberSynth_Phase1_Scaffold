@@ -746,9 +746,9 @@ def evaluate_model_suite(
         cfid_fn = getattr(val_common, "compute_cfid", None) if val_common else None
         metrics["cfid"] = _safe_metric("cfid", cfid_fn, imgs, labels)
 
-        # KID
-        kid_fn = getattr(val_common, "compute_kid", None) if val_common else None
-        metrics["kid"] = _safe_metric("kid", kid_fn, imgs, labels)
+        # # KID
+        # kid_fn = getattr(val_common, "compute_kid", None) if val_common else None
+        # metrics["kid"] = _safe_metric("kid", kid_fn, imgs, labels)
 
         # Generative Precision/Recall (if exposed by gcs_core)
         gpr_fn = getattr(val_common, "generative_precision_recall", None) if val_common else None
@@ -986,6 +986,8 @@ def evaluate_model_suite(
 
     # Load real train/val/test so downstream utility can be computed
     x_train_real = y_train_real = x_val_real = y_val_real = x_test_real = y_test_real = None
+    imgs_for_util = None
+
     try:
         from common.data import load_dataset_npy
 
@@ -1097,6 +1099,43 @@ def evaluate_model_suite(
                 f"Downstream utility skipped: {type(e).__name__}: {e}"
             )
 
+    # KID: REAL val vs SYNTH
+    metrics["kid"] = None
+
+    try:
+        if (
+                val_common is not None
+                and hasattr(val_common, "kid_keras")
+                and x_val_real is not None
+                and imgs_for_util is not None
+                and len(x_val_real) > 1
+                and len(imgs_for_util) > 1
+        ):
+            subset = min(200, len(x_val_real), len(imgs_for_util))
+            if subset >= 2:
+                metrics["kid"] = val_common.kid_keras(
+                    x_val_real.astype("float32"),
+                    imgs_for_util.astype("float32"),
+                    subset=subset,
+                    n_subsets=10,
+                    seed=seed_,
+                )
+            else:
+                metrics.setdefault("_warnings", []).append(
+                    "KID skipped: fewer than 2 samples available after alignment."
+                )
+        else:
+            metrics.setdefault("_warnings", []).append(
+                "KID skipped: missing kid_keras, real val split, or synthetic images."
+            )
+    except Exception as e:
+        metrics["kid"] = None
+        metrics.setdefault("_warnings", []).append(
+            f"KID compute failed: {type(e).__name__}: {e}"
+        )
+
+    gen["kid"] = metrics.get("kid")
+
     # Cast counts to plain ints if present
     counts_map = {
         "train_real": (int(counts["num_real"]) if counts.get("num_real") is not None else None),
@@ -1141,6 +1180,9 @@ def evaluate_model_suite(
     rm = rm if isinstance(rm, dict) else {}
     rm["manifest_path"] = man_path
     config["run_meta"] = rm
+
+    if metrics.get("_warnings"):
+        rec["_warnings"] = list(metrics["_warnings"])
 
     # --- Primary write: phase2 summary writer --------------------------------
     # This function produces a clean, consistent JSON summary format used by your
@@ -1192,9 +1234,15 @@ def evaluate_model_suite(
             _cur.setdefault("generative", {}).update({k: v for k, v in _gen_extra.items() if v is not None})
             if _mem_extra:
                 _cur.setdefault("memorization", {}).update(_mem_extra)
+
             _cur["metrics.fid"] = _cur.get("metrics.fid", _gen_extra.get("fid"))
             if "nn_dist_mean" in _mem_extra:
                 _cur["metrics.nn_dist_mean"] = _mem_extra["nn_dist_mean"]
+
+            if metrics.get("kid") is not None:
+                _cur.setdefault("generative", {})["kid"] = metrics["kid"]
+                _cur["metrics.kid"] = metrics["kid"]
+
         except Exception as e:
             print(f"[eval] WARNING: metric merge failed: {type(e).__name__}: {e}")
 
@@ -1252,7 +1300,6 @@ def main():
 
     rec = evaluate_model_suite(cfg, model_name=args.model, no_synth=args.no_synth)
     print("[runner] done:", rec.get("run_id"))
-
 
 if __name__ == "__main__":
     main()

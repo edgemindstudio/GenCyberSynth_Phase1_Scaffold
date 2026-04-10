@@ -1,0 +1,60 @@
+SEED: 42
+
+VAL_FRACTION: 0.5
+
+
+
+DATA_DIR: "/home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_smoke"
+
+data:
+
+  root: "/home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_smoke"
+
+
+
+IMG_SHAPE: [12, 12, 1]
+
+NUM_CLASSES: 5
+
+
+
+scale: [0, 1]
+
+random_seeds: [42]
+
+
+
+evaluator:
+
+  per_class_cap: 10
+
+
+
+paths:
+
+  artifacts: "/home/bruno.fonkeng/gencys/artifacts_cicmaldroid_smoke"
+
+
+
+SCHEDULE: cosine
+
+TIMESTEPS: 1000
+
+BASE_FILTERS: 64
+
+DEPTH: 2
+
+TIME_EMB_DIM: 128
+
+
+
+GMM_COMPONENTS: 5
+
+GMM_COVARIANCE: diag
+
+GMM_REG_COVAR: 1e-3
+
+GMM_MAX_ITER: 100
+
+GMM_TRAIN_GLOBAL: true
+

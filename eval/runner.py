@@ -273,9 +273,15 @@ def _read_image(
         return None
 
 
+# def _load_images_local(
+#         manifest: Dict[str, Any],
+#         per_class_cap: int = 200,
+# ) -> Tuple["np.ndarray", "np.ndarray"]:
+
 def _load_images_local(
         manifest: Dict[str, Any],
         per_class_cap: int = 200,
+        target_hw: tuple[int, int] = (40, 40),
 ) -> Tuple["np.ndarray", "np.ndarray"]:
     """
     Load up to `per_class_cap` images per class from a manifest using local IO.
@@ -290,8 +296,8 @@ def _load_images_local(
     ys: List[int] = []
     counts: Dict[int, int] = {}
 
-    # In this project, images are 40x40. We force exact size for robustness.
-    target_hw = (40, 40)
+    # # In this project, images are 40x40. We force exact size for robustness.
+    # target_hw = (40, 40)
 
     for item in manifest.get("paths", []):
         try:
@@ -704,7 +710,12 @@ def evaluate_model_suite(
             metrics.setdefault("_warnings", []).append(
                 "gcs_core.synth_loader.load_images not found; using local loader."
             )
-            imgs, labels = _load_images_local(man, per_class_cap=per_class_cap)
+
+            # imgs, labels = _load_images_local(man, per_class_cap=per_class_cap)
+
+            img_shape_cfg = tuple(_cfg_get(config, "IMG_SHAPE", (40, 40, 1)))
+            target_hw = tuple(img_shape_cfg[:2])
+            imgs, labels = _load_images_local(man, per_class_cap=per_class_cap, target_hw=target_hw)
 
         # Normalize shapes/dtypes (belt & suspenders)
         try:
@@ -1052,6 +1063,42 @@ def evaluate_model_suite(
             ):
                 imgs_for_util = imgs_for_util.mean(axis=-1, keepdims=True).astype("float32")
 
+            # Convert one-hot real labels to integer class ids for downstream utility
+            if y_train_real is not None and getattr(y_train_real, "ndim", 0) == 2:
+                y_train_real = y_train_real.argmax(axis=1)
+            if y_val_real is not None and getattr(y_val_real, "ndim", 0) == 2:
+                y_val_real = y_val_real.argmax(axis=1)
+            if y_test_real is not None and getattr(y_test_real, "ndim", 0) == 2:
+                y_test_real = y_test_real.argmax(axis=1)
+
+            # Be defensive about synth labels too
+            if labels_for_util is not None and getattr(labels_for_util, "ndim", 0) == 2:
+                labels_for_util = labels_for_util.argmax(axis=1)
+
+            print("[debug] x_train_real:", None if x_train_real is None else (x_train_real.shape, x_train_real.dtype))
+            print("[debug] y_train_real:", None if y_train_real is None else (y_train_real.shape, y_train_real.dtype))
+            print("[debug] x_val_real:", None if x_val_real is None else (x_val_real.shape, x_val_real.dtype))
+            print("[debug] y_val_real:", None if y_val_real is None else (y_val_real.shape, y_val_real.dtype))
+            print("[debug] x_test_real:", None if x_test_real is None else (x_test_real.shape, x_test_real.dtype))
+            print("[debug] y_test_real:", None if y_test_real is None else (y_test_real.shape, y_test_real.dtype))
+            print("[debug] imgs_for_util:",
+                  None if imgs_for_util is None else (imgs_for_util.shape, imgs_for_util.dtype))
+            print("[debug] labels_for_util:",
+                  None if labels_for_util is None else (labels_for_util.shape, labels_for_util.dtype))
+
+            try:
+                import numpy as np
+                if y_train_real is not None:
+                    print("[debug] y_train_real unique:", np.unique(y_train_real)[:20])
+                if y_val_real is not None:
+                    print("[debug] y_val_real unique:", np.unique(y_val_real)[:20])
+                if y_test_real is not None:
+                    print("[debug] y_test_real unique:", np.unique(y_test_real)[:20])
+                if labels_for_util is not None:
+                    print("[debug] labels_for_util unique:", np.unique(labels_for_util)[:20])
+            except Exception as _e:
+                print("[debug] unique-label inspection failed:", type(_e).__name__, _e)
+
             util_bundle = val_common.compute_all_metrics(
                 img_shape=tuple(x_train_real.shape[1:]),
                 x_train_real=x_train_real, y_train_real=y_train_real,
@@ -1062,6 +1109,17 @@ def evaluate_model_suite(
                 seed=seed_,
                 epochs=utility_epochs,
             )
+
+            print("[debug] util_bundle type:", type(util_bundle).__name__)
+            if isinstance(util_bundle, dict):
+                print("[debug] util_bundle keys:", sorted(util_bundle.keys()))
+                print("[debug] utility_real_only:", util_bundle.get("utility_real_only"))
+                print("[debug] utility_real_plus_synth:", util_bundle.get("utility_real_plus_synth"))
+                print("[debug] real_only:", util_bundle.get("real_only"))
+                print("[debug] real_plus_synth:", util_bundle.get("real_plus_synth"))
+                print("[debug] deltas:", util_bundle.get("deltas") or util_bundle.get("deltas_RS_minus_R"))
+            else:
+                print("[debug] util_bundle repr:", repr(util_bundle))
 
             util_real = (
                     util_bundle.get("utility_real_only")

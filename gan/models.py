@@ -67,9 +67,25 @@ def build_generator(
     x = layers.BatchNormalization()(x)
     x = layers.LeakyReLU(negative_slope=0.2)(x)
 
-    x = layers.UpSampling2D()(x)  # 40x40
-    # Final conv to desired channels with tanh in [-1, 1]
-    out = layers.Conv2D(C, 3, padding="same", activation="tanh", use_bias=False, name="gen_out")(x)
+    # x = layers.UpSampling2D()(x)  # 40x40
+    # # Final conv to desired channels with tanh in [-1, 1]
+    # out = layers.Conv2D(C, 3, padding="same", activation="tanh", use_bias=False, name="gen_out")(x)
+
+    x = layers.UpSampling2D()(x)  # nominally 40x40
+    x = layers.Conv2D(64, 3, padding="same", use_bias=False, name="gen_conv3")(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.LeakyReLU(negative_slope=0.2)(x)
+
+    # Final conv in canonical internal resolution
+    x = layers.Conv2D(C, 3, padding="same", activation="tanh", use_bias=False, name="gen_out")(x)
+
+    # IMPORTANT:
+    # Make generator output match requested img_shape exactly.
+    # This preserves old 40x40 behavior for USTC and allows smaller/larger datasets.
+    if (H, W) != (40, 40):
+        out = layers.Resizing(H, W, interpolation="bilinear", name="gen_resize_to_target")(x)
+    else:
+        out = x
 
     return models.Model([z_in, y_in], out, name="Conditional_Generator")
 

@@ -1,0 +1,183 @@
+# =========================
+# GenCyberSynth — Global Experiment Config (Apples-to-Apples)
+# Use this for ALL models in Paper 1 and Paper 2.
+# For papers, prefer copying this into:
+#   configs/paper1_config.yaml  (n_per_class=2000)
+#   configs/paper2_500.yaml     (n_per_class=500)
+#   configs/paper2_1000.yaml    (n_per_class=1000)
+#   configs/paper2_2000.yaml    (n_per_class=2000)
+# =========================
+
+# Prefer random_seeds for experiments.
+SEED: 42
+random_seeds: [42, 43, 44]
+VAL_FRACTION: 0.5
+
+# --- compat: legacy flat keys used by GAN/VAE pipelines ---
+SAMPLES_PER_CLASS: 2000
+LATENT_DIM: 100
+EPOCHS: 5000
+BATCH_SIZE: 256
+LR: 2.0e-4
+BETA_1: 0.5
+
+
+# Real dataset (NHWC .npy)
+DATA_DIR: "/home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1"
+
+# paths:
+  # artifacts: "/home/bruno.fonkeng/gencys/artifacts"
+  # summaries_dir: "/home/bruno.fonkeng/gencys/artifacts/summaries"
+
+paths:
+  artifacts: "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid"
+  summaries_dir: "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/summaries"
+
+
+IMG_SHAPE: [12, 12, 1]
+NUM_CLASSES: 5
+
+# IMPORTANT: must match preprocessing across ALL families
+scale: [0, 1]
+
+# =========================
+# Synthetic budget (PRIMARY knob for Paper 1 / Paper 2)
+# =========================
+synth:
+  # For Paper 1 main table: 2000
+  # For Paper 2 scaling: 500 / 1000 / 2000
+  n_per_class: 2000
+
+  # Optional: if your synth generator supports deterministic ordering/caps
+  # (leave out if unused by your code)
+  # shuffle: true
+
+
+# =========================
+# Evaluator (must be fixed for fair comparison)
+# =========================
+evaluator:
+  # IMPORTANT: cap used for FID/KID feature extraction and any capped eval sets
+  # Keep fixed in Paper 1 to match your described protocol.
+  per_class_cap: 200
+
+  # Keep these fixed across all families
+  save_grids: true
+  save_nn_stats: true
+  compute_fid: true
+  compute_cfid: true
+
+  # Feature extractor settings (must be identical across models)
+  feature_extractor: "domain"
+  fid_split: "val"
+  domain_encoder: "malware_encoder_v1"
+
+# =========================
+# Run provenance / schema expectations
+# =========================
+provenance:
+  require: true
+
+# If your pipeline uses this field, keep it consistent.
+# (But ideally compute num_real from the data loader instead of hardcoding.)
+run_meta:
+  num_real: 11598
+
+# Early stop: only effective if trainer supports it; otherwise ignored.
+early_stop:
+  metric: "cFID_mean"
+  minimize: true
+  delta: 0.5
+  patience: 4
+  eval_every_steps: 2000
+
+# =========================
+# Model-specific blocks (allowed differences)
+# These are architecture/training choices *within* each family.
+# Apples-to-apples means: same data, same seeds, same budget, same eval.
+# =========================
+
+diffusion:
+  LR: 2.0e-4
+  BATCH: 256
+  EMA: 0.9999
+  SCHEDULE: cosine
+  TIMESTEPS: 1000
+  BASE_FILTERS: 64
+  DEPTH: 2
+  TIME_EMB_DIM: 128
+  TOTAL_STEPS: 200000
+  SAMPLER_STEPS: 200
+  GUIDANCE_WEIGHT: 1.5
+
+# -------------------------
+# Unified training controls
+# -------------------------
+train:
+  # GAN trainer reads these.
+  # Pick values you want for Paper 1.
+  epochs: 5000
+  batch_size: 256
+
+# -------------------------
+# GAN-compat keys (GAN reads gan.lr, gan.beta_1, gan.latent_dim)
+# -------------------------
+gan:
+  latent_dim: 100
+  lr: 2.0e-4
+  beta_1: 0.5
+  LR_G: 1.0e-4
+  LR_D: 2.0e-4
+  BETAS: [0.5, 0.999]
+  D_UPDATES_PER_G: 2
+  BATCH: 128
+  TOTAL_STEPS: 150000
+  REG: "R1"
+  SPECTRAL_NORM: true
+  EMA:
+    ENABLED: true
+    DECAY: 0.999
+
+
+vae:
+  LR: 1.0e-3
+  BATCH: 256
+  BETA: 1.0
+  KL_WARMUP_STEPS: 2000
+  TOTAL_STEPS: 80000
+
+autoregressive:
+  LR: 1.0e-3
+  BATCH: 256
+  TOTAL_STEPS: 100000
+  SAMPLING:
+    TEMPERATURE: 0.95
+    TOP_K: 100
+    TOP_P: 0.95
+
+restrictedboltzmann:
+  LR: 5.0e-4
+  CD_K: 5
+  HIDDEN: 512
+  BATCH: 256
+  EPOCHS: 50
+  # IMPORTANT:
+  # Do NOT include PER_CLASS_CAP here if it affects SYNTH output.
+  # If your RBM trainer needs a training cap, name it explicitly as TRAIN_PER_CLASS_CAP
+  # and ensure synth uses synth.n_per_class.
+  TRAIN_PER_CLASS_CAP: 2000
+
+gaussianmixture:
+  GMM_COMPONENTS: 5
+  GMM_COVARIANCE: diag
+  GMM_REG_COVAR: 1e-3
+  GMM_MAX_ITER: 300
+  GMM_TRAIN_GLOBAL: true
+
+maskedautoflow:
+  LR: 1.0e-3
+  BATCH: 256
+  DEPTH: 8
+  WIDTH: 256
+  TOTAL_STEPS: 80000
+  DEQUANT_NOISE: 0.01

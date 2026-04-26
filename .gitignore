@@ -87,3 +87,10 @@ tree_share.txt
 
 /slurm-*.err
 
+
+
+
+# Local backup archives
+
+/archive/
+

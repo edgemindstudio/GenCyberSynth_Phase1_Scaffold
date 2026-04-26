@@ -47,6 +47,8 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, Callable
 from pathlib import Path
+import hashlib
+import subprocess
 
 # Local modules (kept light so the CLI starts even if some deps are missing)
 from adapters.registry import make_adapter, list_adapters, SKIPPED_IMPORTS
@@ -103,6 +105,43 @@ def artifacts_root(cfg: Dict[str, Any], override: str | None = None) -> str:
     if override:
         return override
     return cfg.get("paths", {}).get("artifacts", "artifacts")
+
+
+def apply_paper_scoping(cfg: Dict[str, Any], args: argparse.Namespace) -> None:
+    """
+    Paper-scoped artifacts (backward compatible):
+
+    - If user provided --artifacts, do nothing (override wins).
+    - Else, if cfg.run_meta.paper_id exists (e.g., 'paper2'),
+      scope artifacts root to: <base_artifacts>/<paper_id>
+
+      Example:
+        paths.artifacts: "artifacts"
+        run_meta.paper_id: "paper2"
+        => paths.artifacts becomes "artifacts/paper2"
+    """
+    # Respect explicit CLI override
+    if getattr(args, "artifacts", None):
+        return
+
+    rm = cfg.get("run_meta")
+    if not isinstance(rm, dict):
+        return
+
+    paper_id = rm.get("paper_id")
+    if not paper_id:
+        return
+
+    cfg.setdefault("paths", {})
+    base = cfg["paths"].get("artifacts", "artifacts")
+
+    # Avoid double-scoping if already ends with paper_id
+    base_norm = os.path.normpath(str(base))
+    paper_tail = str(paper_id).rstrip("/").split("/")[-1]
+    if base_norm.split(os.sep)[-1] == paper_tail:
+        return
+
+    cfg["paths"]["artifacts"] = os.path.join(str(base), str(paper_id))
 
 
 def _manifest_path(model_name: str, arts_root: str) -> str:
@@ -216,6 +255,7 @@ def cmd_train(args: argparse.Namespace) -> int:
     cfg.setdefault("paths", {})
     if args.artifacts:
         cfg["paths"]["artifacts"] = args.artifacts
+    apply_paper_scoping(cfg, args)
 
     # Attach audit metadata (useful even for training logs/checkpoints)
     attach_run_meta(cfg, args)
@@ -308,6 +348,9 @@ def cmd_synth(args: argparse.Namespace) -> int:
     if args.artifacts:
         cfg["paths"]["artifacts"] = args.artifacts
 
+    apply_paper_scoping(cfg, args)
+    attach_run_meta(cfg, args)
+
     _info(f"Adapter: {args.model}")
     _info(f"Config : {args.config or '<defaults>'}")
 
@@ -345,6 +388,9 @@ def cmd_eval(args: argparse.Namespace) -> int:
     cfg.setdefault("paths", {})
     if args.artifacts:
         cfg["paths"]["artifacts"] = args.artifacts
+
+    apply_paper_scoping(cfg, args)
+    attach_run_meta(cfg, args)
 
     _info(f"Evaluate model: {args.model}")
     _info(f"Config        : {args.config or '<defaults>'}")

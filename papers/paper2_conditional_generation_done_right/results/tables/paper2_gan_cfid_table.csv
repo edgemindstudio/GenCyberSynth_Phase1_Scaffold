@@ -1,0 +1,2 @@
+model,metric,macro,weighted,worst,p95,cfid_macro_reported
+gan,cfid,,,,,

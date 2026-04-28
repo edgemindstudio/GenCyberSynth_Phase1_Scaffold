@@ -20,9 +20,25 @@ def main():
         cfg = (row.get("config_id") or "").strip()
         if "smoke" in cfg:
             continue
+
+        # Keep only paper seeds (drop legacy seed=0 wiring runs)
+        seed = (row.get("seed") or "").strip()
+        if seed not in {"42", "43", "44"}:
+            continue
+
+        # Drop anything missing regime fields (imbalance/budget/method)
         if (row.get("imbalance") or "").strip() == "" and (row.get("synth_budget_per_class") or "").strip() == "":
             continue
+
         keep.append(row)
+        
+    # for row in rows:
+    #     cfg = (row.get("config_id") or "").strip()
+    #     if "smoke" in cfg:
+    #         continue
+    #     if (row.get("imbalance") or "").strip() == "" and (row.get("synth_budget_per_class") or "").strip() == "":
+    #         continue
+    #     keep.append(row)
 
     args.out_csv.parent.mkdir(parents=True, exist_ok=True)
     with args.out_csv.open("w", newline="") as f:

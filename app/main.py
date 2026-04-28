@@ -392,6 +392,11 @@ def cmd_eval(args: argparse.Namespace) -> int:
     apply_paper_scoping(cfg, args)
     attach_run_meta(cfg, args)
 
+    # Respect config-driven real-only evaluation
+    ev_cfg = cfg.get("evaluator", {})
+    if isinstance(ev_cfg, dict) and ev_cfg.get("no_synth", False):
+        args.no_synth = True
+
     _info(f"Evaluate model: {args.model}")
     _info(f"Config        : {args.config or '<defaults>'}")
     _info(f"No-synth flag : {args.no_synth}")

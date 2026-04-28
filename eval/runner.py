@@ -936,15 +936,33 @@ def evaluate_model_suite(
     # ---------------------------------------------------------------------
     # 5) Assemble summary record and write to disk
     # ---------------------------------------------------------------------
+    # stamp = _now_ts()
+    # out_path = os.path.join(summaries_dir, f"summary_{stamp}.json")
+    #
+    # # seed_ = int(_cfg_get(config, "seed", 0))
+    # seed_ = int(config.get("SEED", config.get("seed", 0)))
+
     stamp = _now_ts()
     out_path = os.path.join(summaries_dir, f"summary_{stamp}.json")
 
-    # seed_ = int(_cfg_get(config, "seed", 0))
-    seed_ = int(config.get("SEED", config.get("seed", 0)))
+    # Seed (prefer explicit config fields used by train/synth; fall back to run_meta/legacy)
+    seed_ = int(
+        _cfg_get(config, "synth.seed",
+                 _cfg_get(config, "train.seed",
+                          _cfg_get(config, "run_meta.seed",
+                                   config.get("SEED", config.get("seed", 0))
+                                   )
+                          )
+                 )
+    )
+
+    # Persist seed into run_meta for collectors/tables
+    rm = config.get("run_meta") if isinstance(config.get("run_meta"), dict) else {}
+    rm["seed"] = seed_
+    config["run_meta"] = rm
 
     # ADDED BLOCK
     # Optional tuning-lite: include config_id in run_id so cfgA/cfgB are distinguishable
-    rm = config.get("run_meta") if isinstance(config.get("run_meta"), dict) else {}
     cfg_id = rm.get("config_id") or rm.get("config_tag")
     bpc = rm.get("budget_per_class") or config.get("budget_per_class")
     if cfg_id and bpc:

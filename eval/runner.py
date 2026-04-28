@@ -664,6 +664,9 @@ def evaluate_model_suite(
     man_path = _select_manifest_path(synth_root, model_name, config)
     have_synth = (not no_synth) and os.path.exists(man_path)
 
+    imgs = None
+    labels = None
+
     # ALWAYS use the normalized manifest for meta inference (even if metrics won't run)
     synth_manifest_meta = _manifest_for_meta(man_path) if os.path.exists(man_path) else None
 
@@ -1027,11 +1030,19 @@ def evaluate_model_suite(
             and x_train_real is not None and y_train_real is not None
             and x_val_real is not None and y_val_real is not None
             and x_test_real is not None and y_test_real is not None
-            # and x_synth is not None and y_synth is not None
-            # and len(x_synth) > 0
-            and imgs is not None and labels is not None
-            and len(imgs) > 0
     ):
+
+    # if (
+    #         val_common is not None
+    #         and x_train_real is not None and y_train_real is not None
+    #         and x_val_real is not None and y_val_real is not None
+    #         and x_test_real is not None and y_test_real is not None
+    #         # and x_synth is not None and y_synth is not None
+    #         # and len(x_synth) > 0
+    #         and imgs is not None and labels is not None
+    #         and len(imgs) > 0
+    # ):
+
         try:
             utility_epochs = int(_cfg_get(config, "evaluator.utility_epochs", 10))
 
@@ -1050,8 +1061,11 @@ def evaluate_model_suite(
             #     compute_diversity=False,
             # )
 
-            imgs_for_util = imgs
-            labels_for_util = labels
+            imgs_for_util = None
+            labels_for_util = None
+            if have_synth and imgs is not None and labels is not None and len(imgs) > 0:
+                imgs_for_util = imgs
+                labels_for_util = labels
 
             if (
                     imgs_for_util is not None
@@ -1099,16 +1113,53 @@ def evaluate_model_suite(
             except Exception as _e:
                 print("[debug] unique-label inspection failed:", type(_e).__name__, _e)
 
-            util_bundle = val_common.compute_all_metrics(
+            # util_bundle = val_common.compute_all_metrics(
+            #     img_shape=tuple(x_train_real.shape[1:]),
+            #     x_train_real=x_train_real, y_train_real=y_train_real,
+            #     x_val_real=x_val_real, y_val_real=y_val_real,
+            #     x_test_real=x_test_real, y_test_real=y_test_real,
+            #     x_synth=imgs_for_util, y_synth=labels_for_util,
+            #     fid_cap_per_class=per_class_cap,
+            #     seed=seed_,
+            #     epochs=utility_epochs,
+            # )
+
+            # --- Always compute REAL-ONLY utility (works even when no_synth=True) ---
+            util_bundle_real = val_common.compute_all_metrics(
                 img_shape=tuple(x_train_real.shape[1:]),
                 x_train_real=x_train_real, y_train_real=y_train_real,
                 x_val_real=x_val_real, y_val_real=y_val_real,
                 x_test_real=x_test_real, y_test_real=y_test_real,
-                x_synth=imgs_for_util, y_synth=labels_for_util,
+                x_synth=None, y_synth=None,
                 fid_cap_per_class=per_class_cap,
                 seed=seed_,
                 epochs=utility_epochs,
             )
+
+            # --- Compute REAL+SYNTH only if synth is available and non-empty ---
+            util_bundle_rs = None
+            if have_synth and imgs_for_util is not None and labels_for_util is not None and len(imgs_for_util) > 0:
+                util_bundle_rs = val_common.compute_all_metrics(
+                    img_shape=tuple(x_train_real.shape[1:]),
+                    x_train_real=x_train_real, y_train_real=y_train_real,
+                    x_val_real=x_val_real, y_val_real=y_val_real,
+                    x_test_real=x_test_real, y_test_real=y_test_real,
+                    x_synth=imgs_for_util, y_synth=labels_for_util,
+                    fid_cap_per_class=per_class_cap,
+                    seed=seed_,
+                    epochs=utility_epochs,
+                )
+
+            # Merge into one util_bundle dict (so downstream code stays unchanged)
+            util_bundle = util_bundle_real if isinstance(util_bundle_real, dict) else {}
+            # Ensure real-only is always available under the expected key
+            util_bundle["utility_real_only"] = util_bundle.get("utility_real_only") or util_bundle.get("real_only")
+            if isinstance(util_bundle_rs, dict):
+                # prefer RS keys from RS run, but keep real-only from real run
+                util_bundle["utility_real_plus_synth"] = (
+                        util_bundle_rs.get("utility_real_plus_synth") or util_bundle_rs.get("real_plus_synth")
+                )
+                util_bundle["real_plus_synth"] = util_bundle_rs.get("real_plus_synth")
 
             print("[debug] util_bundle type:", type(util_bundle).__name__)
             if isinstance(util_bundle, dict):

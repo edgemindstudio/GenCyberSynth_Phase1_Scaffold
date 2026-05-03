@@ -1,0 +1,2 @@
+model,run_id,paper_id,config_id,dataset_id,imbalance,synth_budget_per_class,aug_method,macro_f1_real_only,macro_f1_real_plus_synth,delta_macro_f1,bal_acc_real_only,bal_acc_real_plus_synth,delta_bal_acc,macro_auprc_real_only,macro_auprc_real_plus_synth,delta_macro_auprc,kid,ms_ssim
+gan,gan_paper3_smoke_pc25_s0,paper3,paper3_smoke,ustc_tfc2016,,,,0.9385374119112987,0.9370448873997415,-0.001492524511557236,0.9390671486844351,0.937933924258264,-0.0011332244261710311,0.9733524389878405,0.9741661354858456,0.000813696498005112,0.8360507059605704,0.9509078550007608

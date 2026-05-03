@@ -1,0 +1,23 @@
+run_meta:
+  paper_id: paper2
+  config_id: paper2_baseline_long
+  # optional but nice to keep consistent:
+  dataset_id: ustc_tfc2016
+
+paths:
+  artifacts: artifacts   # will be overridden by --artifacts in your run command
+  
+DATA_DIR: /home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc
+
+# Keep synth small for the first test
+synth:
+  seed: 42
+  n_per_class: 10
+
+# Keep eval light for the first test
+evaluator:
+  per_class_cap: 200
+  
+train:
+  epochs: 50
+  batch_size: 64

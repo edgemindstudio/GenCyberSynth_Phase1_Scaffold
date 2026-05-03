@@ -1,0 +1,28 @@
+run_meta:
+  paper_id: paper4
+  config_id: paper4_baseline_b500
+  dataset_id: ustc_tfc2016
+  regime:
+    imbalance: balanced
+    synth_budget_per_class: 500
+    aug_method: per_class_equal
+  # Paper4-specific: policy metadata (baseline = none)
+  policy:
+    policy_id: none
+
+paths:
+  artifacts: artifacts  # overridden by --artifacts
+
+DATA_DIR: /home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc
+
+train:
+  seed: 42
+  epochs: 2
+  batch_size: 64
+
+synth:
+  seed: 42
+  n_per_class: 500
+
+evaluator:
+  per_class_cap: 50

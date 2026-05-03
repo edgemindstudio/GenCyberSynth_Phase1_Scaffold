@@ -1,0 +1,48 @@
+run_meta:
+
+  paper_id: paper4
+
+  config_id: paper4_policy_keep_all_b25
+
+  dataset_id: ustc_tfc2016
+
+  manifest_path: /home/bruno.fonkeng/gencys/artifacts_paper4/gan/synthetic/paper4_baseline_b25/seed42/policy/keep_all/manifest.json
+
+  regime:
+
+    imbalance: balanced
+
+    synth_budget_per_class: 25
+
+    aug_method: policy_filtered
+
+  policy:
+
+    policy_id: keep_all
+
+    source_config_id: paper4_baseline_b25
+
+paths:
+
+  artifacts: artifacts
+
+DATA_DIR: /home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc
+
+train:
+
+  seed: 42
+
+  epochs: 2
+
+  batch_size: 64
+
+synth:
+
+  seed: 42
+
+  n_per_class: 25
+
+evaluator:
+
+  per_class_cap: 50
+

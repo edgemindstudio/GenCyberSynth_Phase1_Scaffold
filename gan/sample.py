@@ -25,6 +25,7 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from PIL import Image
+import json
 
 from gan.models import build_models
 
@@ -201,7 +202,14 @@ def synth(cfg: dict, output_root: str, seed: int = 42) -> Dict:
     H, W, C = tuple(_cfg_get(cfg, "IMG_SHAPE", _cfg_get(cfg, "img.shape", (40, 40, 1))))
     K = int(_cfg_get(cfg, "NUM_CLASSES", _cfg_get(cfg, "num_classes", 9)))
     LATENT_DIM = int(_cfg_get(cfg, "LATENT_DIM", _cfg_get(cfg, "gan.latent_dim", 100)))
-    S = int(_cfg_get(cfg, "SAMPLES_PER_CLASS", _cfg_get(cfg, "samples_per_class", 25)))
+    # S = int(_cfg_get(cfg, "SAMPLES_PER_CLASS", _cfg_get(cfg, "samples_per_class", 25)))
+    S = int(
+        _cfg_get(
+            cfg,
+            "synth.n_per_class",
+            _cfg_get(cfg, "SAMPLES_PER_CLASS", _cfg_get(cfg, "samples_per_class", 25)),
+        )
+    )
     LR = float(_cfg_get(cfg, "LR", _cfg_get(cfg, "gan.lr", 2e-4)))
     BETA_1 = float(_cfg_get(cfg, "BETA_1", _cfg_get(cfg, "gan.beta_1", 0.5)))
 
@@ -236,7 +244,14 @@ def synth(cfg: dict, output_root: str, seed: int = 42) -> Dict:
         beta_1=BETA_1,
     )
 
-    out_root = Path(output_root)
+    # out_root = Path(output_root)
+
+    # config-scoped synth root to avoid overwriting across regimes
+    rm = cfg.get("run_meta") if isinstance(cfg.get("run_meta"), dict) else {}
+    cfg_id = rm.get("config_id") or "default"
+
+    out_root = Path(output_root) / cfg_id / f"seed{seed}"
+
     per_class_counts: Dict[str, int] = {str(k): 0 for k in range(K)}
     paths: List[Dict] = []
 
@@ -251,12 +266,15 @@ def synth(cfg: dict, output_root: str, seed: int = 42) -> Dict:
             seed=seed,
         )  # (S, H, W, C)
 
-        cls_dir = out_root / str(k) / str(seed)
+        # cls_dir = out_root / str(k) / str(seed)
+        cls_dir = out_root / str(k)
+
         cls_dir.mkdir(parents=True, exist_ok=True)
         for j in range(S):
             p = cls_dir / f"gan_{j:05d}.png"
             _save_png(imgs01[j], p)
-            paths.append({"path": str(p), "label": int(k)})
+            rel = p.relative_to(Path(output_root))  # relative to .../gan/synthetic
+            paths.append({"path": str(rel), "label": int(k)})
         per_class_counts[str(k)] = int(S)
 
     manifest = {
@@ -265,6 +283,14 @@ def synth(cfg: dict, output_root: str, seed: int = 42) -> Dict:
         "per_class_counts": per_class_counts,
         "paths": paths,
     }
+
+    # Write manifest next to the generated images in the config/seed-scoped output root.
+    manifest["num_fake"] = int(K * S)
+    manifest["budget_per_class"] = int(S)
+    manifest_path = out_root / "manifest.json"
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    json.dump(manifest, open(manifest_path, "w"), indent=2)
+
     return manifest
 
 

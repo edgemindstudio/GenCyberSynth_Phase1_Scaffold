@@ -134,6 +134,18 @@ def _ensure_run_meta(
     cfg_sha1 = rm.get("config_sha1") or config.get("config_sha1") or _sha1_file(cfg_path)
     commit = rm.get("git_commit") or config.get("git_commit") or _git_commit()
 
+    # -----------------------------
+    # Config ID (Paper3)
+    # -----------------------------
+    # Prefer any existing config_id, otherwise derive it from config_path.
+    config_id = rm.get("config_id") or config.get("config_id")
+    if not config_id and isinstance(cfg_path, str) and cfg_path:
+        stem = Path(cfg_path).stem  # e.g., paper3_regime_aug_balanced_b500
+        if stem.startswith("paper3_regime_"):
+            config_id = "paper3_" + stem[len("paper3_regime_"):]  # -> paper3_aug_balanced_b500
+        else:
+            config_id = stem
+
     evaluator = config.get("evaluator", {}) if isinstance(config.get("evaluator"), dict) else {}
     per_class_cap = int(evaluator.get("per_class_cap", 200))
 
@@ -176,6 +188,7 @@ def _ensure_run_meta(
         "config_path": cfg_path,
         "config_sha1": cfg_sha1,
         "git_commit": commit,
+        "config_id": config_id,
         "caps": caps,
         "budget_per_class": budget_pc,
     })
@@ -188,6 +201,7 @@ def _ensure_run_meta(
     config["git_commit"] = rm2.get("git_commit")
     config["caps"] = rm2.get("caps")
     config["budget_per_class"] = rm2.get("budget_per_class")
+    config["config_id"] = rm2.get("config_id")
 
     return rm2
 
@@ -199,7 +213,8 @@ def _require_run_meta_ok(config: Dict[str, Any]) -> None:
     rm = config.get("run_meta")
     if not isinstance(rm, dict):
         raise RuntimeError("provenance.require=true but run_meta missing.")
-    required = ["config_path", "config_sha1", "git_commit", "caps", "budget_per_class"]
+    # required = ["config_path", "config_sha1", "git_commit", "caps", "budget_per_class"]
+    required = ["config_path", "config_sha1", "git_commit", "config_id", "caps", "budget_per_class"]
     missing = [k for k in required if rm.get(k) is None]
     if missing:
         raise RuntimeError(f"provenance.require=true but missing run_meta fields: {missing}")
@@ -222,16 +237,65 @@ def _load_manifest_local(manifest_path: str) -> Dict[str, Any]:
       {"samples": [{"path": "...", "label": ...}, ...]}
 
     We normalize "samples" -> "paths" so the rest of the code can be uniform.
+    We also resolve relative image paths relative to the directory containing manifest.json.
     """
     with open(manifest_path, "r") as f:
         man = json.load(f)
 
-    # Normalize common field name
+    # Normalize common field name / schema
+    # Convert "samples" -> canonical "paths" list of {"path": ..., "label": int}
     if "paths" not in man and isinstance(man.get("samples"), list):
-        man["paths"] = man["samples"]
+        man["paths"] = []
+        for s in man["samples"]:
+            if not isinstance(s, dict):
+                continue
+
+            p = (
+                s.get("path")
+                or s.get("filepath")
+                or s.get("file")
+                or s.get("filename")
+                or s.get("img_path")
+            )
+
+            y = (
+                s.get("label")
+                if "label" in s
+                else s.get("y")
+                if "y" in s
+                else s.get("label_id")
+                if "label_id" in s
+                else s.get("class_id")
+                if "class_id" in s
+                else None
+            )
+
+            if p is None or y is None:
+                continue
+
+            try:
+                man["paths"].append({"path": str(p), "label": int(y)})
+            except Exception:
+                continue
 
     man.setdefault("paths", [])  # list of {"path": "...", "label": int}
     man.setdefault("per_class_counts", {})
+
+    # Resolve relative image paths.
+    # NOTE: our GAN manifests store paths relative to the *synthetic root*:
+    #   <synthetic_root>/<config_id>/seed<seed>/...
+    # and the manifest contains: "<config_id>/seed<seed>/.../file.png"
+    base_dir = os.path.dirname(manifest_path)  # .../synthetic/<config_id>/seed42
+    synthetic_root = os.path.dirname(os.path.dirname(base_dir))  # .../synthetic
+
+    for item in man["paths"]:
+        if not isinstance(item, dict):
+            continue
+        p = item.get("path")
+        if isinstance(p, str) and p and not os.path.isabs(p):
+            # Join relative paths to synthetic_root (NOT base_dir)
+            item["path"] = os.path.normpath(os.path.join(synthetic_root, p))
+
     return man
 
 
@@ -481,22 +545,124 @@ def _per_run_manifest_path(synth_root: str, model_name: str, config: dict) -> st
     return os.path.join(run_dir, "manifest.json")
 
 
+def _derive_config_id_from_config(config: dict) -> str | None:
+    """
+    Derive a stable config_id for Paper3/Paper4 runs.
+
+    Preferred sources:
+      1) config["run_meta"]["config_id"]
+      2) basename of config["run_meta"]["config_path"], with:
+           "paper3_regime_aug_balanced_b500.yaml" -> "paper3_aug_balanced_b500"
+           "paper4_smoke.yaml" -> "paper4_smoke"
+    """
+    rm = config.get("run_meta") if isinstance(config, dict) else None
+    rm = rm if isinstance(rm, dict) else {}
+
+    # First preference: explicit config_id already set in YAML
+    cfg_id = rm.get("config_id")
+    if isinstance(cfg_id, str) and cfg_id.strip():
+        return cfg_id.strip()
+
+    # Fallback: derive from config_path if available
+    cfg_path = rm.get("config_path")
+    if isinstance(cfg_path, str) and cfg_path.strip():
+        stem = os.path.splitext(os.path.basename(cfg_path))[0]
+        # Normalize "paper3_regime_xxx" -> "paper3_xxx"
+        # and same idea for other papers if needed.
+        stem = stem.replace("_regime_", "_")
+        return stem
+
+    return None
+
+
+def _manifest_path_config_seed(synth_root: str, config_id: str, seed: int) -> str:
+    """
+    New Paper3 layout:
+      <synth_root>/<config_id>/seed<seed>/manifest.json
+    """
+    return os.path.join(synth_root, config_id, f"seed{seed}", "manifest.json")
+
+
+def _seed_from_config(config: dict) -> int:
+    """Match the seed logic used elsewhere in this file."""
+    return int(
+        _cfg_get(
+            config,
+            "synth.seed",
+            _cfg_get(
+                config,
+                "train.seed",
+                _cfg_get(config, "run_meta.seed", config.get("SEED", config.get("seed", 0))),
+            ),
+        )
+    )
+
+
+# def _select_manifest_path(synth_root: str, model_name: str, config: dict) -> str:
+#     """
+#     Prefer per-run manifest if it exists, else fall back to shared manifest.
+#
+#     Shared (backwards-compatible):
+#       <synth_root>/manifest.json
+#
+#     Per-run (tuning-safe):
+#       <synth_root>/<model>_<CFG>_seed<SEED>/manifest.json
+#     """
+#     shared = os.path.join(synth_root, "manifest.json")
+#     per_run = _per_run_manifest_path(synth_root, model_name, config)
+#
+#     if per_run and os.path.exists(per_run):
+#         return per_run
+#
+#     return shared
+
+
 def _select_manifest_path(synth_root: str, model_name: str, config: dict) -> str:
     """
-    Prefer per-run manifest if it exists, else fall back to shared manifest.
-
-    Shared (backwards-compatible):
-      <synth_root>/manifest.json
-
-    Per-run (tuning-safe):
-      <synth_root>/<model>_<CFG>_seed<SEED>/manifest.json
+    Manifest resolution order (most specific -> least):
+      1) Config + seed scoped:
+           <synth_root>/<config_id>/seed<seed>/manifest.json
+      2) Config scoped only:
+           <synth_root>/<config_id>/manifest.json
+      3) Legacy per-run layout:
+           <synth_root>/<model>_<CFG>_seed<SEED>/manifest.json
+      4) Legacy seed-only layout:
+           <synth_root>/seed<seed>/manifest.json
+      5) Shared latest pointer:
+           <synth_root>/manifest.json
     """
-    shared = os.path.join(synth_root, "manifest.json")
-    per_run = _per_run_manifest_path(synth_root, model_name, config)
+    explicit = ((config.get("run_meta") or {}).get("manifest_path")) if isinstance(config, dict) else None
+    if explicit:
+        if os.path.exists(explicit):
+            return explicit
+        raise FileNotFoundError(f"Explicit run_meta.manifest_path does not exist: {explicit}")
 
+    shared = os.path.join(synth_root, "manifest.json")
+    seed = _seed_from_config(config)
+    config_id = _derive_config_id_from_config(config)
+
+    # 1) New config/seed-scoped layout
+    if config_id:
+        p = os.path.join(synth_root, config_id, f"seed{seed}", "manifest.json")
+        if os.path.exists(p):
+            return p
+
+        # 2) Config-scoped without explicit seed
+        p2 = os.path.join(synth_root, config_id, "manifest.json")
+        if os.path.exists(p2):
+            return p2
+
+    # 3) Legacy per-run layout
+    per_run = _per_run_manifest_path(synth_root, model_name, config)
     if per_run and os.path.exists(per_run):
         return per_run
 
+    # 4) Legacy seed-only layout
+    seed_only = os.path.join(synth_root, f"seed{seed}", "manifest.json")
+    if os.path.exists(seed_only):
+        return seed_only
+
+    # 5) Shared latest manifest
     return shared
 
 
@@ -956,6 +1122,13 @@ def evaluate_model_suite(
                  )
     )
 
+    # Persist config_id into run_meta + summary for Paper3 collectors
+    cid = _derive_config_id_from_config(config)
+    if cid:
+        rm = config.get("run_meta") if isinstance(config.get("run_meta"), dict) else {}
+        rm["config_id"] = cid
+        config["run_meta"] = rm
+
     # Persist seed into run_meta for collectors/tables
     rm = config.get("run_meta") if isinstance(config.get("run_meta"), dict) else {}
     rm["seed"] = seed_
@@ -1079,11 +1252,39 @@ def evaluate_model_suite(
             #     compute_diversity=False,
             # )
 
+            # imgs_for_util = None
+            # labels_for_util = None
+            # if have_synth and imgs is not None and labels is not None and len(imgs) > 0:
+            #     imgs_for_util = imgs
+            #     labels_for_util = labels
+
+            # For downstream utility we MUST use the correct manifest (config+seed scoped),
+            # and we should load synth from that manifest (not rely on any "latest" pointer).
             imgs_for_util = None
             labels_for_util = None
-            if have_synth and imgs is not None and labels is not None and len(imgs) > 0:
-                imgs_for_util = imgs
-                labels_for_util = labels
+
+            if have_synth and os.path.exists(man_path):
+                try:
+                    # Ensure we load the manifest in a normalized way
+                    man_util = _load_manifest_local(man_path)
+                    # Load images/labels (use a very large cap so utility sees full budget)
+                    # NOTE: _load_images_local already supports target_hw; reuse the same shape logic
+                    img_shape_cfg = tuple(_cfg_get(config, "IMG_SHAPE", (40, 40, 1)))
+                    target_hw = tuple(img_shape_cfg[:2])
+
+                    imgs_u, labels_u = _load_images_local(
+                        man_util,
+                        per_class_cap=10 ** 9,  # effectively uncapped
+                        target_hw=target_hw
+                    )
+
+                    if imgs_u is not None and labels_u is not None and len(imgs_u) > 0:
+                        imgs_for_util = imgs_u
+                        labels_for_util = labels_u
+                except Exception as _e:
+                    print("[warn] failed to load synth for utility from manifest:", type(_e).__name__, _e)
+                    imgs_for_util = None
+                    labels_for_util = None
 
             if (
                     imgs_for_util is not None
@@ -1178,6 +1379,34 @@ def evaluate_model_suite(
                         util_bundle_rs.get("utility_real_plus_synth") or util_bundle_rs.get("real_plus_synth")
                 )
                 util_bundle["real_plus_synth"] = util_bundle_rs.get("real_plus_synth")
+
+            # -----------------------------
+            # ADD: deltas = (real_plus_synth - real_only)
+            # -----------------------------
+            def _delta(a, b):
+                if a is None or b is None:
+                    return None
+                try:
+                    return float(b) - float(a)
+                except Exception:
+                    return None
+
+            ro = util_bundle.get("real_only") or {}
+            rps = util_bundle.get("real_plus_synth") or {}
+
+            # Only compute deltas if real_plus_synth exists and has numbers
+            if isinstance(rps, dict) and (rps.get("macro_f1") is not None or rps.get("accuracy") is not None):
+                util_bundle["deltas_RS_minus_R"] = {
+                    "delta_accuracy": _delta(ro.get("accuracy"), rps.get("accuracy")),
+                    "delta_macro_f1": _delta(ro.get("macro_f1"), rps.get("macro_f1")),
+                    "delta_bal_acc": _delta(ro.get("bal_acc"), rps.get("bal_acc")),
+                    "delta_macro_auprc": _delta(ro.get("macro_auprc"), rps.get("macro_auprc")),
+                    "delta_ece": _delta(ro.get("ece"), rps.get("ece")),
+                    "delta_brier": _delta(ro.get("brier"), rps.get("brier")),
+                    "delta_recall_at_1pct_fpr": _delta(ro.get("recall_at_1pct_fpr"), rps.get("recall_at_1pct_fpr")),
+                }
+            else:
+                util_bundle["deltas_RS_minus_R"] = None
 
             print("[debug] util_bundle type:", type(util_bundle).__name__)
             if isinstance(util_bundle, dict):
@@ -1275,6 +1504,8 @@ def evaluate_model_suite(
         "timestamp": datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%SZ"),
         "model": model_name,
         "seed": seed_,
+        "config_id": (config.get("run_meta") or {}).get("config_id"),
+        "config_id": (config.get("run_meta") or {}).get("config_id"),
         "run_id": run_id,  # <-- Replaced. Before this line was "run_id": f"{model_name}_{seed_}",
         "generative": {
             "fid": gen["fid"],
@@ -1346,6 +1577,35 @@ def evaluate_model_suite(
         rm2 = _cur.get("run_meta")
         rm2 = rm2 if isinstance(rm2, dict) else {}
         rm2["manifest_path"] = man_path
+
+        rm2["config_id"] = (config.get("run_meta") or {}).get("config_id")
+        _cur["config_id"] = (config.get("run_meta") or {}).get("config_id")
+
+        # --- persist deltas into saved JSON summary ---
+        try:
+            ro = _cur.get("real_only") or _cur.get("utility_real_only") or {}
+            rps = _cur.get("real_plus_synth") or _cur.get("utility_real_plus_synth") or {}
+
+            if isinstance(ro, dict) and isinstance(rps, dict) and (
+                    rps.get("macro_f1") is not None or rps.get("accuracy") is not None):
+                d = {
+                    "delta_accuracy": _delta(ro.get("accuracy"), rps.get("accuracy")),
+                    "delta_macro_f1": _delta(ro.get("macro_f1"), rps.get("macro_f1")),
+                    "delta_bal_acc": _delta(ro.get("bal_acc"), rps.get("bal_acc")),
+                    "delta_macro_auprc": _delta(ro.get("macro_auprc"), rps.get("macro_auprc")),
+                    "delta_ece": _delta(ro.get("ece"), rps.get("ece")),
+                    "delta_brier": _delta(ro.get("brier"), rps.get("brier")),
+                    "delta_recall_at_1pct_fpr": _delta(ro.get("recall_at_1pct_fpr"), rps.get("recall_at_1pct_fpr")),
+                }
+            else:
+                d = None
+
+            _cur.setdefault("utility", {})
+            _cur["utility"]["deltas_RS_minus_R"] = d
+            _cur["deltas_RS_minus_R"] = d
+        except Exception as e:
+            print(f"[eval] WARNING: could not persist deltas: {type(e).__name__}: {e}")
+
         _cur["run_meta"] = rm2
 
         print(f"[eval] patched manifest_path into summary: {man_path}")
@@ -1376,7 +1636,42 @@ def evaluate_model_suite(
         # 4) Write patched file
         try:
             with open(out_path, "w") as fdst:
+                # --- persist deltas into saved JSON summary (compute from _cur itself) ---
+                def _delta(a, b):
+                    if a is None or b is None:
+                        return None
+                    try:
+                        return float(b) - float(a)
+                    except Exception:
+                        return None
+
+                try:
+                    ro = _cur.get("real_only") or _cur.get("utility_real_only") or {}
+                    rps = _cur.get("real_plus_synth") or _cur.get("utility_real_plus_synth") or {}
+
+                    if isinstance(ro, dict) and isinstance(rps, dict) and (
+                            rps.get("macro_f1") is not None or rps.get("accuracy") is not None):
+                        d = {
+                            "delta_accuracy": _delta(ro.get("accuracy"), rps.get("accuracy")),
+                            "delta_macro_f1": _delta(ro.get("macro_f1"), rps.get("macro_f1")),
+                            "delta_bal_acc": _delta(ro.get("bal_acc"), rps.get("bal_acc")),
+                            "delta_macro_auprc": _delta(ro.get("macro_auprc"), rps.get("macro_auprc")),
+                            "delta_ece": _delta(ro.get("ece"), rps.get("ece")),
+                            "delta_brier": _delta(ro.get("brier"), rps.get("brier")),
+                            "delta_recall_at_1pct_fpr": _delta(ro.get("recall_at_1pct_fpr"),
+                                                               rps.get("recall_at_1pct_fpr")),
+                        }
+                    else:
+                        d = None
+
+                    _cur.setdefault("utility", {})
+                    _cur["utility"]["deltas_RS_minus_R"] = d
+                    _cur["deltas_RS_minus_R"] = d
+                except Exception as e:
+                    print(f"[eval] WARNING: could not persist deltas: {type(e).__name__}: {e}")
+
                 json.dump(_cur, fdst, indent=2)
+
         except Exception as e:
             print(f"[eval] ERROR: could not write patched summary: {type(e).__name__}: {e}")
 

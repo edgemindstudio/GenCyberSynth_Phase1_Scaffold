@@ -158,6 +158,7 @@ class GANAdapter(Adapter):
         else:
             seed = int(_cfg_get(config, "random_seeds", [42])[0])
 
+        # Keep synthetic root UN-scoped; gan.sample.synth() will add <config_id>/seed<seed>
         base_synth_root = Path(
             _cfg_get(
                 config,
@@ -165,9 +166,7 @@ class GANAdapter(Adapter):
                 model_root / "synthetic",
             )
         )
-        synth_root = _ensure_dir(
-            base_synth_root if base_synth_root.name.startswith("seed") else base_synth_root / f"seed{seed}"
-        )
+        base_synth_root = _ensure_dir(base_synth_root)
 
         # Minimal knobs (mainly for stub manifest)
         H, W, C = tuple(_cfg_get(config, "IMG_SHAPE", (40, 40, 1)))
@@ -197,7 +196,8 @@ class GANAdapter(Adapter):
                 pass
 
             print(f"[gan] HWC={H,W,C}  K={K}  seed={seed}")
-            man = gan_synth(config, str(synth_root), seed=seed)
+            # man = gan_synth(config, str(synth_root), seed=seed)
+            man = gan_synth(config, str(base_synth_root), seed=seed)
 
             # Normalize to plain dict & use it as our manifest
             manifest = dict(man) if isinstance(man, dict) else dict(manifest)
@@ -214,10 +214,23 @@ class GANAdapter(Adapter):
         manifest.setdefault("seed", seed)
         manifest.setdefault("created_at", datetime.now().isoformat(timespec="seconds"))
 
-        # Write manifest to disk (always)
-        man_path = synth_root / "manifest.json"
+        # Canonical per-config manifest path
+        rm = config.get("run_meta") if isinstance(config.get("run_meta"), dict) else {}
+        cfg_id = rm.get("config_id") or "default"
+        out_dir = _ensure_dir(base_synth_root / cfg_id / f"seed{seed}")
+
+        man_path = out_dir / "manifest.json"
         with open(man_path, "w") as f:
             json.dump(manifest, f, indent=2)
         print(f"[gan] Wrote manifest → {man_path}")
+
+        # Optional convenience pointer for eval/back-compat: "latest" manifest
+        try:
+            latest_path = base_synth_root / "manifest.json"
+            with open(latest_path, "w") as f:
+                json.dump(manifest, f, indent=2)
+            print(f"[gan] Also wrote latest manifest → {latest_path}")
+        except Exception:
+            pass
 
         return manifest

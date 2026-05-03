@@ -105,6 +105,9 @@ class ConditionalDCGANPipeline:
         arts = self.cfg.get("ARTIFACTS", d["ARTIFACTS"])
         seed = int(self.cfg.get("SEED", 42))
 
+        rm = self.cfg.get("run_meta") if isinstance(self.cfg.get("run_meta"), dict) else {}
+        cfg_id = rm.get("config_id") or rm.get("config_tag") or "config_unknown"
+
         base_ckpt_dir = Path(
             arts.get(
                 "checkpoints",
@@ -125,7 +128,12 @@ class ConditionalDCGANPipeline:
                 ),
             )
         )
-        self.synth_dir = base_synth_dir if base_synth_dir.name.startswith("seed") else base_synth_dir / f"seed{seed}"
+
+        # Use config-scoped synthetic directories so multi-regime runs do not overwrite each other.
+        if base_synth_dir.name.startswith("seed"):
+            self.synth_dir = base_synth_dir
+        else:
+            self.synth_dir = base_synth_dir / str(cfg_id) / f"seed{seed}"
 
         _ensure_dir(self.ckpt_dir)
         _ensure_dir(self.synth_dir)

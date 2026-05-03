@@ -188,6 +188,66 @@ def run_from_file(
     seed = int(seed if seed is not None else cfg.get("SEED", 42))
     _set_seeds(seed)
 
+    # Paper 2 ACGAN auxiliary-loss variant.
+
+    # Keep the baseline cDCGAN path untouched unless the config explicitly
+
+    # requests model_variant: acgan_auxloss.
+
+    variant = str(
+
+        cfg.get("model_variant")
+
+        or (cfg.get("gan", {}) or {}).get("model_variant")
+
+        or ""
+
+    ).lower()
+
+
+
+    if variant in {"acgan", "acgan_auxloss", "paper2_acgan_auxloss"}:
+
+        from gan.train_acgan import run_from_file as run_acgan_from_file
+
+
+
+        return run_acgan_from_file(
+
+            cfg_path=cfg_path,
+
+            epochs=epochs,
+
+            batch_size=batch_size,
+
+            eval_every=eval_every,
+
+            save_every=save_every,
+
+            label_smooth=label_smooth,
+
+            fake_label_range=fake_label_range,
+
+            noise_after=noise_after,
+
+            noise_std=noise_std,
+
+            grid=grid,
+
+            g_weights=g_weights,
+
+            d_weights=d_weights,
+
+            sample_after=sample_after,
+
+            samples_per_class=samples_per_class,
+
+            seed=seed,
+
+        )
+
+
+
     # -----------------------------------------------------------------
     # Canonical config blocks + backward-compatible fallbacks
     # -----------------------------------------------------------------

@@ -21,6 +21,7 @@ Run from repo root:
 
 from __future__ import annotations
 
+import argparse
 import csv
 import json
 import os
@@ -298,8 +299,10 @@ def _read_manifest_entries(manifest_path: Path) -> List[Dict[str, Any]]:
         "paths/samples/items/records/files/images."
     )
 
-
-def _extract_path_and_label(entry: Dict[str, Any]) -> Tuple[Path, int]:
+def _extract_path_and_label(
+    entry: Dict[str, Any],
+    manifest_dir: Path | None = None,
+) -> Tuple[Path, int]:
     path_keys = ["path", "filepath", "file_path", "image_path", "npy_path", "sample_path"]
     label_keys = ["label", "class", "class_id", "requested_label", "y", "condition"]
 
@@ -313,7 +316,26 @@ def _extract_path_and_label(entry: Dict[str, Any]) -> Tuple[Path, int]:
         raise KeyError(f"Could not find sample path key in manifest entry: {entry}")
 
     if not sample_path.is_absolute():
-        sample_path = SYNTH_MANIFEST.parent / sample_path
+        base_dir = manifest_dir if manifest_dir is not None else SYNTH_MANIFEST.parent
+
+        # Some manifests store paths relative to the manifest directory:
+        #   0/gan_00000.png
+        # Others store paths relative to the synthetic root:
+        #   paper2_acgan_smoke/seed42/0/gan_00000.png
+        #
+        # Try manifest-relative first, then synthetic-root-relative.
+        candidate_manifest_relative = base_dir / sample_path
+
+        synthetic_root = ARTIFACTS_ROOT / "gan" / "synthetic"
+        candidate_synthetic_relative = synthetic_root / sample_path
+
+        if candidate_manifest_relative.exists():
+            sample_path = candidate_manifest_relative
+        elif candidate_synthetic_relative.exists():
+            sample_path = candidate_synthetic_relative
+        else:
+            # Keep manifest-relative path for the eventual FileNotFoundError.
+            sample_path = candidate_manifest_relative
 
     label = None
     for key in label_keys:
@@ -345,7 +367,7 @@ def load_synthetic_from_manifest(
     per_class_counts: Dict[int, int] = {}
 
     for entry in entries:
-        sample_path, label = _extract_path_and_label(entry)
+        sample_path, label = _extract_path_and_label(entry, manifest_path.parent)
 
         if max_per_class is not None:
             if per_class_counts.get(label, 0) >= max_per_class:
@@ -507,10 +529,29 @@ def plot_predicted_histogram(pred_counts: Dict[int, int], path: Path) -> None:
     plt.close()
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description="Paper 2 conditioning audit")
+    parser.add_argument(
+        "--manifest",
+        type=Path,
+        default=SYNTH_MANIFEST,
+        help="Path to synthetic manifest.json to audit",
+    )
+    parser.add_argument(
+        "--tag",
+        type=str,
+        default="v2",
+        help="Output tag used in result filenames",
+    )
+    args = parser.parse_args(argv)
+
+    manifest_path = Path(args.manifest)
+    audit_tag = str(args.tag).strip().replace("/", "_").replace(" ", "_")
+
     print(f"[paper2-audit-v2] Repo root: {REPO_ROOT}")
     print(f"[paper2-audit-v2] Data dir: {DATA_DIR}")
-    print(f"[paper2-audit-v2] Synth manifest: {SYNTH_MANIFEST}")
+    print(f"[paper2-audit-v2] Synth manifest: {manifest_path}")
+    print(f"[paper2-audit-v2] Audit tag: {audit_tag}")
 
     X_train, y_train, X_val, y_val, X_test, y_test = load_real_dataset(DATA_DIR)
 
@@ -563,7 +604,7 @@ def main() -> None:
         num_classes,
     )
 
-    X_synth, y_requested = load_synthetic_from_manifest(SYNTH_MANIFEST, MAX_SYNTH_PER_CLASS)
+    X_synth, y_requested = load_synthetic_from_manifest(manifest_path, MAX_SYNTH_PER_CLASS)
     X_synth = normalize_images_for_classifier(X_synth)
     y_requested = y_requested.astype("int64").reshape(-1)
 
@@ -587,10 +628,10 @@ def main() -> None:
     minority_failure_rate = float(1.0 - minority_acc) if minority_total else 0.0
 
     # Save tables
-    confusion_csv = TABLES_DIR / "paper2_gan_conditioning_confusion_v2.csv"
-    per_class_csv = TABLES_DIR / "paper2_gan_conditioning_accuracy_v2.csv"
-    pred_hist_csv = TABLES_DIR / "paper2_gan_predicted_label_histogram_v2.csv"
-    summary_json = TABLES_DIR / "paper2_gan_conditioning_summary_v2.json"
+    confusion_csv = TABLES_DIR / f"paper2_gan_conditioning_confusion_{audit_tag}.csv"
+    per_class_csv = TABLES_DIR / f"paper2_gan_conditioning_accuracy_{audit_tag}.csv"
+    pred_hist_csv = TABLES_DIR / f"paper2_gan_predicted_label_histogram_{audit_tag}.csv"
+    summary_json = TABLES_DIR / f"paper2_gan_conditioning_summary_{audit_tag}.json"
 
     save_confusion_csv(confusion, confusion_csv)
     per_class_rows = save_per_class_accuracy_csv(confusion, per_class_csv)
@@ -601,10 +642,11 @@ def main() -> None:
         "paper_id": "paper2",
         "model_family": "gan",
         "audit_version": "conditioning_audit_v2",
+        "audit_tag": audit_tag,
         "seed": SEED,
         "data_dir": str(DATA_DIR),
         "artifacts_root": str(ARTIFACTS_ROOT),
-        "synth_manifest": str(SYNTH_MANIFEST),
+        "synth_manifest": str(manifest_path),
         "num_classes": num_classes,
         "max_synth_per_class": MAX_SYNTH_PER_CLASS,
         "total_synthetic_audited": total,
@@ -643,9 +685,9 @@ def main() -> None:
         json.dump(summary, f, indent=2)
 
     # Save figures
-    confusion_png = FIGURES_DIR / "paper2_gan_conditioning_confusion_v2.png"
-    per_class_png = FIGURES_DIR / "paper2_gan_conditioning_accuracy_v2.png"
-    pred_hist_png = FIGURES_DIR / "paper2_gan_predicted_label_histogram_v2.png"
+    confusion_png = FIGURES_DIR / f"paper2_gan_conditioning_confusion_{audit_tag}.png"
+    per_class_png = FIGURES_DIR / f"paper2_gan_conditioning_accuracy_{audit_tag}.png"
+    pred_hist_png = FIGURES_DIR / f"paper2_gan_predicted_label_histogram_{audit_tag}.png"
 
     plot_confusion_heatmap(confusion, confusion_png)
     plot_per_class_accuracy(per_class_rows, per_class_png)

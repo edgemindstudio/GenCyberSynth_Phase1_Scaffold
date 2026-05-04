@@ -208,6 +208,9 @@ def run_from_file(
     arts_root = _artifacts_root(cfg)
     paths = _ensure_dirs(arts_root, seed, config_id)
 
+    tb_run_dir = paths["tensorboard"] / f"acgan_{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+    writer = tf.summary.create_file_writer(str(tb_run_dir))
+
     _log(
         f"[ACGAN] Config: HWC={IMG_SHAPE}, K={NUM_CLASSES}, Z={LATENT_DIM}, "
         f"epochs={EPOCHS}, bs={BATCH_SIZE}, lr={LR}, beta1={BETA_1}, "

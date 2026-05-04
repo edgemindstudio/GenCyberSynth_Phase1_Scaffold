@@ -302,6 +302,8 @@ def run_from_file(
 
     arts_root = _artifacts_root(cfg)
     paths = _ensure_dirs(arts_root, seed, config_id)
+    tb_run_dir = paths["tensorboard"] / datetime.now().strftime("%Y%m%d-%H%M%S")
+    writer = tf.summary.create_file_writer(str(tb_run_dir))
 
     # -----------------------------------------------------------------
     # Log effective config sources (super helpful for Slurm debugging)

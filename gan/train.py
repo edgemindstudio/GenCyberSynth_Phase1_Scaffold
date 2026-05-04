@@ -81,25 +81,14 @@ def _artifacts_root(cfg: dict) -> Path:
     return Path(cfg.get("paths", {}).get("artifacts", "artifacts"))
 
 
-# def _ensure_dirs(arts_root: Path) -> dict[str, Path]:
-#     """Create and return common artifact dirs for GAN training."""
-#     paths = {
-#         "ckpts": arts_root / "gan" / "checkpoints",
-#         "synthetic": arts_root / "gan" / "synthetic",
-#         "summaries": arts_root / "gan" / "summaries",
-#         "tensorboard": arts_root / "tensorboard",
-#     }
-#     for p in paths.values():
-#         p.mkdir(parents=True, exist_ok=True)
-#     return paths
-
-def _ensure_dirs(arts_root: Path, seed: int) -> dict[str, Path]:
-    """Create and return seed-aware artifact dirs for GAN training."""
+def _ensure_dirs(arts_root: Path, seed: int, config_id: str = "default") -> dict[str, Path]:
+    """Create and return config/seed-aware artifact dirs for GAN training."""
+    config_id = str(config_id or "default")
     paths = {
-        "ckpts": arts_root / "gan" / "checkpoints" / f"seed{seed}",
-        "synthetic": arts_root / "gan" / "synthetic" / f"seed{seed}",
-        "summaries": arts_root / "gan" / "summaries" / f"seed{seed}",
-        "tensorboard": arts_root / "gan" / "tensorboard" / f"seed{seed}",
+        "ckpts": arts_root / "gan" / "checkpoints" / config_id / f"seed{seed}",
+        "synthetic": arts_root / "gan" / "synthetic" / config_id / f"seed{seed}",
+        "summaries": arts_root / "gan" / "summaries" / config_id / f"seed{seed}",
+        "tensorboard": arts_root / "gan" / "tensorboard" / config_id / f"seed{seed}",
     }
     for p in paths.values():
         p.mkdir(parents=True, exist_ok=True)
@@ -303,11 +292,16 @@ def run_from_file(
     # -----------------------------------------------------------------
     # Artifacts + TensorBoard
     # -----------------------------------------------------------------
+    rm = cfg.get("run_meta") if isinstance(cfg.get("run_meta"), dict) else {}
+    config_id = (
+        rm.get("config_id")
+        or cfg.get("config_id")
+        or cfg.get("model_variant")
+        or "default"
+    )
+
     arts_root = _artifacts_root(cfg)
-    # paths = _ensure_dirs(arts_root)
-    paths = _ensure_dirs(arts_root, seed)
-    tb_run_dir = paths["tensorboard"] / datetime.now().strftime("%Y%m%d-%H%M%S")
-    writer = tf.summary.create_file_writer(str(tb_run_dir))
+    paths = _ensure_dirs(arts_root, seed, config_id)
 
     # -----------------------------------------------------------------
     # Log effective config sources (super helpful for Slurm debugging)

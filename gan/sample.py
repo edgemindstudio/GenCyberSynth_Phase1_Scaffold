@@ -219,6 +219,7 @@ def synth(cfg: dict, output_root: str, seed: int = 42) -> Dict:
 
     artifacts_root = Path(_cfg_get(cfg, "paths.artifacts", "artifacts"))
 
+
     base_ckpt_dir = Path(
         _cfg_get(
             cfg,
@@ -226,7 +227,26 @@ def synth(cfg: dict, output_root: str, seed: int = 42) -> Dict:
             artifacts_root / "gan" / "checkpoints",
         )
     )
-    ckpt_dir = base_ckpt_dir if base_ckpt_dir.name.startswith("seed") else base_ckpt_dir / f"seed{seed}"
+
+    rm = cfg.get("run_meta") if isinstance(cfg.get("run_meta"), dict) else {}
+    cfg_id = (
+        rm.get("config_id")
+        or cfg.get("config_id")
+        or cfg.get("model_variant")
+        or "default"
+    )
+    cfg_id = str(cfg_id)
+
+    if base_ckpt_dir.name.startswith("seed"):
+        ckpt_dir = base_ckpt_dir
+    else:
+        config_scoped_ckpt_dir = base_ckpt_dir / cfg_id / f"seed{seed}"
+        legacy_seed_ckpt_dir = base_ckpt_dir / f"seed{seed}"
+
+        if config_scoped_ckpt_dir.exists():
+            ckpt_dir = config_scoped_ckpt_dir
+        else:
+            ckpt_dir = legacy_seed_ckpt_dir
 
     print(f"[gan-synth] ckpt_dir={ckpt_dir}")
 

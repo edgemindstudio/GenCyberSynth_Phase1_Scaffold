@@ -1,0 +1,36 @@
+run_meta:
+  paper_id: paper2
+  config_id: paper2_acgan_fakeclass
+  dataset_id: ustc_tfc2016
+
+paths:
+  artifacts: /home/bruno.fonkeng/gencys/artifacts_paper2
+
+DATA_DIR: /home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc
+IMG_SHAPE: [40, 40, 1]
+NUM_CLASSES: 9
+SEED: 42
+
+model_variant: acgan_auxloss
+
+train:
+  epochs: 50
+  batch_size: 64
+
+gan:
+  latent_dim: 100
+  lr: 0.0002
+  beta_1: 0.5
+
+evaluator:
+  per_class_cap: 200
+  fid_cap_per_class: 200
+  manifest_cap_per_class: 200
+
+SAMPLES_PER_CLASS: 25
+
+acgan:
+  enabled: true
+  validity_loss_weight: 1.0
+  class_loss_weight: 1.0
+  train_fake_class_head: true

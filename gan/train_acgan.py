@@ -182,6 +182,7 @@ def run_from_file(
 
     VALIDITY_W = float(acgan_cfg.get("validity_loss_weight", 1.0))
     CLASS_W = float(acgan_cfg.get("class_loss_weight", 1.0))
+    TRAIN_FAKE_CLASS_HEAD = bool(acgan_cfg.get("train_fake_class_head", False))
 
     DATA_DIR = Path(
         cfg.get(
@@ -214,7 +215,8 @@ def run_from_file(
     _log(
         f"[ACGAN] Config: HWC={IMG_SHAPE}, K={NUM_CLASSES}, Z={LATENT_DIM}, "
         f"epochs={EPOCHS}, bs={BATCH_SIZE}, lr={LR}, beta1={BETA_1}, "
-        f"validity_w={VALIDITY_W}, class_w={CLASS_W}"
+        f"validity_w={VALIDITY_W}, class_w={CLASS_W}, "
+        f"train_fake_class_head={TRAIN_FAKE_CLASS_HEAD}"
     )
     _log(f"[ACGAN] DATA_DIR={DATA_DIR}")
     _log(f"[ACGAN] TensorBoard → {tb_run_dir}")
@@ -290,15 +292,33 @@ def run_from_file(
                 [real_y, real_lbls],
             )
 
-            # For fake images, train the validity head as fake.
-            # The class head receives zero sample weight here so it is not
-            # trained to trust early low-quality fake-image class labels.
+            # # For fake images, train the validity head as fake.
+            # # The class head receives zero sample weight here so it is not
+            # # trained to trust early low-quality fake-image class labels.
+            # d_loss_fake = D.train_on_batch(
+            #     [gen_imgs, fake_lbls],
+            #     [fake_y, fake_lbls],
+            #     sample_weight=[
+            #         np.ones((n,), dtype=np.float32),
+            #         np.zeros((n,), dtype=np.float32),
+            #     ],
+            # )
+
+            # For fake images, always train the validity head as fake.
+            # Optionally train the class head on the requested fake label.
+            # This creates the Paper 2 fake-class-head intervention.
+            fake_class_weight = (
+                np.ones((n,), dtype=np.float32)
+                if TRAIN_FAKE_CLASS_HEAD
+                else np.zeros((n,), dtype=np.float32)
+            )
+
             d_loss_fake = D.train_on_batch(
                 [gen_imgs, fake_lbls],
                 [fake_y, fake_lbls],
                 sample_weight=[
                     np.ones((n,), dtype=np.float32),
-                    np.zeros((n,), dtype=np.float32),
+                    fake_class_weight,
                 ],
             )
 

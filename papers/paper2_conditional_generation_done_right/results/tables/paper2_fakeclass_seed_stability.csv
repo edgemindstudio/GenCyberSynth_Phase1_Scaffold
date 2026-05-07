@@ -1,0 +1,4 @@
+method,config,seed,epochs,audited_samples,conditioning_accuracy,conditioning_failure_rate,leakage_count,leakage_rate,predicted_label_pattern,interpretation
+fake_class_acgan,paper2_acgan_fakeclass,42,50,225,0.1111111111,0.8888888889,200,0.8888888889,full collapse to class 7,external conditioning failure despite internal class losses
+fake_class_acgan,paper2_acgan_fakeclass_seed43,43,50,225,0.0355555556,0.9644444444,217,0.9644444444,collapse into classes 2/5/8,external conditioning failure with multi-class partial collapse
+fake_class_acgan,paper2_acgan_fakeclass_seed44,44,50,225,0.1111111111,0.8888888889,200,0.8888888889,full collapse to class 8,external conditioning failure despite internal class losses

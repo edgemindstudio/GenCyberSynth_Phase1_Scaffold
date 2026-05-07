@@ -28,8 +28,22 @@ The evidence supports the following central claim:
 
 > Synthetic cybersecurity image generators require external conditioning audits because internal conditioning objectives can appear successful while generated samples remain class-collapsed under an independent classifier.
 
+## Seed-Stability Result for Fake-Class ACGAN
+
+The fake-class-head ACGAN intervention was evaluated across seeds 42, 43, and 44. Across all three seeds, the external real-only CNN audit found severe class-conditioning failure.
+
+| Seed | Config | Audited samples | Conditioning accuracy | Leakage rate | Predicted-label pattern |
+|---:|---|---:|---:|---:|---|
+| 42 | paper2_acgan_fakeclass | 225 | 0.1111 | 0.8889 | full collapse to class 7 |
+| 43 | paper2_acgan_fakeclass_seed43 | 225 | 0.0356 | 0.9644 | collapse into classes 2, 5, and 8 |
+| 44 | paper2_acgan_fakeclass_seed44 | 225 | 0.1111 | 0.8889 | full collapse to class 8 |
+
+This result suggests that external class-conditioning failure is not an isolated seed-42 artifact. The exact collapse pattern varies by seed, but all tested seeds fail to produce class-faithful synthetic samples under the independent real-only classifier audit.
+
+Importantly, the evaluation summaries for seeds 43 and 44 still showed positive downstream utility deltas, indicating that downstream utility improvement and class-conditional semantic fidelity are not equivalent.
+
 ## Next Experimental Options
 
-1. Run seeds 43 and 44 for the strongest current intervention to test whether collapse is seed-stable.
+1. Run seeds 43 and 44 for the strongest current intervention to test whether collapse is seed-stable. DONE
 2. Add a frozen external classifier guidance loss to directly align generator outputs with an independent classifier.
 3. Extend the audit to class-wise cKID/cFID and per-class utility deltas.

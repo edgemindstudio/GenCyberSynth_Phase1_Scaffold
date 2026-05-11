@@ -1,0 +1,116 @@
+{
+  "paper_id": "paper2",
+  "model_family": "gan",
+  "audit_version": "conditioning_audit_v2",
+  "audit_tag": "paper2_acgan_fakeclass_b100_seed44",
+  "seed": 42,
+  "data_dir": "/home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc",
+  "artifacts_root": "/home/bruno.fonkeng/gencys/artifacts_paper2",
+  "synth_manifest": "/home/bruno.fonkeng/gencys/artifacts_paper2/gan/synthetic/paper2_acgan_fakeclass_b100_seed44/seed44/manifest.json",
+  "num_classes": 9,
+  "max_synth_per_class": 100,
+  "total_synthetic_audited": 900,
+  "overall_conditioning_accuracy": 0.1111111111111111,
+  "overall_conditioning_failure_rate": 0.8888888888888888,
+  "leakage_count": 800,
+  "leakage_rate": 0.8888888888888888,
+  "train_class_counts": {
+    "0": 7200,
+    "1": 7200,
+    "2": 7200,
+    "3": 7200,
+    "4": 7200,
+    "5": 7200,
+    "6": 7200,
+    "7": 7200,
+    "8": 7200
+  },
+  "minority_definition": {
+    "method": "bottom_k_by_real_train_count",
+    "k": 3,
+    "minority_classes": [
+      0,
+      1,
+      2
+    ],
+    "minority_tie_detected": true,
+    "note": "Real train class counts are balanced; bottom-k frequency analysis is tied and should be interpreted as a deterministic diagnostic."
+  },
+  "minority_conditioning_accuracy": 0.0,
+  "minority_conditioning_failure_rate": 1.0,
+  "minority_total": 300,
+  "minority_correct": 0,
+  "predicted_label_histogram": {
+    "0": 0,
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0,
+    "8": 900
+  },
+  "top_confusions": [
+    {
+      "requested": 0,
+      "predicted": 8,
+      "count": 100,
+      "within_requested_rate": 1.0
+    },
+    {
+      "requested": 1,
+      "predicted": 8,
+      "count": 100,
+      "within_requested_rate": 1.0
+    },
+    {
+      "requested": 2,
+      "predicted": 8,
+      "count": 100,
+      "within_requested_rate": 1.0
+    },
+    {
+      "requested": 3,
+      "predicted": 8,
+      "count": 100,
+      "within_requested_rate": 1.0
+    },
+    {
+      "requested": 4,
+      "predicted": 8,
+      "count": 100,
+      "within_requested_rate": 1.0
+    },
+    {
+      "requested": 5,
+      "predicted": 8,
+      "count": 100,
+      "within_requested_rate": 1.0
+    },
+    {
+      "requested": 6,
+      "predicted": 8,
+      "count": 100,
+      "within_requested_rate": 1.0
+    },
+    {
+      "requested": 7,
+      "predicted": 8,
+      "count": 100,
+      "within_requested_rate": 1.0
+    }
+  ],
+  "real_only_classifier": {
+    "val_loss": 0.11840487271547318,
+    "val_accuracy": 0.9446296095848083,
+    "test_loss": 0.1247185468673706,
+    "test_accuracy": 0.9425555467605591,
+    "weights_path": "/home/bruno.fonkeng/gencys/artifacts_paper2/audit/real_only_cnn/seed42_real_only_cnn.weights.h5"
+  },
+  "outputs": {
+    "confusion_csv": "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper2_conditional_generation_done_right/results/tables/paper2_gan_conditioning_confusion_paper2_acgan_fakeclass_b100_seed44.csv",
+    "per_class_accuracy_csv": "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper2_conditional_generation_done_right/results/tables/paper2_gan_conditioning_accuracy_paper2_acgan_fakeclass_b100_seed44.csv",
+    "predicted_histogram_csv": "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper2_conditional_generation_done_right/results/tables/paper2_gan_predicted_label_histogram_paper2_acgan_fakeclass_b100_seed44.csv"
+  }
+}

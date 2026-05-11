@@ -1,0 +1,85 @@
+{
+  "paper_id": "paper2",
+  "model_family": "gan",
+  "audit_version": "conditioning_audit_v2",
+  "audit_tag": "paper2_cicmaldroid_fakeclass_seed43",
+  "seed": 42,
+  "dataset_id": "cicmaldroid2020",
+  "data_dir": "/home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1",
+  "artifacts_root": "/home/bruno.fonkeng/gencys/artifacts_paper2",
+  "synth_manifest": "/home/bruno.fonkeng/gencys/artifacts_paper2/gan/synthetic/paper2_cicmaldroid_fakeclass_seed43/seed43/manifest.json",
+  "num_classes": 5,
+  "max_synth_per_class": 100,
+  "total_synthetic_audited": 500,
+  "overall_conditioning_accuracy": 0.2,
+  "overall_conditioning_failure_rate": 0.8,
+  "leakage_count": 400,
+  "leakage_rate": 0.8,
+  "train_class_counts": {
+    "0": 702,
+    "1": 1176,
+    "2": 2186,
+    "3": 1426,
+    "4": 1005
+  },
+  "minority_definition": {
+    "method": "bottom_k_by_real_train_count",
+    "k": 3,
+    "minority_classes": [
+      0,
+      4,
+      1
+    ],
+    "minority_tie_detected": false,
+    "note": "Bottom-k classes are defined by real train frequency."
+  },
+  "minority_conditioning_accuracy": 0.0,
+  "minority_conditioning_failure_rate": 1.0,
+  "minority_total": 300,
+  "minority_correct": 0,
+  "predicted_label_histogram": {
+    "0": 0,
+    "1": 0,
+    "2": 500,
+    "3": 0,
+    "4": 0
+  },
+  "top_confusions": [
+    {
+      "requested": 0,
+      "predicted": 2,
+      "count": 100,
+      "within_requested_rate": 1.0
+    },
+    {
+      "requested": 1,
+      "predicted": 2,
+      "count": 100,
+      "within_requested_rate": 1.0
+    },
+    {
+      "requested": 3,
+      "predicted": 2,
+      "count": 100,
+      "within_requested_rate": 1.0
+    },
+    {
+      "requested": 4,
+      "predicted": 2,
+      "count": 100,
+      "within_requested_rate": 1.0
+    }
+  ],
+  "real_only_classifier": {
+    "val_loss": 0.5622109770774841,
+    "val_accuracy": 0.8102279901504517,
+    "test_loss": 0.5790578126907349,
+    "test_accuracy": 0.8043103218078613,
+    "weights_path": "/home/bruno.fonkeng/gencys/artifacts_paper2/audit/real_only_cnn/cicmaldroid2020/seed42_real_only_cnn.weights.h5"
+  },
+  "outputs": {
+    "confusion_csv": "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper2_conditional_generation_done_right/results/tables/paper2_gan_conditioning_confusion_paper2_cicmaldroid_fakeclass_seed43.csv",
+    "per_class_accuracy_csv": "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper2_conditional_generation_done_right/results/tables/paper2_gan_conditioning_accuracy_paper2_cicmaldroid_fakeclass_seed43.csv",
+    "predicted_histogram_csv": "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper2_conditional_generation_done_right/results/tables/paper2_gan_predicted_label_histogram_paper2_cicmaldroid_fakeclass_seed43.csv"
+  }
+}

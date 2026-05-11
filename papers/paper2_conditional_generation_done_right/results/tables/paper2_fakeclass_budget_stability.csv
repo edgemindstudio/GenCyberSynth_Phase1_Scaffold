@@ -1,0 +1,13 @@
+method,config,seed,samples_per_class,total_audited,conditioning_accuracy,conditioning_failure_rate,leakage_count,leakage_rate,predicted_label_pattern
+
+fake_class_acgan,paper2_acgan_fakeclass,42,25,225,0.1111111111,0.8888888889,200,0.8888888889,full collapse to class 7
+
+fake_class_acgan,paper2_acgan_fakeclass_seed43,43,25,225,0.0355555556,0.9644444444,217,0.9644444444,collapse into classes 2/5/8
+
+fake_class_acgan,paper2_acgan_fakeclass_seed44,44,25,225,0.1111111111,0.8888888889,200,0.8888888889,full collapse to class 8
+
+fake_class_acgan,paper2_acgan_fakeclass_b100_seed42,42,100,900,0.1111111111,0.8888888889,800,0.8888888889,full collapse to class 7
+
+fake_class_acgan,paper2_acgan_fakeclass_b100_seed43,43,100,900,0.0444444444,0.9555555556,860,0.9555555556,collapse into classes 2/5/8
+
+fake_class_acgan,paper2_acgan_fakeclass_b100_seed44,44,100,900,0.1111111111,0.8888888889,800,0.8888888889,full collapse to class 8

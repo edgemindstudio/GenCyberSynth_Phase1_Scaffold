@@ -537,12 +537,20 @@ def main(argv: list[str] | None = None) -> None:
         default=SYNTH_MANIFEST,
         help="Path to synthetic manifest.json to audit",
     )
+
     parser.add_argument(
         "--tag",
         type=str,
         default="v2",
         help="Output tag used in result filenames",
     )
+    parser.add_argument(
+        "--max-per-class",
+        type=int,
+        default=MAX_SYNTH_PER_CLASS,
+        help="Maximum synthetic samples to audit per requested class.",
+    )
+
     args = parser.parse_args(argv)
 
     manifest_path = Path(args.manifest)
@@ -604,7 +612,8 @@ def main(argv: list[str] | None = None) -> None:
         num_classes,
     )
 
-    X_synth, y_requested = load_synthetic_from_manifest(manifest_path, MAX_SYNTH_PER_CLASS)
+    max_synth_per_class = int(args.max_per_class)
+    X_synth, y_requested = load_synthetic_from_manifest(manifest_path, max_synth_per_class)
     X_synth = normalize_images_for_classifier(X_synth)
     y_requested = y_requested.astype("int64").reshape(-1)
 
@@ -648,7 +657,7 @@ def main(argv: list[str] | None = None) -> None:
         "artifacts_root": str(ARTIFACTS_ROOT),
         "synth_manifest": str(manifest_path),
         "num_classes": num_classes,
-        "max_synth_per_class": MAX_SYNTH_PER_CLASS,
+        "max_synth_per_class": max_synth_per_class,
         "total_synthetic_audited": total,
         "overall_conditioning_accuracy": overall_acc,
         "overall_conditioning_failure_rate": overall_failure_rate,

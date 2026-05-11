@@ -1,0 +1,36 @@
+run_meta:
+  paper_id: paper2
+  config_id: paper2_cicmaldroid_fakeclass_smoke_seed42
+  dataset_id: cicmaldroid2020
+
+paths:
+  artifacts: /home/bruno.fonkeng/gencys/artifacts_paper2
+
+DATA_DIR: /home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1
+IMG_SHAPE: [12, 12, 1]
+NUM_CLASSES: 5
+SEED: 42
+
+model_variant: acgan_auxloss
+
+train:
+  epochs: 1
+  batch_size: 64
+
+gan:
+  latent_dim: 100
+  lr: 0.0002
+  beta_1: 0.5
+
+evaluator:
+  per_class_cap: 50
+  fid_cap_per_class: 50
+  manifest_cap_per_class: 50
+
+SAMPLES_PER_CLASS: 5
+
+acgan:
+  enabled: true
+  validity_loss_weight: 1.0
+  class_loss_weight: 1.0
+  train_fake_class_head: true

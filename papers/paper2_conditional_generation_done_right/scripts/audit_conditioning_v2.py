@@ -222,7 +222,6 @@ def build_real_only_cnn(input_shape: Tuple[int, int, int], num_classes: int) -> 
     )
     return model
 
-
 def train_or_load_audit_classifier(
     X_train: np.ndarray,
     y_train: np.ndarray,
@@ -231,8 +230,11 @@ def train_or_load_audit_classifier(
     X_test: np.ndarray,
     y_test: np.ndarray,
     num_classes: int,
+    dataset_id: str = "ustc_tfc2016",
 ) -> Tuple[keras.Model, Dict[str, float]]:
-    weights_path = AUDIT_ARTIFACT_DIR / f"seed{SEED}_real_only_cnn.weights.h5"
+    dataset_audit_dir = AUDIT_ARTIFACT_DIR / str(dataset_id)
+    dataset_audit_dir.mkdir(parents=True, exist_ok=True)
+    weights_path = dataset_audit_dir / f"seed{SEED}_real_only_cnn.weights.h5"
 
     model = build_real_only_cnn(tuple(X_train.shape[1:]), num_classes)
 
@@ -544,6 +546,7 @@ def main(argv: list[str] | None = None) -> None:
         default="v2",
         help="Output tag used in result filenames",
     )
+
     parser.add_argument(
         "--max-per-class",
         type=int,
@@ -551,17 +554,33 @@ def main(argv: list[str] | None = None) -> None:
         help="Maximum synthetic samples to audit per requested class.",
     )
 
+    parser.add_argument(
+        "--data-dir",
+        type=Path,
+        default=DATA_DIR,
+        help="Real dataset directory containing train_data.npy/train_labels.npy/test_data.npy/test_labels.npy.",
+    )
+    parser.add_argument(
+        "--dataset-id",
+        type=str,
+        default="ustc_tfc2016",
+        help="Dataset identifier used to separate audit classifier checkpoints.",
+    )
+
     args = parser.parse_args(argv)
 
     manifest_path = Path(args.manifest)
+    data_dir = Path(args.data_dir)
+    dataset_id = str(args.dataset_id).strip().replace("/", "_").replace(" ", "_")
     audit_tag = str(args.tag).strip().replace("/", "_").replace(" ", "_")
 
     print(f"[paper2-audit-v2] Repo root: {REPO_ROOT}")
-    print(f"[paper2-audit-v2] Data dir: {DATA_DIR}")
+    print(f"[paper2-audit-v2] Data dir: {data_dir}")
+    print(f"[paper2-audit-v2] Dataset id: {dataset_id}")
     print(f"[paper2-audit-v2] Synth manifest: {manifest_path}")
     print(f"[paper2-audit-v2] Audit tag: {audit_tag}")
 
-    X_train, y_train, X_val, y_val, X_test, y_test = load_real_dataset(DATA_DIR)
+    X_train, y_train, X_val, y_val, X_test, y_test = load_real_dataset(data_dir)
 
     X_train = normalize_images_for_classifier(X_train)
     X_val = normalize_images_for_classifier(X_val)
@@ -610,6 +629,7 @@ def main(argv: list[str] | None = None) -> None:
         X_test,
         y_test,
         num_classes,
+        dataset_id=dataset_id,
     )
 
     max_synth_per_class = int(args.max_per_class)
@@ -653,7 +673,8 @@ def main(argv: list[str] | None = None) -> None:
         "audit_version": "conditioning_audit_v2",
         "audit_tag": audit_tag,
         "seed": SEED,
-        "data_dir": str(DATA_DIR),
+        "dataset_id": dataset_id,
+        "data_dir": str(data_dir),
         "artifacts_root": str(ARTIFACTS_ROOT),
         "synth_manifest": str(manifest_path),
         "num_classes": num_classes,

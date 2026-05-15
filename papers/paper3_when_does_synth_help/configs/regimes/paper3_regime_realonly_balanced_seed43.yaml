@@ -1,0 +1,27 @@
+run_meta:
+  paper_id: paper3
+  config_id: paper3_realonly_balanced
+  dataset_id: ustc_tfc2016
+  regime:
+    imbalance: balanced
+    synth_budget_per_class: 0
+    aug_method: none
+
+paths:
+  artifacts: artifacts
+
+DATA_DIR: /home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc
+
+SEED: 43
+
+train:
+  epochs: 20
+  batch_size: 128
+
+synth:
+  n_per_class: 0
+  
+  
+evaluator:
+  per_class_cap: 200
+  no_synth: true

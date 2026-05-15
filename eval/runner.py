@@ -1498,36 +1498,78 @@ def evaluate_model_suite(
         "synthetic": (int(counts["num_fake"]) if counts.get("num_fake") is not None else None),
     }
 
-    # This record is returned to the caller. The canonical JSON written to disk
-    # is produced by `write_phase2_summary` and then augmented below.
+    # Pull config_id once (avoid duplicate keys)
+    cid = (config.get("run_meta") or {}).get("config_id")
+
+    # Compute deltas in a robust way:
+    # 1) Prefer util_bundle’s deltas if present
+    # 2) Otherwise compute deltas from util_real vs util_rs if both exist
+    deltas_rs_minus_r = None
+    if isinstance(util_bundle, dict):
+        deltas_rs_minus_r = (
+                util_bundle.get("deltas_RS_minus_R")
+                or util_bundle.get("deltas")  # some paths store it here
+        )
+
+    def _delta(a, b):
+        if a is None or b is None:
+            return None
+        try:
+            return float(b) - float(a)
+        except Exception:
+            return None
+
+    if deltas_rs_minus_r is None and isinstance(util_real, dict) and isinstance(util_rs, dict):
+        deltas_rs_minus_r = {
+            "delta_accuracy": _delta(util_real.get("accuracy"), util_rs.get("accuracy")),
+            "delta_macro_f1": _delta(util_real.get("macro_f1"), util_rs.get("macro_f1")),
+            "delta_bal_acc": _delta(util_real.get("bal_acc"), util_rs.get("bal_acc")),
+            "delta_macro_auprc": _delta(util_real.get("macro_auprc"), util_rs.get("macro_auprc")),
+            "delta_ece": _delta(util_real.get("ece"), util_rs.get("ece")),
+            "delta_brier": _delta(util_real.get("brier"), util_rs.get("brier")),
+            "delta_recall_at_1pct_fpr": _delta(util_real.get("recall_at_1pct_fpr"), util_rs.get("recall_at_1pct_fpr")),
+        }
+
     rec: Dict[str, Any] = {
         "timestamp": datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%SZ"),
         "model": model_name,
         "seed": seed_,
-        "config_id": (config.get("run_meta") or {}).get("config_id"),
-        "config_id": (config.get("run_meta") or {}).get("config_id"),
-        "run_id": run_id,  # <-- Replaced. Before this line was "run_id": f"{model_name}_{seed_}",
+
+        # Fix A payload
+        "config_id": cid,
+        "deltas_RS_minus_R": deltas_rs_minus_r,
+
+        "run_id": run_id,
+
         "generative": {
-            "fid": gen["fid"],
-            "fid_macro": gen["fid_macro"],
-            "cfid_macro": gen["cfid_macro"],
-            "kid": gen["kid"],
-            "ms_ssim": gen["ms_ssim"],
+            "fid": gen.get("fid"),
+            "fid_macro": gen.get("fid_macro"),
+            "cfid_macro": gen.get("cfid_macro"),
+            "kid": gen.get("kid"),
+            "ms_ssim": gen.get("ms_ssim"),
         },
         "memorization": ({"nn_dist_mean": _mem_extra.get("nn_dist_mean")} if _mem_extra else {}),
-        "utility_real_only": {"macro_f1": util_real["macro_f1"]},
-        "utility_real_plus_synth": {"macro_f1": util_rs["macro_f1"]},
-        # Legacy “flattened” shims expected by older aggregators/plots
-        "metrics.cfid": gen["cfid_macro"],
-        "metrics.cfid_macro": gen["cfid_macro"],
-        "metrics.fid": gen["fid"],
-        "metrics.fid_macro": gen["fid_macro"],
-        "metrics.kid": gen["kid"],
-        "metrics.ms_ssim": gen["ms_ssim"],
-        "metrics.nn_dist_mean": _mem_extra.get("nn_dist_mean"),
-        "metrics.downstream.macro_f1": util_rs["macro_f1"],
-        "counts.num_real": counts_map["train_real"],
-        "counts.num_fake": counts_map["synthetic"],
+
+        # keep safe even if util_real/util_rs are None
+        "utility_real_only": {
+            "macro_f1": (util_real.get("macro_f1") if isinstance(util_real, dict) else None)
+        },
+        "utility_real_plus_synth": {
+            "macro_f1": (util_rs.get("macro_f1") if isinstance(util_rs, dict) else None)
+        },
+
+        # Legacy flattened shims expected by older aggregators/plots
+        "metrics.cfid": gen.get("cfid_macro"),
+        "metrics.cfid_macro": gen.get("cfid_macro"),
+        "metrics.fid": gen.get("fid"),
+        "metrics.fid_macro": gen.get("fid_macro"),
+        "metrics.kid": gen.get("kid"),
+        "metrics.ms_ssim": gen.get("ms_ssim"),
+        "metrics.nn_dist_mean": (_mem_extra.get("nn_dist_mean") if _mem_extra else None),
+        "metrics.downstream.macro_f1": (util_rs.get("macro_f1") if isinstance(util_rs, dict) else None),
+
+        "counts.num_real": counts_map.get("train_real"),
+        "counts.num_fake": counts_map.get("synthetic"),
     }
 
     # Helpful, greppable field (top-level)

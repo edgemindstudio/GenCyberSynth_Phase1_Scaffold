@@ -1,0 +1,35 @@
+run_meta:
+  paper_id: paper3
+  config_id: paper3_vae_aug_balanced_b500
+  dataset_id: ustc_tfc2016
+  regime:
+    imbalance: balanced
+    synth_budget_per_class: 500
+    aug_method: vae_augmented
+  seed: 42
+paths:
+  artifacts: /home/bruno.fonkeng/gencys/artifacts_paper3
+DATA_DIR: /home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc
+train:
+  epochs: 20
+  batch_size: 128
+synth:
+  seed: 42
+  n_per_class: 500
+evaluator:
+  per_class_cap: 200
+SEED: 42
+SAMPLES_PER_CLASS: 500
+LATENT_DIM: 100
+EPOCHS: 20
+BATCH_SIZE: 128
+LR: 0.0002
+BETA_KL: 1.0
+EARLY_STOPPING_PATIENCE: 10
+ARTIFACTS:
+  synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/synthetic/paper3_vae_aug_balanced_b500/seed42
+  vae_synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/synthetic/paper3_vae_aug_balanced_b500/seed42
+  checkpoints: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/checkpoints/seed42
+  vae_checkpoints: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/checkpoints/seed42
+  summaries: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/summaries/seed42
+  tensorboard: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/tensorboard/seed42

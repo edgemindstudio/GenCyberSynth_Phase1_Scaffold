@@ -287,28 +287,77 @@ class DiffusionAdapter(Adapter):
             np.random.seed(SEED)
             tf.random.set_seed(SEED)
 
+            # Generate in chunks to avoid OOM for large Paper 3 budgets such as S=2000.
+
+            # Default chunk size is conservative for CPU nodes; override with
+
+            # SAMPLES_PER_CLASS_CHUNK or diffusion.sample_chunk_size.
+
+            chunk_size = int(_cfg_get(config, "SAMPLES_PER_CLASS_CHUNK", _cfg_get(config, "diffusion.sample_chunk_size", 100)))
+
+            chunk_size = max(1, min(chunk_size, S))
+
+            print(f"[diffusion] samples_per_class={S} chunk_size={chunk_size}")
+
+            
+
             for k in range(K):
-                class_ids = np.full((S,), k, dtype=np.int32)
-                imgs01, _ = sample_batch(
-                    model,
-                    num_samples=S,
-                    num_classes=K,
-                    img_shape=(H, W, C),
-                    T=T,
-                    alpha_hat=None,
-                    class_ids=class_ids,
-                    seed=SEED + k,
-                )
 
                 cls_dir = synth_root / str(k) / str(SEED)
+
                 _ensure_dir(cls_dir)
 
-                for j in range(S):
-                    out_path = cls_dir / f"diff_{j:05d}.png"
-                    _save_png(imgs01[j], out_path)
-                    manifest["paths"].append({"path": str(out_path.resolve()), "label": int(k)})
+            
 
-                manifest["per_class_counts"][str(k)] = int(S)
+                written = 0
+
+                while written < S:
+
+                    n = min(chunk_size, S - written)
+
+                    class_ids = np.full((n,), k, dtype=np.int32)
+
+            
+
+                    imgs01, _ = sample_batch(
+
+                        model,
+
+                        num_samples=n,
+
+                        num_classes=K,
+
+                        img_shape=(H, W, C),
+
+                        T=T,
+
+                        alpha_hat=None,
+
+                        class_ids=class_ids,
+
+                        seed=SEED + k * 100000 + written,
+
+                    )
+
+            
+
+                    for j in range(n):
+
+                        out_idx = written + j
+
+                        out_path = cls_dir / f"diff_{out_idx:05d}.png"
+
+                        _save_png(imgs01[j], out_path)
+
+                        manifest["paths"].append({"path": str(out_path.resolve()), "label": int(k)})
+
+            
+
+                    written += n
+
+            
+
+                manifest["per_class_counts"][str(k)] = int(written)
 
         except Exception as e:
             print(f"[diffusion][ERROR] Sampling failed: {type(e).__name__}: {e}")

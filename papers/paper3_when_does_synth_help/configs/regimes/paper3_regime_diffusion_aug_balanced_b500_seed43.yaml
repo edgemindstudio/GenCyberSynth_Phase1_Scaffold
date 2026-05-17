@@ -1,0 +1,43 @@
+run_meta:
+  paper_id: paper3
+  config_id: paper3_diffusion_aug_balanced_b500
+  dataset_id: ustc_tfc2016
+  regime:
+    imbalance: balanced
+    synth_budget_per_class: 500
+    aug_method: diffusion_augmented
+  seed: 43
+paths:
+  artifacts: /home/bruno.fonkeng/gencys/artifacts_paper3
+DATA_DIR: /home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc
+SEED: 43
+train:
+  epochs: 20
+  batch_size: 128
+synth:
+  n_per_class: 500
+evaluator:
+  per_class_cap: 200
+SAMPLES_PER_CLASS: 500
+EPOCHS: 20
+BATCH_SIZE: 128
+LR: 0.0002
+BETA_1: 0.9
+PATIENCE: 10
+TIMESTEPS: 1000
+DIFFUSION_STEPS: 200
+BASE_FILTERS: 64
+DEPTH: 2
+TIME_EMB_DIM: 128
+diffusion:
+  steps: 200
+  base_filters: 64
+  depth: 2
+  time_emb_dim: 128
+  lr: 0.0002
+  beta_1: 0.9
+ARTIFACTS:
+  diffusion_checkpoints: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/checkpoints/seed43
+  diffusion_tensorboard: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/tensorboard/seed43
+  diffusion_synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/synthetic/paper3_diffusion_aug_balanced_b500/seed43
+  synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/synthetic/paper3_diffusion_aug_balanced_b500/seed43

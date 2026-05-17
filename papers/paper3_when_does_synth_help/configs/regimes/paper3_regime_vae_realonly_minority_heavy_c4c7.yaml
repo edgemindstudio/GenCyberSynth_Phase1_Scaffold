@@ -1,6 +1,6 @@
 run_meta:
   paper_id: paper3
-  config_id: paper3_vae_aug_minority_heavy_c4c7_b100
+  config_id: paper3_vae_realonly_minority_heavy_c4c7
   dataset_id: ustc_tfc2016
   regime:
     imbalance: minority_heavy_c4c7
@@ -8,9 +8,8 @@ run_meta:
     - 4
     - 7
     minority_real_fraction: 0.2
-    synth_budget_per_class: 100
-    aug_method: minority_only
-    synthetic_classes: *id001
+    synth_budget_per_class: 0
+    aug_method: real_only
   seed: 42
 paths:
   artifacts: /home/bruno.fonkeng/gencys/artifacts_paper3
@@ -20,25 +19,19 @@ train:
   batch_size: 128
 synth:
   seed: 42
-  n_per_class: 100
-  class_ids: *id001
+  n_per_class: 0
 evaluator:
   per_class_cap: 200
+  no_synth: true
 SEED: 42
-SAMPLES_PER_CLASS: 100
-LATENT_DIM: 100
-EPOCHS: 20
-BATCH_SIZE: 128
-LR: 0.0002
-BETA_KL: 1.0
-EARLY_STOPPING_PATIENCE: 10
+SAMPLES_PER_CLASS: 0
 ARTIFACTS:
-  synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/synthetic/paper3_vae_aug_minority_heavy_c4c7_b100/seed42
-  vae_synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/synthetic/paper3_vae_aug_minority_heavy_c4c7_b100
   checkpoints: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/checkpoints/seed42
   vae_checkpoints: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/checkpoints/seed42
   summaries: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/summaries/seed42
   tensorboard: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/tensorboard/seed42
+  synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/synthetic/paper3_vae_realonly_balanced/seed42
+  vae_synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/synthetic/paper3_vae_realonly_balanced/seed42
 real_train_subsample:
   enabled: true
   strategy: minority_fraction

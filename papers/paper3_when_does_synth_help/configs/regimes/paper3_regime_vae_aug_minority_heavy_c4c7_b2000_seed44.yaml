@@ -1,0 +1,46 @@
+run_meta:
+  paper_id: paper3
+  config_id: paper3_vae_aug_minority_heavy_c4c7_b2000
+  dataset_id: ustc_tfc2016
+  regime:
+    imbalance: minority_heavy_c4c7
+    minority_classes: &id001
+    - 4
+    - 7
+    minority_real_fraction: 0.2
+    synth_budget_per_class: 2000
+    aug_method: minority_only
+    synthetic_classes: *id001
+  seed: 44
+paths:
+  artifacts: /home/bruno.fonkeng/gencys/artifacts_paper3
+DATA_DIR: /home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc
+SEED: 44
+train:
+  epochs: 20
+  batch_size: 128
+synth:
+  n_per_class: 2000
+  class_ids: *id001
+evaluator:
+  per_class_cap: 200
+SAMPLES_PER_CLASS: 2000
+LATENT_DIM: 100
+EPOCHS: 20
+BATCH_SIZE: 128
+LR: 0.0002
+BETA_KL: 1.0
+EARLY_STOPPING_PATIENCE: 10
+ARTIFACTS:
+  synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/synthetic/paper3_vae_aug_minority_heavy_c4c7_b2000/seed44
+  vae_synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/synthetic/paper3_vae_aug_minority_heavy_c4c7_b2000
+  checkpoints: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/checkpoints/seed44
+  vae_checkpoints: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/checkpoints/seed44
+  summaries: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/summaries/seed44
+  tensorboard: /home/bruno.fonkeng/gencys/artifacts_paper3/vae/tensorboard/seed44
+real_train_subsample:
+  enabled: true
+  strategy: minority_fraction
+  minority_classes: *id001
+  minority_fraction: 0.2
+  seed: 44

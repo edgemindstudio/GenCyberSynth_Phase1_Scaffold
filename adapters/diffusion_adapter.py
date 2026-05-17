@@ -174,10 +174,23 @@ def _normalize_manifest(manifest: Dict[str, Any], *, num_classes: int) -> Dict[s
     else:
         manifest["num_fake"] = int(sum(manifest["per_class_counts"].values()))
 
-    # Derived: budget_per_class (conservative)
-    vals = [int(v) for v in manifest["per_class_counts"].values() if v is not None]
-    manifest["budget_per_class"] = (min(vals) if vals and min(vals) > 0 else (min(vals) if vals else None))
+    # Derived: budget_per_class
 
+    # For class-restricted synthesis, non-target classes may correctly have count 0.
+
+    # Infer the requested budget from positive class counts when available.
+
+    vals = [int(v) for v in manifest["per_class_counts"].values() if v is not None]
+
+    positive_vals = [v for v in vals if v > 0]
+
+    if positive_vals:
+
+        manifest["budget_per_class"] = int(min(positive_vals))
+
+    else:
+
+        manifest["budget_per_class"] = 0 if vals else None
     return manifest
 
 
@@ -301,7 +314,31 @@ class DiffusionAdapter(Adapter):
 
             
 
-            for k in range(K):
+            raw_class_ids = _cfg_get(config, "synth.class_ids", None)
+
+            if raw_class_ids is None:
+
+                class_ids_to_generate = list(range(K))
+
+            else:
+
+                class_ids_to_generate = [int(c) for c in raw_class_ids]
+
+                bad = [c for c in class_ids_to_generate if c < 0 or c >= K]
+
+                if bad:
+
+                    raise ValueError(f"synth.class_ids contains invalid classes for K={K}: {bad}")
+
+            
+
+            manifest["class_ids"] = [int(c) for c in class_ids_to_generate]
+
+            print(f"[diffusion] class_ids={class_ids_to_generate}")
+
+            
+
+            for k in class_ids_to_generate:
 
                 cls_dir = synth_root / str(k) / str(SEED)
 

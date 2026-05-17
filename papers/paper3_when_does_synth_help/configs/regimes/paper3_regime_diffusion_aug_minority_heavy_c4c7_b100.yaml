@@ -1,0 +1,64 @@
+run_meta:
+  paper_id: paper3
+  config_id: paper3_diffusion_aug_minority_heavy_c4c7_b100
+  dataset_id: ustc_tfc2016
+  regime:
+    imbalance: minority_heavy_c4c7
+    minority_classes:
+    - 4
+    - 7
+    minority_real_fraction: 0.2
+    synth_budget_per_class: 100
+    aug_method: minority_only
+    synthetic_classes:
+    - 4
+    - 7
+  seed: 42
+paths:
+  artifacts: /home/bruno.fonkeng/gencys/artifacts_paper3
+DATA_DIR: /home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc
+train:
+  epochs: 20
+  batch_size: 128
+synth:
+  seed: 42
+  n_per_class: 100
+  class_ids:
+  - 4
+  - 7
+evaluator:
+  per_class_cap: 200
+SEED: 42
+SAMPLES_PER_CLASS: 100
+EPOCHS: 20
+BATCH_SIZE: 128
+LR: 0.0002
+BETA_1: 0.9
+PATIENCE: 10
+TIMESTEPS: 1000
+DIFFUSION_STEPS: 200
+BASE_FILTERS: 64
+DEPTH: 2
+TIME_EMB_DIM: 128
+diffusion:
+  steps: 200
+  base_filters: 64
+  depth: 2
+  time_emb_dim: 128
+  lr: 0.0002
+  beta_1: 0.9
+  sample_chunk_size: 50
+ARTIFACTS:
+  diffusion_checkpoints: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/checkpoints/seed42
+  diffusion_tensorboard: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/tensorboard/seed42
+  diffusion_synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/synthetic/paper3_diffusion_aug_minority_heavy_c4c7_b100/seed42
+  synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/synthetic/paper3_diffusion_aug_balanced_b100/seed42
+SAMPLES_PER_CLASS_CHUNK: 50
+real_train_subsample:
+  enabled: true
+  strategy: minority_fraction
+  minority_classes:
+  - 4
+  - 7
+  minority_fraction: 0.2
+  seed: 42

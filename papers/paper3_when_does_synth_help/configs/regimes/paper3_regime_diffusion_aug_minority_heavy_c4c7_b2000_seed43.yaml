@@ -1,6 +1,6 @@
 run_meta:
   paper_id: paper3
-  config_id: paper3_diffusion_aug_minority_heavy_c4c7_b100
+  config_id: paper3_diffusion_aug_minority_heavy_c4c7_b2000
   dataset_id: ustc_tfc2016
   regime:
     imbalance: minority_heavy_c4c7
@@ -8,24 +8,23 @@ run_meta:
     - 4
     - 7
     minority_real_fraction: 0.2
-    synth_budget_per_class: 100
+    synth_budget_per_class: 2000
     aug_method: minority_only
     synthetic_classes: *id001
-  seed: 42
+  seed: 43
 paths:
   artifacts: /home/bruno.fonkeng/gencys/artifacts_paper3
 DATA_DIR: /home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc
+SEED: 43
 train:
   epochs: 20
   batch_size: 128
 synth:
-  seed: 42
-  n_per_class: 100
+  n_per_class: 2000
   class_ids: *id001
 evaluator:
   per_class_cap: 200
-SEED: 42
-SAMPLES_PER_CLASS: 100
+SAMPLES_PER_CLASS: 2000
 EPOCHS: 20
 BATCH_SIZE: 128
 LR: 0.0002
@@ -45,14 +44,14 @@ diffusion:
   beta_1: 0.9
   sample_chunk_size: 50
 ARTIFACTS:
-  diffusion_checkpoints: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/checkpoints/seed42
-  diffusion_tensorboard: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/tensorboard/seed42
-  diffusion_synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/synthetic/paper3_diffusion_aug_minority_heavy_c4c7_b100/seed42
-  synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/synthetic/paper3_diffusion_aug_balanced_b100/seed42
+  diffusion_checkpoints: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/checkpoints/seed43
+  diffusion_tensorboard: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/tensorboard/seed43
+  diffusion_synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/synthetic/paper3_diffusion_aug_minority_heavy_c4c7_b2000/seed43
+  synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/synthetic/paper3_diffusion_aug_balanced_b2000/seed43
 SAMPLES_PER_CLASS_CHUNK: 50
 real_train_subsample:
   enabled: true
   strategy: minority_fraction
   minority_classes: *id001
   minority_fraction: 0.2
-  seed: 42
+  seed: 43

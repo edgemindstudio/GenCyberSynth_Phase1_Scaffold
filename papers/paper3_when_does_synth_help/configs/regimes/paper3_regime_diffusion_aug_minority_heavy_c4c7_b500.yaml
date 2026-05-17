@@ -1,6 +1,6 @@
 run_meta:
   paper_id: paper3
-  config_id: paper3_diffusion_aug_minority_heavy_c4c7_b100
+  config_id: paper3_diffusion_aug_minority_heavy_c4c7_b500
   dataset_id: ustc_tfc2016
   regime:
     imbalance: minority_heavy_c4c7
@@ -8,7 +8,7 @@ run_meta:
     - 4
     - 7
     minority_real_fraction: 0.2
-    synth_budget_per_class: 100
+    synth_budget_per_class: 500
     aug_method: minority_only
     synthetic_classes: *id001
   seed: 42
@@ -20,12 +20,12 @@ train:
   batch_size: 128
 synth:
   seed: 42
-  n_per_class: 100
+  n_per_class: 500
   class_ids: *id001
 evaluator:
   per_class_cap: 200
 SEED: 42
-SAMPLES_PER_CLASS: 100
+SAMPLES_PER_CLASS: 500
 EPOCHS: 20
 BATCH_SIZE: 128
 LR: 0.0002
@@ -47,8 +47,8 @@ diffusion:
 ARTIFACTS:
   diffusion_checkpoints: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/checkpoints/seed42
   diffusion_tensorboard: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/tensorboard/seed42
-  diffusion_synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/synthetic/paper3_diffusion_aug_minority_heavy_c4c7_b100/seed42
-  synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/synthetic/paper3_diffusion_aug_balanced_b100/seed42
+  diffusion_synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/synthetic/paper3_diffusion_aug_minority_heavy_c4c7_b500/seed42
+  synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/diffusion/synthetic/paper3_diffusion_aug_balanced_b500/seed42
 SAMPLES_PER_CLASS_CHUNK: 50
 real_train_subsample:
   enabled: true

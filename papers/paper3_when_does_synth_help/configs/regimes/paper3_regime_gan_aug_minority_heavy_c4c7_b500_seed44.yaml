@@ -1,6 +1,6 @@
 run_meta:
   paper_id: paper3
-  config_id: paper3_gan_realonly_minority_heavy_c4c7
+  config_id: paper3_gan_aug_minority_heavy_c4c7_b500
   dataset_id: ustc_tfc2016
   regime:
     imbalance: minority_heavy_c4c7
@@ -8,25 +8,27 @@ run_meta:
     - 4
     - 7
     minority_real_fraction: 0.2
-    synth_budget_per_class: 0
-    aug_method: real_only
-  seed: 42
+    synth_budget_per_class: 500
+    aug_method: minority_only
+    synthetic_classes: *id001
+  seed: 44
 paths:
   artifacts: /home/bruno.fonkeng/gencys/artifacts_paper3
 DATA_DIR: /home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc
+SEED: 44
 train:
   epochs: 20
   batch_size: 128
 synth:
-  seed: 42
-  n_per_class: 0
+  n_per_class: 500
+  class_ids: *id001
 evaluator:
   per_class_cap: 200
-  no_synth: true
-SEED: 42
 real_train_subsample:
   enabled: true
   strategy: minority_fraction
   minority_classes: *id001
   minority_fraction: 0.2
-  seed: 42
+  seed: 44
+ARTIFACTS:
+  synthetic: /home/bruno.fonkeng/gencys/artifacts_paper3/gan/synthetic/paper3_gan_aug_minority_heavy_c4c7_b500/seed44

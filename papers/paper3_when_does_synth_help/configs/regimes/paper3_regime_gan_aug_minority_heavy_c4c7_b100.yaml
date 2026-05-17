@@ -4,15 +4,13 @@ run_meta:
   dataset_id: ustc_tfc2016
   regime:
     imbalance: minority_heavy_c4c7
-    minority_classes:
+    minority_classes: &id001
     - 4
     - 7
     minority_real_fraction: 0.2
     synth_budget_per_class: 100
     aug_method: minority_only
-    synthetic_classes:
-    - 4
-    - 7
+    synthetic_classes: *id001
   seed: 42
 paths:
   artifacts: /home/bruno.fonkeng/gencys/artifacts_paper3
@@ -23,18 +21,14 @@ train:
 synth:
   seed: 42
   n_per_class: 100
-  class_ids:
-  - 4
-  - 7
+  class_ids: *id001
 evaluator:
   per_class_cap: 200
 SEED: 42
 real_train_subsample:
   enabled: true
   strategy: minority_fraction
-  minority_classes:
-  - 4
-  - 7
+  minority_classes: *id001
   minority_fraction: 0.2
   seed: 42
 ARTIFACTS:

@@ -10,23 +10,22 @@ run_meta:
     minority_real_fraction: 0.2
     synth_budget_per_class: 0
     aug_method: real_only
-  seed: 42
+  seed: 44
 paths:
   artifacts: /home/bruno.fonkeng/gencys/artifacts_paper3
 DATA_DIR: /home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc
+SEED: 44
 train:
   epochs: 20
   batch_size: 128
 synth:
-  seed: 42
   n_per_class: 0
 evaluator:
   per_class_cap: 200
   no_synth: true
-SEED: 42
 real_train_subsample:
   enabled: true
   strategy: minority_fraction
   minority_classes: *id001
   minority_fraction: 0.2
-  seed: 42
+  seed: 44

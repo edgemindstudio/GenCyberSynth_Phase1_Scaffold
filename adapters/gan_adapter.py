@@ -135,9 +135,22 @@ def _normalize_manifest(manifest: Dict[str, Any], *, num_classes: int) -> Dict[s
         manifest["num_fake"] = int(sum(manifest["per_class_counts"].values()))
 
     # Derived: budget_per_class
-    vals = [int(v) for v in manifest["per_class_counts"].values() if v is not None]
-    manifest["budget_per_class"] = (min(vals) if vals and min(vals) > 0 else (min(vals) if vals else None))
 
+    # For class-restricted synthesis, non-target classes may correctly have count 0.
+
+    # Infer the requested budget from positive class counts when available.
+
+    vals = [int(v) for v in manifest["per_class_counts"].values() if v is not None]
+
+    positive_vals = [v for v in vals if v > 0]
+
+    if positive_vals:
+
+        manifest["budget_per_class"] = int(min(positive_vals))
+
+    else:
+
+        manifest["budget_per_class"] = 0 if vals else None
     return manifest
 
 

@@ -272,40 +272,90 @@ def synth(cfg: dict, output_root: str, seed: int = 42) -> Dict:
 
     out_root = Path(output_root) / cfg_id / f"seed{seed}"
 
+    # Optional Paper 3 class-restricted synthesis.
+
+    # Default behavior remains all classes 0..K-1.
+
+    raw_class_ids = _cfg_get(cfg, "synth.class_ids", None)
+
+    if raw_class_ids is None:
+
+        class_ids = list(range(K))
+
+    else:
+
+        class_ids = [int(c) for c in raw_class_ids]
+
+        bad = [c for c in class_ids if c < 0 or c >= K]
+
+        if bad:
+
+            raise ValueError(f"synth.class_ids contains invalid classes for K={K}: {bad}")
+
+    
+
+    print(f"[gan-synth] class_ids={class_ids} n_per_class={S}")
+
+    
+
     per_class_counts: Dict[str, int] = {str(k): 0 for k in range(K)}
+
     paths: List[Dict] = []
 
-    # Generate per class
-    for k in range(K):
+    
+
+    # Generate per requested class
+
+    for k in class_ids:
+
         imgs01 = _generate_batch_01(
+
             G,
+
             class_id=k,
+
             count=S,
+
             latent_dim=LATENT_DIM,
+
             num_classes=K,
-            seed=seed,
+
+            seed=seed + int(k),
+
         )  # (S, H, W, C)
 
-        # cls_dir = out_root / str(k) / str(seed)
+    
+
         cls_dir = out_root / str(k)
 
         cls_dir.mkdir(parents=True, exist_ok=True)
+
+    
+
         for j in range(S):
+
             p = cls_dir / f"gan_{j:05d}.png"
+
             _save_png(imgs01[j], p)
+
             rel = p.relative_to(Path(output_root))  # relative to .../gan/synthetic
+
             paths.append({"path": str(rel), "label": int(k)})
+
+    
+
         per_class_counts[str(k)] = int(S)
 
     manifest = {
         "dataset": _cfg_get(cfg, "data.root", _cfg_get(cfg, "DATA_DIR", "data")),
         "seed": int(seed),
+        "class_ids": [int(c) for c in class_ids],
         "per_class_counts": per_class_counts,
         "paths": paths,
     }
 
     # Write manifest next to the generated images in the config/seed-scoped output root.
-    manifest["num_fake"] = int(K * S)
+    manifest["num_fake"] = int(len(paths))
     manifest["budget_per_class"] = int(S)
     manifest_path = out_root / "manifest.json"
     manifest_path.parent.mkdir(parents=True, exist_ok=True)

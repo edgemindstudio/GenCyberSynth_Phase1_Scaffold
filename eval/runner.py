@@ -392,6 +392,182 @@ def _load_images_local(
 # -----------------------------------------------------------------------------
 # Small utilities
 # -----------------------------------------------------------------------------
+
+
+def _class_counts_dict(y) -> Dict[str, int]:
+
+    """Return class counts as a JSON-friendly {class_id: count} dict."""
+
+    try:
+
+        import numpy as np
+
+        yy = y.argmax(axis=1) if getattr(y, "ndim", 0) == 2 else y
+
+        vals, counts = np.unique(yy.astype("int64"), return_counts=True)
+
+        return {str(int(v)): int(c) for v, c in zip(vals, counts)}
+
+    except Exception:
+
+        return {}
+
+
+
+
+
+def _apply_real_train_subsample(x_train, y_train, config: Dict[str, Any]):
+
+    """
+
+    Apply Paper 3 real-training imbalance before downstream utility training.
+
+
+
+    Supported config:
+
+      real_train_subsample:
+
+        enabled: true
+
+        strategy: minority_fraction
+
+        minority_classes: [4, 7]
+
+        minority_fraction: 0.2
+
+        seed: 42
+
+
+
+    Only x_train/y_train are changed. Validation and test sets remain untouched.
+
+    """
+
+    try:
+
+        import numpy as np
+
+
+
+        sub = config.get("real_train_subsample")
+
+        if not isinstance(sub, dict) or not bool(sub.get("enabled", False)):
+
+            return x_train, y_train, None
+
+
+
+        strategy = str(sub.get("strategy", "minority_fraction"))
+
+        if strategy != "minority_fraction":
+
+            raise ValueError(f"Unsupported real_train_subsample.strategy: {strategy}")
+
+
+
+        y_int = y_train.argmax(axis=1) if getattr(y_train, "ndim", 0) == 2 else y_train
+
+        y_int = y_int.astype("int64")
+
+
+
+        minority_classes = [int(c) for c in sub.get("minority_classes", [])]
+
+        if not minority_classes:
+
+            raise ValueError("real_train_subsample.minority_classes is empty")
+
+
+
+        minority_fraction = float(sub.get("minority_fraction", 1.0))
+
+        if not (0.0 < minority_fraction <= 1.0):
+
+            raise ValueError(f"minority_fraction must be in (0,1], got {minority_fraction}")
+
+
+
+        seed = int(sub.get("seed", _cfg_get(config, "run_meta.seed", config.get("SEED", config.get("seed", 0)))))
+
+        rng = np.random.default_rng(seed)
+
+
+
+        before = _class_counts_dict(y_int)
+
+
+
+        keep_parts = []
+
+        for cls in sorted(set(int(c) for c in np.unique(y_int))):
+
+            idx = np.where(y_int == cls)[0]
+
+            if cls in minority_classes:
+
+                n_keep = max(1, int(round(len(idx) * minority_fraction)))
+
+                idx = rng.choice(idx, size=n_keep, replace=False)
+
+            keep_parts.append(idx)
+
+
+
+        keep_idx = np.concatenate(keep_parts)
+
+        rng.shuffle(keep_idx)
+
+
+
+        x_new = x_train[keep_idx]
+
+        y_new = y_train[keep_idx]
+
+
+
+        after = _class_counts_dict(y_new)
+
+
+
+        meta = {
+
+            "enabled": True,
+
+            "strategy": strategy,
+
+            "minority_classes": minority_classes,
+
+            "minority_fraction": minority_fraction,
+
+            "seed": seed,
+
+            "before_counts": before,
+
+            "after_counts": after,
+
+            "num_train_before": int(len(y_train)),
+
+            "num_train_after": int(len(y_new)),
+
+        }
+
+
+
+        print("[imbalance] real_train_subsample:", meta)
+
+        return x_new, y_new, meta
+
+
+
+    except Exception as e:
+
+        raise RuntimeError(f"real_train_subsample failed: {type(e).__name__}: {e}") from e
+
+
+
+
+
 def _cfg_get(cfg: Dict[str, Any], dotted: str, default: Any = None) -> Any:
     """
     Fetch a nested config value by dotted path, e.g. 'evaluator.per_class_cap'.
@@ -1211,6 +1387,26 @@ def evaluate_model_suite(
             num_classes=num_classes,
             val_fraction=val_fraction,
         )
+
+
+        # Paper 3 imbalance regimes: optionally reduce real training samples
+
+        # before both real-only and real+synthetic downstream utility runs.
+
+        x_train_real, y_train_real, _real_subsample_meta = _apply_real_train_subsample(
+
+            x_train_real, y_train_real, config
+
+        )
+
+        if _real_subsample_meta:
+
+            rm = config.get("run_meta") if isinstance(config.get("run_meta"), dict) else {}
+
+            rm["real_train_subsample"] = _real_subsample_meta
+
+            config["run_meta"] = rm
+
     except Exception as e:
         metrics.setdefault("_warnings", []).append(
             f"Real-data load skipped for downstream utility: {type(e).__name__}: {e}"

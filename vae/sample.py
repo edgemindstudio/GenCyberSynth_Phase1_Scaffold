@@ -198,7 +198,19 @@ def synth(cfg: dict, output_root: str, seed: int = 42) -> Dict:
     H, W, C = tuple(_cfg_get(cfg, "IMG_SHAPE", _cfg_get(cfg, "img.shape", (40, 40, 1))))
     K = int(_cfg_get(cfg, "NUM_CLASSES", _cfg_get(cfg, "num_classes", 9)))
     LATENT_DIM = int(_cfg_get(cfg, "LATENT_DIM", _cfg_get(cfg, "vae.latent_dim", 100)))
-    S = int(_cfg_get(cfg, "SAMPLES_PER_CLASS", _cfg_get(cfg, "samples_per_class", 25)))
+    S = int(
+
+        _cfg_get(
+
+            cfg,
+
+            "synth.n_per_class",
+
+            _cfg_get(cfg, "SAMPLES_PER_CLASS", _cfg_get(cfg, "samples_per_class", 25)),
+
+        )
+
+    )
     LR = float(_cfg_get(cfg, "LR", _cfg_get(cfg, "vae.lr", 2e-4)))
     BETA_1 = float(_cfg_get(cfg, "BETA_1", _cfg_get(cfg, "vae.beta_1", 0.5)))
     BETA_KL = float(_cfg_get(cfg, "BETA_KL", _cfg_get(cfg, "vae.beta_kl", 1.0)))
@@ -243,28 +255,77 @@ def synth(cfg: dict, output_root: str, seed: int = 42) -> Dict:
     )
 
     out_root = Path(output_root)
+    # Optional Paper 3 class-restricted synthesis.
+
+    # Default behavior remains all classes 0..K-1.
+
+    raw_class_ids = _cfg_get(cfg, "synth.class_ids", None)
+
+    if raw_class_ids is None:
+
+        class_ids = list(range(K))
+
+    else:
+
+        class_ids = [int(c) for c in raw_class_ids]
+
+        bad = [c for c in class_ids if c < 0 or c >= K]
+
+        if bad:
+
+            raise ValueError(f"synth.class_ids contains invalid classes for K={K}: {bad}")
+
+    
+
+    print(f"[vae-synth] class_ids={class_ids} n_per_class={S}")
+
+    
+
     per_class_counts: Dict[str, int] = {str(k): 0 for k in range(K)}
+
     paths: List[Dict] = []
 
-    # Generate per class
-    for k in range(K):
+    
+
+    # Generate per requested class
+
+    for k in class_ids:
+
+        np.random.seed(int(seed) + int(k))
+
         z = sample_latents(S, LATENT_DIM)
+
         y = tf.keras.utils.to_categorical(np.full((S,), k), num_classes=K).astype(np.float32)
+
         imgs01 = _decode_to_01(decoder, z, y)  # (S, H, W, C)
 
+    
+
         cls_dir = out_root / str(k) / str(seed)
+
         cls_dir.mkdir(parents=True, exist_ok=True)
+
+    
+
         for j in range(S):
-            p = cls_dir / f"vae_{j:05d}.png"
-            _save_png(imgs01[j], p)
-            paths.append({"path": str(p), "label": int(k)})
+
+            img_path = cls_dir / f"vae_{j:05d}.png"
+
+            _save_png(imgs01[j], img_path)
+
+            paths.append({"path": str(img_path), "label": int(k)})
+
+    
+
         per_class_counts[str(k)] = int(S)
 
     manifest = {
         "dataset": _cfg_get(cfg, "data.root", _cfg_get(cfg, "DATA_DIR", "data")),
         "seed": int(seed),
+        "class_ids": [int(c) for c in class_ids],
         "per_class_counts": per_class_counts,
         "paths": paths,
+        "num_fake": int(len(paths)),
         "created_at": now_ts(),
     }
     return manifest

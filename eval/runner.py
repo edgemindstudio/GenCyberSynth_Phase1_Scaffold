@@ -281,20 +281,29 @@ def _load_manifest_local(manifest_path: str) -> Dict[str, Any]:
     man.setdefault("paths", [])  # list of {"path": "...", "label": int}
     man.setdefault("per_class_counts", {})
 
-    # Resolve relative image paths.
-    # NOTE: our GAN manifests store paths relative to the *synthetic root*:
-    #   <synthetic_root>/<config_id>/seed<seed>/...
-    # and the manifest contains: "<config_id>/seed<seed>/.../file.png"
-    base_dir = os.path.dirname(manifest_path)  # .../synthetic/<config_id>/seed42
-    synthetic_root = os.path.dirname(os.path.dirname(base_dir))  # .../synthetic
+    # Resolve relative image paths robustly.
+    # Baseline manifests live at synthetic/<config_id>/seed<seed>/manifest.json.
+    # Policy manifests may live deeper, e.g. synthetic/<config_id>/seed<seed>/policy/<policy_id>/manifest.json.
+    # Manifest entries are relative to the synthetic root, so search upward until the joined path exists.
+    base_dir = os.path.dirname(manifest_path)
 
     for item in man["paths"]:
         if not isinstance(item, dict):
             continue
-        p = item.get("path")
-        if isinstance(p, str) and p and not os.path.isabs(p):
-            # Join relative paths to synthetic_root (NOT base_dir)
-            item["path"] = os.path.normpath(os.path.join(synthetic_root, p))
+        rel = item.get("path")
+        if isinstance(rel, str) and rel and not os.path.isabs(rel):
+            cur = base_dir
+            resolved = None
+            while True:
+                cand = os.path.normpath(os.path.join(cur, rel))
+                if os.path.exists(cand):
+                    resolved = cand
+                    break
+                parent = os.path.dirname(cur)
+                if parent == cur:
+                    break
+                cur = parent
+            item["path"] = resolved if resolved is not None else os.path.normpath(os.path.join(base_dir, rel))
 
     return man
 

@@ -1,0 +1,29 @@
+run_meta:
+  paper_id: paper4
+  config_id: paper4_policy_confidence_ranked_topk1000_b2000
+  dataset_id: ustc_tfc2016
+  regime:
+    imbalance: policy_filtered
+    synth_budget_per_class: 1000
+    aug_method: confidence_ranked_topk
+    source_budget_per_class: 2000
+  policy:
+    policy_id: confidence_ranked_topk1000
+    source_config_id: paper4_baseline_b2000
+    top_k_per_class: 1000
+  seed: 43
+  manifest_path: /home/bruno.fonkeng/gencys/artifacts_paper4/gan/synthetic/paper4_baseline_b2000/seed43/policy/confidence_ranked_topk1000/manifest.json
+paths:
+  artifacts: artifacts
+DATA_DIR: /home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc
+train:
+  seed: 43
+  epochs: 2
+  batch_size: 64
+synth:
+  seed: 43
+  n_per_class: 1000
+evaluator:
+  per_class_cap: 50
+SEED: 43
+seed: 43

@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
+# Keep this order consistent across all paper-facing tables and figures.
 POLICY_ORDER = [
     "paper4_realonly_balanced",
     "paper4_baseline_b25",
@@ -19,26 +20,41 @@ POLICY_ORDER = [
     "paper4_policy_confidence_accept_t080_b2000",
     "paper4_policy_confidence_ranked_topk500_b2000",
     "paper4_policy_confidence_ranked_topk1000_b2000",
+    "paper4_policy_class_repair_topk9000_b2000",
 ]
 
+# Short publication labels used consistently in figures and tables.
 POLICY_LABELS = {
     "paper4_realonly_balanced": "Real-only",
     "paper4_baseline_b25": "Baseline b25",
     "paper4_baseline_b500": "Baseline b500",
     "paper4_baseline_b2000": "Baseline b2000",
-    "paper4_policy_keep_all_b25": "keep_all b25",
-    "paper4_policy_keep_all_b500": "keep_all b500",
-    "paper4_policy_keep_all_b2000": "keep_all b2000",
-    "paper4_policy_confidence_accept_t080_b2000": "confidence_accept t080",
-    "paper4_policy_confidence_ranked_topk500_b2000": "confidence_ranked topk500",
-    "paper4_policy_confidence_ranked_topk1000_b2000": "confidence_ranked topk1000",
+    "paper4_policy_keep_all_b25": "Keep-all b25",
+    "paper4_policy_keep_all_b500": "Keep-all b500",
+    "paper4_policy_keep_all_b2000": "Keep-all b2000",
+    "paper4_policy_confidence_accept_t080_b2000": "Strict-conf.",
+    "paper4_policy_confidence_ranked_topk500_b2000": "Top-k500",
+    "paper4_policy_confidence_ranked_topk1000_b2000": "Top-k1000",
+    "paper4_policy_class_repair_topk9000_b2000": "Class-repair",
 }
 
 METRICS = ["delta_macro_f1", "delta_bal_acc", "delta_macro_auprc"]
 
+METRIC_LABELS = {
+    "delta_macro_f1": "Δ Macro-F1",
+    "delta_bal_acc": "Δ Bal. Acc.",
+    "delta_macro_auprc": "Δ Macro-AUPRC",
+}
+
+METRIC_TITLES = {
+    "delta_macro_f1": "Policy effect on Macro-F1",
+    "delta_bal_acc": "Policy effect on balanced accuracy",
+    "delta_macro_auprc": "Policy effect on Macro-AUPRC",
+}
+
 
 def policy_label(config_id: str) -> str:
-    return POLICY_LABELS.get(config_id, config_id)
+    return POLICY_LABELS.get(str(config_id), str(config_id))
 
 
 def sort_policy_frame(df: pd.DataFrame) -> pd.DataFrame:
@@ -50,6 +66,14 @@ def sort_policy_frame(df: pd.DataFrame) -> pd.DataFrame:
         sort_cols.append("seed")
     out = out.sort_values(sort_cols, kind="stable")
     return out.drop(columns=["_order"])
+
+
+def format_mean_std(mean, std) -> str:
+    if mean is None or pd.isna(mean):
+        return ""
+    if std is None or pd.isna(std):
+        return f"{mean:.6f}"
+    return f"{mean:.6f} ± {std:.6f}"
 
 
 def make_mean_std(df: pd.DataFrame) -> pd.DataFrame:
@@ -69,14 +93,6 @@ def make_mean_std(df: pd.DataFrame) -> pd.DataFrame:
             row[f"{metric}_mean_pm_std"] = format_mean_std(row[f"{metric}_mean"], row[f"{metric}_std"])
         rows.append(row)
     return pd.DataFrame(rows)
-
-
-def format_mean_std(mean, std) -> str:
-    if mean is None or pd.isna(mean):
-        return ""
-    if std is None or pd.isna(std):
-        return f"{mean:.6f}"
-    return f"{mean:.6f} ± {std:.6f}"
 
 
 def write_markdown_table(df: pd.DataFrame, out_path: Path):
@@ -114,18 +130,21 @@ def make_bar_figure(mean_df: pd.DataFrame, metric: str, out_dir: Path):
     plot_df = mean_df[mean_df[f"{metric}_mean"].notna()].copy()
     plot_df = plot_df[plot_df["config_id"] != "paper4_realonly_balanced"]
     plot_df = sort_policy_frame(plot_df)
+
     labels = plot_df["policy_label"].tolist()
     values = plot_df[f"{metric}_mean"].tolist()
     errors = plot_df[f"{metric}_std"].fillna(0.0).tolist()
 
-    fig = plt.figure(figsize=(12, 6))
+    # Compact figure size for IEEE two-column readability.
+    fig = plt.figure(figsize=(9.0, 4.8))
     ax = fig.add_subplot(111)
     ax.bar(range(len(values)), values, yerr=errors, capsize=4)
     ax.axhline(0, linewidth=1)
     ax.set_xticks(range(len(values)))
-    ax.set_xticklabels(labels, rotation=35, ha="right")
-    ax.set_ylabel(metric.replace("delta_", "Δ ").replace("_", " "))
-    ax.set_title(metric.replace("delta_", "Policy effect on ").replace("_", " "))
+    ax.set_xticklabels(labels, rotation=28, ha="right")
+    ax.set_ylabel(METRIC_LABELS.get(metric, metric))
+    ax.set_title(METRIC_TITLES.get(metric, metric))
+    ax.margins(x=0.01)
     fig.tight_layout()
 
     png = out_dir / f"paper4_{metric}_by_policy.png"
@@ -144,15 +163,21 @@ def make_budget_tradeoff(mean_df: pd.DataFrame, out_dir: Path):
     plot_df = plot_df.dropna(subset=["num_fake_mean", "delta_macro_f1_mean"])
     plot_df = sort_policy_frame(plot_df)
 
-    fig = plt.figure(figsize=(9, 6))
+    fig = plt.figure(figsize=(8.6, 4.8))
     ax = fig.add_subplot(111)
     ax.scatter(plot_df["num_fake_mean"], plot_df["delta_macro_f1_mean"])
     for _, row in plot_df.iterrows():
-        ax.annotate(row["policy_label"], (row["num_fake_mean"], row["delta_macro_f1_mean"]), fontsize=8, xytext=(4, 4), textcoords="offset points")
+        ax.annotate(
+            row["policy_label"],
+            (row["num_fake_mean"], row["delta_macro_f1_mean"]),
+            fontsize=8,
+            xytext=(4, 4),
+            textcoords="offset points",
+        )
     ax.axhline(0, linewidth=1)
     ax.set_xlabel("Mean synthetic samples used")
     ax.set_ylabel("Mean Δ Macro-F1")
-    ax.set_title("Paper 4 utility-budget tradeoff")
+    ax.set_title("Utility-budget tradeoff")
     fig.tight_layout()
 
     png = out_dir / "paper4_budget_utility_tradeoff_macro_f1.png"
@@ -175,35 +200,48 @@ def make_notes(mean_df: pd.DataFrame, out_path: Path):
 
 ## Current evidence state
 
-The current paper-facing result table contains the baseline, keep_all identity-policy, strict confidence-acceptance, and confidence-ranked top-k policy results.
+The current paper-facing result table contains fixed-budget baselines, keep-all identity policies, strict confidence acceptance, balanced confidence-ranked top-k policies, and adaptive class-repair allocation.
+
+## Short policy labels used in paper
+
+- Keep-all b2000 = `paper4_policy_keep_all_b2000`
+- Strict-conf. = `paper4_policy_confidence_accept_t080_b2000`
+- Top-k500 = `paper4_policy_confidence_ranked_topk500_b2000`
+- Top-k1000 = `paper4_policy_confidence_ranked_topk1000_b2000`
+- Class-repair = `paper4_policy_class_repair_topk9000_b2000`
 
 ## Main policy findings
 
-1. The keep_all identity policy validates that policy-specific manifests can be routed through the same downstream evaluation pipeline.
+1. The keep-all identity policy validates that policy-specific manifests can be routed through the same downstream evaluation pipeline.
 
-2. The strict confidence_accept_t080 policy is diagnostic rather than practical. It exposes that strict same-label confidence filtering can collapse the accepted synthetic set.
+2. Strict-conf. is diagnostic rather than practical. It exposes that strict same-label confidence filtering can collapse the accepted synthetic set.
 
-3. The confidence_ranked_topk500 policy preserves class balance but is too restrictive on average.
+3. Top-k500 preserves class balance but is too restrictive on average.
 
-4. The confidence_ranked_topk1000 policy preserves class balance and produces positive macro-F1 and balanced-accuracy gains across seeds while using half the full b2000 synthetic volume.
+4. Top-k1000 preserves class balance and produces positive Macro-F1 and balanced-accuracy gains across seeds while using half the full b2000 synthetic volume.
+
+5. Class-repair adds adaptive allocation. It uses the same 9000-sample total budget as Top-k1000 but reallocates samples using an audit-based class difficulty signal.
 
 ## Mean ± SD summary
 
 - Baseline b500 Δ Macro-F1: {get("paper4_baseline_b500", "delta_macro_f1")}
 - Baseline b2000 Δ Macro-F1: {get("paper4_baseline_b2000", "delta_macro_f1")}
-- keep_all b2000 Δ Macro-F1: {get("paper4_policy_keep_all_b2000", "delta_macro_f1")}
-- confidence_ranked topk500 Δ Macro-F1: {get("paper4_policy_confidence_ranked_topk500_b2000", "delta_macro_f1")}
-- confidence_ranked topk1000 Δ Macro-F1: {get("paper4_policy_confidence_ranked_topk1000_b2000", "delta_macro_f1")}
+- Keep-all b2000 Δ Macro-F1: {get("paper4_policy_keep_all_b2000", "delta_macro_f1")}
+- Top-k500 Δ Macro-F1: {get("paper4_policy_confidence_ranked_topk500_b2000", "delta_macro_f1")}
+- Top-k1000 Δ Macro-F1: {get("paper4_policy_confidence_ranked_topk1000_b2000", "delta_macro_f1")}
+- Class-repair Δ Macro-F1: {get("paper4_policy_class_repair_topk9000_b2000", "delta_macro_f1")}
+- Class-repair Δ Macro-AUPRC: {get("paper4_policy_class_repair_topk9000_b2000", "delta_macro_auprc")}
 
 ## Safe paper claim
 
-Selective synthetic-data policies are not automatically superior to keeping all generated samples. Strict confidence filtering can collapse accepted samples. Balanced confidence ranking avoids collapse, but its utility depends on the retained budget. In the current results, topk1000 preserves positive utility with half the full b2000 synthetic volume, while the full keep_all b2000 setting remains strongest on average.
+Selective synthetic-data policies are not automatically superior to keeping all generated samples. Strict confidence filtering can collapse accepted samples. Balanced confidence ranking avoids collapse, but its utility depends on the retained budget. Class-repair shows that adaptive allocation can improve the reduced-budget setting, especially for Macro-AUPRC, while the full Keep-all b2000 setting remains strongest on mean Macro-F1 and balanced accuracy.
 
 ## Claims to avoid
 
 - Do not claim confidence ranking universally improves augmentation.
-- Do not claim topk1000 beats full b2000 keep_all.
-- Do not claim confidence_accept_t080 is a good augmentation policy.
+- Do not claim Top-k1000 beats full Keep-all b2000.
+- Do not claim Strict-conf. is a good augmentation policy.
+- Do not claim Class-repair universally dominates all policies.
 - Do not claim policy quality can be judged from confidence alone; downstream utility remains necessary.
 """
     out_path.write_text(text)
@@ -239,9 +277,24 @@ def main():
     ]
     seed_cols = [c for c in seed_level_cols if c in df.columns]
     seed_level = df[seed_cols].copy()
-    seed_level.insert(1, "policy_label", seed_level["config_id"].map(policy_label))
+    seed_level.insert(1, "policy_label", seed_level["config_id"].apply(policy_label))
 
     mean_std = make_mean_std(df)
+
+
+
+    # Display Class-repair as a total selected budget, not its base per-class allocation.
+
+    mean_std["budget_per_class"] = mean_std["budget_per_class"].astype("object")
+
+    mean_std.loc[
+
+        mean_std["config_id"] == "paper4_policy_class_repair_topk9000_b2000",
+
+        "budget_per_class"
+
+    ] = "9000 total"
+
 
     seed_csv = tables_dir / "paper4_policy_seed_level.csv"
     mean_csv = tables_dir / "paper4_policy_mean_std.csv"

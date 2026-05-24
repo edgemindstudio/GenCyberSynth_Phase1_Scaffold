@@ -1,0 +1,58 @@
+{
+  "audit_name": "paper3_c4c7_synthetic_alignment",
+  "audit_seed": 42,
+  "minority_classes": [
+    4,
+    7
+  ],
+  "minority_fraction": 0.2,
+  "max_per_class": 2000,
+  "data_dir": "/home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc",
+  "subsample_meta": {
+    "minority_classes": [
+      4,
+      7
+    ],
+    "minority_fraction": 0.2,
+    "seed": 42,
+    "before_counts": {
+      "0": 9000,
+      "1": 9000,
+      "2": 9000,
+      "3": 9000,
+      "4": 9000,
+      "5": 9000,
+      "6": 9000,
+      "7": 9000,
+      "8": 9000
+    },
+    "after_counts": {
+      "0": 9000,
+      "1": 9000,
+      "2": 9000,
+      "3": 9000,
+      "4": 1800,
+      "5": 9000,
+      "6": 9000,
+      "7": 1800,
+      "8": 9000
+    },
+    "num_train_before": 81000,
+    "num_train_after": 66600
+  },
+  "real_only_classifier": {
+    "weights_path": "/home/bruno.fonkeng/gencys/artifacts_paper3/audit/paper3_c4c7_real_only_cnn/seed42_c4c7_minority_heavy_real_only_cnn.weights.h5",
+    "val_loss": 0.06693242490291595,
+    "val_accuracy": 0.9762762784957886,
+    "test_loss": 0.18274159729480743,
+    "test_accuracy": 0.9258888959884644
+  },
+  "num_manifests_audited": 27,
+  "outputs": {
+    "raw_csv": "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/paper3_c4c7_synthetic_alignment_raw.csv",
+    "hist_csv": "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/paper3_c4c7_synthetic_alignment_pred_hist.csv",
+    "aggregate_csv": "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/frozen/paper3_c4c7_synthetic_alignment_aggregate_frozen_20260524.csv",
+    "table_md": "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/frozen/paper3_c4c7_synthetic_alignment_table.md",
+    "table_tex": "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/frozen/paper3_c4c7_synthetic_alignment_table.tex"
+  }
+}

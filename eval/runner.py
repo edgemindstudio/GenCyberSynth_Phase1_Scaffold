@@ -1756,12 +1756,10 @@ def evaluate_model_suite(
         "memorization": ({"nn_dist_mean": _mem_extra.get("nn_dist_mean")} if _mem_extra else {}),
 
         # keep safe even if util_real/util_rs are None
-        "utility_real_only": {
-            "macro_f1": (util_real.get("macro_f1") if isinstance(util_real, dict) else None)
-        },
-        "utility_real_plus_synth": {
-            "macro_f1": (util_rs.get("macro_f1") if isinstance(util_rs, dict) else None)
-        },
+        # Keep full downstream utility blocks, including per-class reports.
+        # This is needed for Paper 3 journal diagnostics on minority classes 4 and 7.
+        "utility_real_only": (dict(util_real) if isinstance(util_real, dict) else {"macro_f1": None}),
+        "utility_real_plus_synth": (dict(util_rs) if isinstance(util_rs, dict) else {"macro_f1": None}),
 
         # Legacy flattened shims expected by older aggregators/plots
         "metrics.cfid": gen.get("cfid_macro"),
@@ -1820,6 +1818,15 @@ def evaluate_model_suite(
 
     if _cur is not None:
         # 1) Always patch manifest_path (safe, no dependencies)
+        # Preserve full downstream utility blocks, including per-class metrics.
+        # write_phase2_summary may compact fields, so restore from in-memory util_real/util_rs.
+        if isinstance(util_real, dict):
+            _cur["utility_real_only"] = dict(util_real)
+            _cur["real_only"] = dict(util_real)
+        if isinstance(util_rs, dict):
+            _cur["utility_real_plus_synth"] = dict(util_rs)
+            _cur["real_plus_synth"] = dict(util_rs)
+
         _cur["manifest_path"] = man_path
         rm2 = _cur.get("run_meta")
         rm2 = rm2 if isinstance(rm2, dict) else {}

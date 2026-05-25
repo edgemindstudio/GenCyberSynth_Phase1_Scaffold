@@ -1,0 +1,31 @@
+{
+  "analysis": "paper3_classifier_sensitivity_resnet_collected",
+  "expected_rows": 18,
+  "actual_rows": 18,
+  "part_files": [
+    "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/resnet_sensitivity_parts/resnet_balanced_diffusion_b2000_seed42.csv",
+    "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/resnet_sensitivity_parts/resnet_balanced_diffusion_b2000_seed43.csv",
+    "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/resnet_sensitivity_parts/resnet_balanced_diffusion_b2000_seed44.csv",
+    "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/resnet_sensitivity_parts/resnet_balanced_gan_b2000_seed42.csv",
+    "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/resnet_sensitivity_parts/resnet_balanced_gan_b2000_seed43.csv",
+    "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/resnet_sensitivity_parts/resnet_balanced_gan_b2000_seed44.csv",
+    "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/resnet_sensitivity_parts/resnet_balanced_vae_b2000_seed42.csv",
+    "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/resnet_sensitivity_parts/resnet_balanced_vae_b2000_seed43.csv",
+    "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/resnet_sensitivity_parts/resnet_balanced_vae_b2000_seed44.csv",
+    "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/resnet_sensitivity_parts/resnet_minority_c4c7_diffusion_b2000_seed42.csv",
+    "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/resnet_sensitivity_parts/resnet_minority_c4c7_diffusion_b2000_seed43.csv",
+    "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/resnet_sensitivity_parts/resnet_minority_c4c7_diffusion_b2000_seed44.csv",
+    "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/resnet_sensitivity_parts/resnet_minority_c4c7_gan_b2000_seed42.csv",
+    "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/resnet_sensitivity_parts/resnet_minority_c4c7_gan_b2000_seed43.csv",
+    "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/resnet_sensitivity_parts/resnet_minority_c4c7_gan_b2000_seed44.csv",
+    "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/resnet_sensitivity_parts/resnet_minority_c4c7_vae_b2000_seed42.csv",
+    "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/resnet_sensitivity_parts/resnet_minority_c4c7_vae_b2000_seed43.csv",
+    "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/resnet_sensitivity_parts/resnet_minority_c4c7_vae_b2000_seed44.csv"
+  ],
+  "outputs": {
+    "raw_csv": "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/raw/paper3_resnet_sensitivity_raw.csv",
+    "aggregate_csv": "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/frozen/paper3_resnet_sensitivity_aggregate_frozen_20260524.csv",
+    "table_md": "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/frozen/paper3_resnet_sensitivity_table.md",
+    "table_tex": "/home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold/papers/paper3_when_does_synth_help/results/frozen/paper3_resnet_sensitivity_table.tex"
+  }
+}

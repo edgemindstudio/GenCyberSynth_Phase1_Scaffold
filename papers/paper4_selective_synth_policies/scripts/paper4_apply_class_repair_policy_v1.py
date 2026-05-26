@@ -89,6 +89,11 @@ def main():
         raise RuntimeError(f"No paths found in source manifest: {source_manifest_path}")
 
     audit = pd.read_csv(audit_csv_path)
+
+    if "index" not in audit.columns:
+
+        audit.insert(0, "index", range(len(audit)))
+
     if len(audit) != len(entries):
         raise RuntimeError(f"audit rows ({len(audit)}) != manifest entries ({len(entries)})")
 

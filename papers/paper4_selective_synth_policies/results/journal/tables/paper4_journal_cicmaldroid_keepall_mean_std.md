@@ -1,0 +1,3 @@
+| config_id | n_seeds | mean_num_fake | delta_macro_f1_mean | delta_macro_f1_std | delta_bal_acc_mean | delta_bal_acc_std | delta_macro_auprc_mean | delta_macro_auprc_std | delta_ece_mean | delta_ece_std | delta_brier_mean | delta_brier_std | kid_mean | kid_std | ms_ssim_mean | ms_ssim_std |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| paper4_cic_policy_keep_all_b2000 | 3 | 10000.0 | -0.015674 | 0.009334 | -0.016782 | 0.002172 | 0.005054 | 0.003369 | -0.045934 | 0.023824 | -0.017048 | 0.021709 | 0.195191 | 0.037852 | 0.995437 | 0.005953 |

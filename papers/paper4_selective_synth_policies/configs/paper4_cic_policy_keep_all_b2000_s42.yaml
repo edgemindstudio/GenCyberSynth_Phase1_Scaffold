@@ -1,0 +1,32 @@
+run_meta:
+  paper_id: paper4
+  config_id: paper4_cic_policy_keep_all_b2000
+  dataset_id: cicmaldroid2020
+  regime:
+    imbalance: balanced
+    synth_budget_per_class: 2000
+    aug_method: policy_filtered
+  policy:
+    policy_id: keep_all
+    source_config_id: paper1_cic_gan_b2000
+  manifest_path: /home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/seed42/manifest.json
+  seed: 42
+paths:
+  artifacts: artifacts
+DATA_DIR: /home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1
+IMG_SHAPE:
+- 12
+- 12
+- 1
+NUM_CLASSES: 5
+train:
+  seed: 42
+  epochs: 2
+  batch_size: 64
+synth:
+  seed: 42
+  n_per_class: 2000
+evaluator:
+  per_class_cap: 50
+SEED: 42
+seed: 42

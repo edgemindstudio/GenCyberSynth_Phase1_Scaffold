@@ -59,8 +59,7 @@ fields:
     required:
       - repository
       - git_commit
-      - git_dirty
-      - config_sha256
+      - config_digest
     fields:
 
       repository:
@@ -75,6 +74,7 @@ fields:
 
       git_dirty:
         type: boolean
+        optional: true
 
       release_tag:
         type: string
@@ -84,8 +84,25 @@ fields:
         type: string
         optional: true
 
-      config_sha256:
-        type: string
+      config_digest:
+        type: object
+        required:
+          - algorithm
+          - value
+        fields:
+
+          algorithm:
+            type: string
+            description: Hash algorithm used for the effective configuration.
+
+          value:
+            type: string
+            description: Recorded configuration digest.
+
+          scope:
+            type: string
+            optional: true
+            description: What representation of the configuration was hashed.
 
       study_definition_sha256:
         type: string
@@ -99,7 +116,6 @@ fields:
     type: object
     required:
       - hostname
-      - platform
     fields:
 
       hostname:
@@ -107,6 +123,7 @@ fields:
 
       platform:
         type: string
+        optional: true
         description: Operating system or execution platform.
 
       machine_role:
@@ -364,6 +381,34 @@ fields:
 
       traceback_artifact:
         type: string
+        optional: true
+
+  reconstruction:
+    type: object
+    optional: true
+    description: Metadata for manifests reconstructed from historical evidence.
+    fields:
+
+      historical:
+        type: boolean
+
+      reconstructed_at:
+        type: string
+        optional: true
+
+      source_records:
+        type: list
+        item_type: string
+        optional: true
+
+      unknown_fields:
+        type: list
+        item_type: string
+        optional: true
+
+      notes:
+        type: list
+        item_type: string
         optional: true
 
   notes:

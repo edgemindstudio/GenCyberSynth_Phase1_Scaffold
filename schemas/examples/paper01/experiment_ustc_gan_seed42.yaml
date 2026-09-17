@@ -1,0 +1,121 @@
+schema_version: "1.0"
+schema_type: experiment
+
+study_id: paper01_benchmark
+
+experiment_id: ustc_gan_b2000_seed42
+
+status: frozen
+
+description: >
+  Historical Paper 1 GAN experiment on USTC-TFC2016 malware-image data using
+  seed 42 and a synthetic budget of 2000 samples per class.
+
+dataset:
+  dataset_id: ustc_tfc2016_malware_nhwc
+  source_dataset: USTC-TFC2016
+  representation: malware_image_nhwc
+  preparation_stage: paper1_ready
+
+model:
+  model_id: gan
+  family: gan
+  implementation: historical_gencys_gan
+
+seed: 42
+
+training:
+  epochs: 5000
+  batch_size: 256
+  learning_rate: 0.0002
+  parameters:
+    latent_dim: 100
+    beta_1: 0.5
+    lr_g: 0.0001
+    lr_d: 0.0002
+    discriminator_updates_per_generator: 2
+    batch: 128
+    total_steps: 150000
+    regularization: R1
+    spectral_norm: true
+    ema_enabled: true
+    ema_decay: 0.999
+
+generation:
+  samples_per_class: 2000
+  total_samples: 18000
+  classes:
+    - class_0
+    - class_1
+    - class_2
+    - class_3
+    - class_4
+    - class_5
+    - class_6
+    - class_7
+    - class_8
+  conditioning: class_conditional
+
+evaluation:
+  evaluator_id: historical_paper1_evaluator
+  metrics:
+    - balanced_accuracy
+    - macro_f1
+    - macro_auprc
+    - gen_precision
+    - gen_recall
+    - kid
+    - ms_ssim
+  primary_metrics:
+    - balanced_accuracy
+    - macro_f1
+    - macro_auprc
+    - gen_precision
+    - gen_recall
+  supporting_metrics:
+    - kid
+    - ms_ssim
+  evaluation_split: val
+  parameters:
+    per_class_cap: 200
+    feature_extractor: domain
+    domain_encoder: malware_encoder_v1
+
+scientific_parameters:
+  image_shape:
+    - 40
+    - 40
+    - 1
+  num_classes: 9
+  input_scale:
+    - -1
+    - 1
+  num_real: 90000
+
+execution_requirements:
+  accelerator: gpu
+  gpu_count: 1
+  cpu_count: 8
+  memory_gb: 48
+  walltime: 27-00:00:00
+
+provenance:
+  repository: edgemindstudio/GenCyberSynth_Phase1_Scaffold
+  expected_git_commit: 37c60929b3545e5ff68d9107280a63ece0b62f45
+  config_source: configs/paper1_final_rerun.yaml
+
+expected_outputs:
+  - gan/synthetic/seed42/manifest.json
+  - phase1_scores_dedup.csv
+
+acceptance:
+  required: true
+  criteria:
+    - execution_completed
+    - seed42_present_in_authoritative_result_table
+    - artifact_root_matches_paper1_final_rerun
+    - authoritative_result_hash_preserved
+
+notes:
+  - Historical experiment reconstructed from the Paper 1 final rerun protocol.
+  - The experiment identity is machine-independent even though historical execution paths are not.

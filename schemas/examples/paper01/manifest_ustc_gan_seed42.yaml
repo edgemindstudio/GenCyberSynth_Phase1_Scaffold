@@ -1,0 +1,123 @@
+schema_version: "1.0"
+schema_type: manifest
+
+study_id: paper01_benchmark
+
+experiment_id: ustc_gan_b2000_seed42
+
+execution_id: historical_talon_slurm_240398_task0
+
+status: completed
+
+timestamps:
+  started_at: "2026-03-27T11:33:56-05:00"
+
+provenance:
+  repository: edgemindstudio/GenCyberSynth_Phase1_Scaffold
+  git_commit: 37c60929b3545e5ff68d9107280a63ece0b62f45
+  config_source: configs/paper1_final_rerun.yaml
+  config_digest:
+    algorithm: sha1
+    value: 83473b4269b4b1cad66ef627ce605bba079e02e4
+    scope: effective_per_task_config
+
+runtime:
+  hostname: talon35
+  machine_role: talon_hpc
+  python_version: "3.10.19"
+  accelerator: gpu
+  gpu_count: 1
+  cpu_count: 8
+  memory_gb: 48
+  cuda_version: "12.8.1"
+
+scheduler:
+  backend: slurm
+  job_id: "240398"
+  array_job_id: "240398"
+  array_task_id: "0"
+  partition: talon-gpu32
+  requested_walltime: 27-00:00:00
+
+dataset:
+  dataset_id: ustc_tfc2016_malware_nhwc
+  resolved_path: /home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc
+
+model:
+  model_id: gan
+
+seed: 42
+
+resolved_parameters:
+  samples_per_class: 2000
+  total_synthetic_samples: 18000
+  epochs: 5000
+  batch_size: 256
+  image_shape:
+    - 40
+    - 40
+    - 1
+  num_classes: 9
+
+artifacts:
+  artifact_root: /home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun
+  outputs:
+    - path: /home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gan/synthetic/seed42/manifest.json
+      role: synthetic_manifest
+    - path: /home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gan/synthetic/manifest.json
+      role: compatibility_manifest
+    - path: /home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/phase1_scores_dedup.csv
+      role: authoritative_result_table
+
+checksums:
+  phase1_scores_dedup.csv:
+    algorithm: sha256
+    value: c3c731f355f4cecfb930d024dd8ee42d97ce952d5abfca73c717af6b2a7a6031
+
+metrics:
+  run_id: gan_s42
+  num_real: 90000
+  num_fake: 18000
+  kid: 0.4651229537511746
+  ms_ssim: 0.9999739394585292
+  balanced_accuracy: 0.9422686952573052
+  macro_f1: 0.9417491883536004
+  macro_auprc: 0.9743894781324608
+  gen_precision: 0.9447345650119912
+  gen_recall: 0.9422686952573052
+
+validation:
+  passed: true
+  checks:
+    - artifact_root_matched_config
+    - model_mapped_to_gan
+    - seed_mapped_to_42
+    - execution_completed
+    - authoritative_result_row_present
+    - authoritative_result_hash_verified
+
+acceptance:
+  scientifically_accepted: true
+  accepted_artifacts:
+    - /home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/phase1_scores_dedup.csv
+  rationale: >
+    The execution contributes to the frozen Paper 1 USTC evidence set and its
+    result row is preserved in the authoritative deduplicated result table.
+
+reconstruction:
+  historical: true
+  source_records:
+    - configs/paper1_final_rerun.yaml
+    - papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.240316_0.out
+    - /home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/phase1_scores_dedup.csv
+  unknown_fields:
+    - git_dirty
+    - finished_at
+    - exact_operating_system
+  notes:
+    - Archived log filename contains 240316, but the log content records Slurm job_id 240398.
+    - The historical runner recorded an SHA1 digest for the effective per-task configuration.
+    - Missing historical fields are recorded as unknown rather than inferred.
+
+notes:
+  - Historical manifest reconstructed from preserved Paper 1 execution evidence.

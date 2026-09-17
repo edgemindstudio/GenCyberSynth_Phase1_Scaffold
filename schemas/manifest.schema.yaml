@@ -1,0 +1,372 @@
+schema_version: "1.0"
+schema_type: manifest
+
+required:
+  - study_id
+  - experiment_id
+  - execution_id
+  - status
+  - provenance
+  - runtime
+  - dataset
+  - artifacts
+
+fields:
+
+  study_id:
+    type: string
+    description: Study that owns this execution.
+
+  experiment_id:
+    type: string
+    description: Scientific experiment definition being executed.
+
+  execution_id:
+    type: string
+    description: Unique identity for this concrete execution attempt.
+    example: 20260917T143000Z_talon_job123456
+
+  status:
+    type: enum
+    allowed:
+      - planned
+      - running
+      - completed
+      - failed
+      - cancelled
+      - invalidated
+    description: Concrete execution status.
+
+  timestamps:
+    type: object
+    optional: true
+    fields:
+
+      created_at:
+        type: string
+        optional: true
+
+      started_at:
+        type: string
+        optional: true
+
+      finished_at:
+        type: string
+        optional: true
+
+  provenance:
+    type: object
+    required:
+      - repository
+      - git_commit
+      - git_dirty
+      - config_sha256
+    fields:
+
+      repository:
+        type: string
+
+      git_commit:
+        type: string
+
+      git_branch:
+        type: string
+        optional: true
+
+      git_dirty:
+        type: boolean
+
+      release_tag:
+        type: string
+        optional: true
+
+      config_source:
+        type: string
+        optional: true
+
+      config_sha256:
+        type: string
+
+      study_definition_sha256:
+        type: string
+        optional: true
+
+      experiment_definition_sha256:
+        type: string
+        optional: true
+
+  runtime:
+    type: object
+    required:
+      - hostname
+      - platform
+    fields:
+
+      hostname:
+        type: string
+
+      platform:
+        type: string
+        description: Operating system or execution platform.
+
+      machine_role:
+        type: string
+        optional: true
+        example: talon_hpc
+
+      python_version:
+        type: string
+        optional: true
+
+      environment_id:
+        type: string
+        optional: true
+
+      environment_sha256:
+        type: string
+        optional: true
+
+      accelerator:
+        type: string
+        optional: true
+
+      gpu_count:
+        type: integer
+        optional: true
+
+      cpu_count:
+        type: integer
+        optional: true
+
+      memory_gb:
+        type: number
+        optional: true
+
+      cuda_version:
+        type: string
+        optional: true
+
+  scheduler:
+    type: object
+    optional: true
+    fields:
+
+      backend:
+        type: string
+        optional: true
+        example: slurm
+
+      job_id:
+        type: string
+        optional: true
+
+      array_job_id:
+        type: string
+        optional: true
+
+      array_task_id:
+        type: string
+        optional: true
+
+      partition:
+        type: string
+        optional: true
+
+      requested_walltime:
+        type: string
+        optional: true
+
+      allocated_nodes:
+        type: list
+        item_type: string
+        optional: true
+
+  dataset:
+    type: object
+    required:
+      - dataset_id
+      - resolved_path
+    fields:
+
+      dataset_id:
+        type: string
+
+      resolved_path:
+        type: string
+        description: Concrete path used during this execution.
+
+      manifest:
+        type: string
+        optional: true
+
+      manifest_sha256:
+        type: string
+        optional: true
+
+      split_id:
+        type: string
+        optional: true
+
+      preprocessing_id:
+        type: string
+        optional: true
+
+      checksum:
+        type: string
+        optional: true
+
+  model:
+    type: object
+    optional: true
+    fields:
+
+      model_id:
+        type: string
+        optional: true
+
+      checkpoint_input:
+        type: string
+        optional: true
+
+      checkpoint_input_sha256:
+        type: string
+        optional: true
+
+      checkpoint_output:
+        type: string
+        optional: true
+
+      checkpoint_output_sha256:
+        type: string
+        optional: true
+
+  seed:
+    type: integer
+    optional: true
+
+  resolved_parameters:
+    type: object
+    optional: true
+    description: Concrete parameters used after configuration resolution.
+
+  artifacts:
+    type: object
+    required:
+      - artifact_root
+    fields:
+
+      artifact_root:
+        type: string
+        description: Concrete artifact root used by this execution.
+
+      outputs:
+        type: list
+        optional: true
+        item_type: object
+        description: Produced artifacts.
+
+      logs:
+        type: list
+        item_type: string
+        optional: true
+
+      summaries:
+        type: list
+        item_type: string
+        optional: true
+
+      figures:
+        type: list
+        item_type: string
+        optional: true
+
+      tables:
+        type: list
+        item_type: string
+        optional: true
+
+  checksums:
+    type: object
+    optional: true
+    description: Artifact checksum mapping.
+
+  metrics:
+    type: object
+    optional: true
+    description: Execution-level metric summary.
+
+  validation:
+    type: object
+    optional: true
+    fields:
+
+      passed:
+        type: boolean
+        optional: true
+
+      checks:
+        type: list
+        item_type: string
+        optional: true
+
+      warnings:
+        type: list
+        item_type: string
+        optional: true
+
+      errors:
+        type: list
+        item_type: string
+        optional: true
+
+  acceptance:
+    type: object
+    optional: true
+    fields:
+
+      scientifically_accepted:
+        type: boolean
+        description: Whether this execution contributes accepted evidence.
+
+      acceptance_record:
+        type: string
+        optional: true
+
+      accepted_artifacts:
+        type: list
+        item_type: string
+        optional: true
+
+      accepted_at:
+        type: string
+        optional: true
+
+      rationale:
+        type: string
+        optional: true
+
+  failure:
+    type: object
+    optional: true
+    fields:
+
+      stage:
+        type: string
+        optional: true
+
+      exit_code:
+        type: integer
+        optional: true
+
+      message:
+        type: string
+        optional: true
+
+      traceback_artifact:
+        type: string
+        optional: true
+
+  notes:
+    type: list
+    item_type: string
+    optional: true

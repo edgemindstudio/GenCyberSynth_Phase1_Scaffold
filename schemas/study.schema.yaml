@@ -1,0 +1,151 @@
+schema_version: "1.0"
+schema_type: study
+
+required:
+  - study_id
+  - title
+  - status
+  - scientific_question
+  - scope
+  - lineage
+
+fields:
+
+  study_id:
+    type: string
+    description: Stable TrustForge study identifier.
+    example: paper03_augmentation_regimes
+
+  title:
+    type: string
+    description: Human-readable study title.
+
+  status:
+    type: enum
+    allowed:
+      - planned
+      - active
+      - frozen
+      - archived
+    description: Scientific lifecycle state of the study.
+
+  scientific_question:
+    type: string
+    description: Primary scientific question addressed by the study.
+
+  scope:
+    type: object
+    required:
+      - datasets
+      - models
+    fields:
+
+      datasets:
+        type: list
+        item_type: string
+        description: Dataset identities used by the study.
+
+      models:
+        type: list
+        item_type: string
+        description: Models or generator families included.
+
+      seeds:
+        type: list
+        item_type: integer
+        optional: true
+
+      regimes:
+        type: list
+        item_type: string
+        optional: true
+
+      metrics:
+        type: list
+        item_type: string
+        optional: true
+
+  lineage:
+    type: object
+    required:
+      - repository
+    fields:
+
+      repository:
+        type: string
+        description: Repository identity.
+
+      historical_name:
+        type: string
+        optional: true
+
+      origin_commit:
+        type: string
+        optional: true
+
+      freeze_commit:
+        type: string
+        optional: true
+
+      release_tags:
+        type: list
+        item_type: string
+        optional: true
+
+      evidence_index:
+        type: string
+        optional: true
+
+  manuscript:
+    type: object
+    optional: true
+    fields:
+
+      title:
+        type: string
+        optional: true
+
+      stage:
+        type: enum
+        allowed:
+          - draft
+          - submitted
+          - accepted
+          - published
+        optional: true
+
+      path:
+        type: string
+        optional: true
+
+  evidence:
+    type: object
+    optional: true
+    fields:
+
+      accepted:
+        type: boolean
+
+      evidence_root:
+        type: string
+        optional: true
+
+      evidence_hashes:
+        type: list
+        item_type: string
+        optional: true
+
+      frozen_tables:
+        type: list
+        item_type: string
+        optional: true
+
+      frozen_figures:
+        type: list
+        item_type: string
+        optional: true
+
+  notes:
+    type: list
+    item_type: string
+    optional: true

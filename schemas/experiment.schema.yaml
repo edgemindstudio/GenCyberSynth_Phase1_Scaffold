@@ -1,0 +1,352 @@
+schema_version: "1.0"
+schema_type: experiment
+
+required:
+  - study_id
+  - experiment_id
+  - status
+  - dataset
+  - model
+  - seed
+  - evaluation
+  - provenance
+
+fields:
+
+  study_id:
+    type: string
+    description: Stable study identifier that owns this experiment.
+
+  experiment_id:
+    type: string
+    description: Stable scientific experiment identifier.
+    example: ustc_gan_minority_c4c7_b500_seed42
+
+  status:
+    type: enum
+    allowed:
+      - planned
+      - active
+      - frozen
+      - superseded
+      - invalidated
+    description: Scientific lifecycle state of the experiment.
+
+  description:
+    type: string
+    optional: true
+
+  dataset:
+    type: object
+    required:
+      - dataset_id
+    fields:
+
+      dataset_id:
+        type: string
+        description: Logical scientific dataset identity.
+
+      source_dataset:
+        type: string
+        optional: true
+
+      representation:
+        type: string
+        optional: true
+        example: malware_image_nhwc
+
+      preparation_stage:
+        type: string
+        optional: true
+
+      split_id:
+        type: string
+        optional: true
+
+      preprocessing_id:
+        type: string
+        optional: true
+
+      class_mapping_id:
+        type: string
+        optional: true
+
+      manifest:
+        type: string
+        optional: true
+
+      manifest_sha256:
+        type: string
+        optional: true
+
+      checksum:
+        type: string
+        optional: true
+
+  model:
+    type: object
+    required:
+      - model_id
+    fields:
+
+      model_id:
+        type: string
+        description: Model or generator identity.
+
+      family:
+        type: string
+        optional: true
+
+      implementation:
+        type: string
+        optional: true
+
+      checkpoint_source:
+        type: string
+        optional: true
+
+      checkpoint_sha256:
+        type: string
+        optional: true
+
+  seed:
+    type: integer
+    description: Primary scientific random seed.
+
+  random_state:
+    type: object
+    optional: true
+    fields:
+
+      numpy_seed:
+        type: integer
+        optional: true
+
+      python_seed:
+        type: integer
+        optional: true
+
+      tensorflow_seed:
+        type: integer
+        optional: true
+
+      torch_seed:
+        type: integer
+        optional: true
+
+  training:
+    type: object
+    optional: true
+    fields:
+
+      epochs:
+        type: integer
+        optional: true
+
+      batch_size:
+        type: integer
+        optional: true
+
+      learning_rate:
+        type: number
+        optional: true
+
+      optimizer:
+        type: string
+        optional: true
+
+      parameters:
+        type: object
+        optional: true
+        description: Additional scientifically meaningful training parameters.
+
+  generation:
+    type: object
+    optional: true
+    fields:
+
+      samples_per_class:
+        type: integer
+        optional: true
+
+      total_samples:
+        type: integer
+        optional: true
+
+      classes:
+        type: list
+        item_type: string
+        optional: true
+
+      conditioning:
+        type: string
+        optional: true
+
+      parameters:
+        type: object
+        optional: true
+
+  augmentation:
+    type: object
+    optional: true
+    fields:
+
+      enabled:
+        type: boolean
+
+      regime:
+        type: string
+        optional: true
+
+      budget:
+        type: integer
+        optional: true
+
+      target_classes:
+        type: list
+        item_type: string
+        optional: true
+
+      allocation:
+        type: object
+        optional: true
+
+  policy:
+    type: object
+    optional: true
+    fields:
+
+      policy_id:
+        type: string
+        optional: true
+
+      type:
+        type: string
+        optional: true
+
+      threshold:
+        type: number
+        optional: true
+
+      top_k:
+        type: integer
+        optional: true
+
+      parameters:
+        type: object
+        optional: true
+
+  evaluation:
+    type: object
+    required:
+      - metrics
+    fields:
+
+      evaluator_id:
+        type: string
+        optional: true
+
+      classifier:
+        type: string
+        optional: true
+
+      metrics:
+        type: list
+        item_type: string
+
+      primary_metrics:
+        type: list
+        item_type: string
+        optional: true
+
+      supporting_metrics:
+        type: list
+        item_type: string
+        optional: true
+
+      evaluation_split:
+        type: string
+        optional: true
+
+      parameters:
+        type: object
+        optional: true
+
+  scientific_parameters:
+    type: object
+    optional: true
+    description: Additional parameters that affect scientific interpretation.
+
+  execution_requirements:
+    type: object
+    optional: true
+    description: Resource requirements that do not normally define science.
+    fields:
+
+      accelerator:
+        type: string
+        optional: true
+
+      gpu_count:
+        type: integer
+        optional: true
+
+      cpu_count:
+        type: integer
+        optional: true
+
+      memory_gb:
+        type: number
+        optional: true
+
+      walltime:
+        type: string
+        optional: true
+
+  provenance:
+    type: object
+    required:
+      - repository
+    fields:
+
+      repository:
+        type: string
+
+      expected_git_commit:
+        type: string
+        optional: true
+
+      release_tag:
+        type: string
+        optional: true
+
+      config_source:
+        type: string
+        optional: true
+
+      config_sha256:
+        type: string
+        optional: true
+
+  expected_outputs:
+    type: list
+    item_type: string
+    optional: true
+
+  acceptance:
+    type: object
+    optional: true
+    fields:
+
+      required:
+        type: boolean
+
+      criteria:
+        type: list
+        item_type: string
+        optional: true
+
+  notes:
+    type: list
+    item_type: string
+    optional: true

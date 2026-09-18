@@ -71,7 +71,9 @@ class TrustForgeDoctorTests(unittest.TestCase):
                 Path(tmp)
             )
 
-            self.assertIsNone(discovered)
+            self.assertIsNone(
+                discovered
+            )
 
     def test_canonical_environment_wins_over_legacy(self) -> None:
         environment = {
@@ -93,6 +95,7 @@ class TrustForgeDoctorTests(unittest.TestCase):
             value,
             "/canonical",
         )
+
         self.assertEqual(
             source,
             "TRUSTFORGE_DATA_ROOT",
@@ -117,6 +120,7 @@ class TrustForgeDoctorTests(unittest.TestCase):
             value,
             "/legacy",
         )
+
         self.assertEqual(
             source,
             "GCS_DATA_ROOT",
@@ -132,7 +136,9 @@ class TrustForgeDoctorTests(unittest.TestCase):
                 name="Data root",
                 canonical="TRUSTFORGE_DATA_ROOT",
                 legacy="GCS_DATA_ROOT",
-                require_existing=True,
+                require_read=True,
+                require_write=False,
+                require_traverse=True,
             )
 
         self.assertEqual(
@@ -155,12 +161,53 @@ class TrustForgeDoctorTests(unittest.TestCase):
                     name="Data root",
                     canonical="TRUSTFORGE_DATA_ROOT",
                     legacy="GCS_DATA_ROOT",
-                    require_existing=True,
+                    require_read=True,
+                    require_write=False,
+                    require_traverse=True,
                 )
 
         self.assertEqual(
             result.level,
             "PASS",
+        )
+
+    def test_artifacts_root_requires_write_access(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            environment = {
+                "TRUSTFORGE_ARTIFACTS_ROOT": tmp,
+            }
+
+            with mock.patch.dict(
+                os.environ,
+                environment,
+                clear=True,
+            ):
+                with mock.patch.object(
+                    doctor.os,
+                    "access",
+                    side_effect=lambda path, mode: (
+                        False
+                        if mode == os.W_OK
+                        else True
+                    ),
+                ):
+                    result = doctor._check_storage_root(
+                        name="Artifacts root",
+                        canonical="TRUSTFORGE_ARTIFACTS_ROOT",
+                        legacy="GCS_ARTIFACTS_ROOT",
+                        require_read=True,
+                        require_write=True,
+                        require_traverse=True,
+                    )
+
+        self.assertEqual(
+            result.level,
+            "FAIL",
+        )
+
+        self.assertIn(
+            "write",
+            result.detail,
         )
 
     def test_dirty_git_state_is_warning_not_failure(self) -> None:
@@ -173,9 +220,21 @@ class TrustForgeDoctorTests(unittest.TestCase):
                 doctor,
                 "_run_command",
                 side_effect=[
-                    (0, "a" * 40, ""),
-                    (0, "main", ""),
-                    (0, " M file.py", ""),
+                    (
+                        0,
+                        "a" * 40,
+                        "",
+                    ),
+                    (
+                        0,
+                        "main",
+                        "",
+                    ),
+                    (
+                        0,
+                        " M file.py",
+                        "",
+                    ),
                 ],
             ):
                 result = doctor.check_git_state(
@@ -197,9 +256,21 @@ class TrustForgeDoctorTests(unittest.TestCase):
                 doctor,
                 "_run_command",
                 side_effect=[
-                    (0, "b" * 40, ""),
-                    (0, "main", ""),
-                    (0, "", ""),
+                    (
+                        0,
+                        "b" * 40,
+                        "",
+                    ),
+                    (
+                        0,
+                        "main",
+                        "",
+                    ),
+                    (
+                        0,
+                        "",
+                        "",
+                    ),
                 ],
             ):
                 result = doctor.check_git_state(
@@ -209,6 +280,132 @@ class TrustForgeDoctorTests(unittest.TestCase):
         self.assertEqual(
             result.level,
             "PASS",
+        )
+
+    def test_valid_dataset_identifier_passes_validation(self) -> None:
+        self.assertIsNone(
+            doctor._validate_dataset_identifier(
+                "USTC-TFC2016_malware_nhwc"
+            )
+        )
+
+    def test_dataset_identifier_rejects_parent_traversal(self) -> None:
+        problem = doctor._validate_dataset_identifier(
+            ".."
+        )
+
+        self.assertIsNotNone(
+            problem
+        )
+
+    def test_dataset_identifier_rejects_forward_slash(self) -> None:
+        problem = doctor._validate_dataset_identifier(
+            "../dataset"
+        )
+
+        self.assertIsNotNone(
+            problem
+        )
+
+    def test_dataset_identifier_rejects_backslash(self) -> None:
+        problem = doctor._validate_dataset_identifier(
+            "..\\dataset"
+        )
+
+        self.assertIsNotNone(
+            problem
+        )
+
+    def test_existing_dataset_passes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            data_root = Path(tmp) / "data"
+            dataset = data_root / "example_dataset"
+
+            dataset.mkdir(
+                parents=True
+            )
+
+            environment = {
+                "TRUSTFORGE_DATA_ROOT": str(
+                    data_root
+                ),
+            }
+
+            with mock.patch.dict(
+                os.environ,
+                environment,
+                clear=True,
+            ):
+                result = doctor.check_dataset(
+                    "example_dataset"
+                )
+
+        self.assertEqual(
+            result.level,
+            "PASS",
+        )
+
+    def test_missing_dataset_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            data_root = Path(tmp) / "data"
+
+            data_root.mkdir()
+
+            environment = {
+                "TRUSTFORGE_DATA_ROOT": str(
+                    data_root
+                ),
+            }
+
+            with mock.patch.dict(
+                os.environ,
+                environment,
+                clear=True,
+            ):
+                result = doctor.check_dataset(
+                    "missing_dataset"
+                )
+
+        self.assertEqual(
+            result.level,
+            "FAIL",
+        )
+
+    def test_dataset_check_requires_data_root(self) -> None:
+        with mock.patch.dict(
+            os.environ,
+            {},
+            clear=True,
+        ):
+            result = doctor.check_dataset(
+                "example_dataset"
+            )
+
+        self.assertEqual(
+            result.level,
+            "FAIL",
+        )
+
+    def test_filesystem_capacity_is_informational(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            environment = {
+                "TRUSTFORGE_DATA_ROOT": tmp,
+            }
+
+            with mock.patch.dict(
+                os.environ,
+                environment,
+                clear=True,
+            ):
+                result = doctor.check_filesystem_capacity(
+                    name="Data filesystem",
+                    canonical="TRUSTFORGE_DATA_ROOT",
+                    legacy="GCS_DATA_ROOT",
+                )
+
+        self.assertEqual(
+            result.level,
+            "INFO",
         )
 
     def test_missing_gpu_is_informational(self) -> None:
@@ -255,7 +452,9 @@ class TrustForgeDoctorTests(unittest.TestCase):
                 doctor,
                 "_print_results",
             ):
-                code = doctor.main([])
+                code = doctor.main(
+                    []
+                )
 
         self.assertEqual(
             code,
@@ -285,11 +484,49 @@ class TrustForgeDoctorTests(unittest.TestCase):
                 doctor,
                 "_print_results",
             ):
-                code = doctor.main([])
+                code = doctor.main(
+                    []
+                )
 
         self.assertEqual(
             code,
             0,
+        )
+
+    def test_main_forwards_dataset_arguments(self) -> None:
+        with mock.patch.object(
+            doctor,
+            "collect_results",
+            return_value=[],
+        ) as collect:
+            with mock.patch.object(
+                doctor,
+                "_print_results",
+            ):
+                code = doctor.main(
+                    [
+                        "--dataset",
+                        "dataset_one",
+                        "--dataset",
+                        "dataset_two",
+                    ]
+                )
+
+        self.assertEqual(
+            code,
+            0,
+        )
+
+        collect.assert_called_once()
+
+        self.assertEqual(
+            collect.call_args.kwargs[
+                "datasets"
+            ],
+            [
+                "dataset_one",
+                "dataset_two",
+            ],
         )
 
 

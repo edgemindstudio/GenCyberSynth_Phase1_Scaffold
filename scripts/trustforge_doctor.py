@@ -12,6 +12,8 @@ The doctor is read-only. It does not:
 
 - install packages;
 - create storage roots;
+- create dataset directories;
+- create probe files;
 - modify shell configuration;
 - activate Conda environments;
 - alter Git state;
@@ -20,6 +22,9 @@ The doctor is read-only. It does not:
 - write artifacts.
 
 Core readiness and optional compute capabilities are reported separately.
+
+Dataset readiness is opt-in through ``--dataset`` because TrustForge is a
+multi-study research system and no single dataset is universally required.
 """
 
 from __future__ import print_function
@@ -130,12 +135,108 @@ def _environment_value(
     return None, None
 
 
+def _resolve_environment_path(
+    canonical: str,
+    legacy: str,
+) -> Tuple[Optional[Path], Optional[str]]:
+    """Resolve one configured TrustForge path from canonical or legacy env."""
+
+    value, source = _environment_value(
+        canonical,
+        legacy,
+    )
+
+    if value is None:
+        return None, None
+
+    path = Path(
+        os.path.expandvars(
+            os.path.expanduser(value)
+        )
+    ).resolve()
+
+    return path, source
+
+
+def _format_bytes(value: int) -> str:
+    """Format a byte count using binary units."""
+
+    amount = float(value)
+
+    units = (
+        "B",
+        "KiB",
+        "MiB",
+        "GiB",
+        "TiB",
+        "PiB",
+    )
+
+    for unit in units:
+        if amount < 1024.0 or unit == units[-1]:
+            if unit == "B":
+                return "%d %s" % (
+                    int(amount),
+                    unit,
+                )
+
+            return "%.1f %s" % (
+                amount,
+                unit,
+            )
+
+        amount /= 1024.0
+
+    return "%d B" % value
+
+
+def _validate_dataset_identifier(
+    dataset_id: str,
+) -> Optional[str]:
+    """
+    Validate an optional dataset identifier for safe root-relative lookup.
+
+    This standalone doctor intentionally uses only the minimal portability
+    rules required to prevent path traversal. Scientific naming policy belongs
+    to TrustForge contracts rather than the doctor.
+    """
+
+    if not isinstance(dataset_id, str):
+        return "dataset identifier must be a string"
+
+    if not dataset_id:
+        return "dataset identifier must not be empty"
+
+    if dataset_id != dataset_id.strip():
+        return (
+            "dataset identifier must not contain leading "
+            "or trailing whitespace"
+        )
+
+    if dataset_id in (".", ".."):
+        return "dataset identifier must not be '.' or '..'"
+
+    if "/" in dataset_id or "\\" in dataset_id:
+        return "dataset identifier must not contain path separators"
+
+    if any(ord(character) < 32 for character in dataset_id):
+        return "dataset identifier must not contain control characters"
+
+    return None
+
+
 def check_python_version() -> CheckResult:
     """Check whether the active interpreter satisfies TrustForge minimum."""
 
     current = sys.version_info[:3]
-    minimum_text = ".".join(str(part) for part in MINIMUM_PYTHON)
-    current_text = ".".join(str(part) for part in current)
+    minimum_text = ".".join(
+        str(part)
+        for part in MINIMUM_PYTHON
+    )
+    current_text = ".".join(
+        str(part)
+        for part in current
+    )
 
     if current >= MINIMUM_PYTHON:
         return CheckResult(
@@ -187,11 +288,17 @@ def check_git_executable() -> CheckResult:
     return CheckResult(
         "PASS",
         "Git executable",
-        "%s (%s)" % (stdout, executable),
+        "%s (%s)"
+        % (
+            stdout,
+            executable,
+        ),
     )
 
 
-def check_repository(repo_root: Optional[Path]) -> CheckResult:
+def check_repository(
+    repo_root: Optional[Path],
+) -> CheckResult:
     """Check repository discovery and Git work-tree validity."""
 
     if repo_root is None:
@@ -227,6 +334,17 @@ def check_repository(repo_root: Optional[Path]) -> CheckResult:
             stderr or "Git work-tree validation failed",
         )
 
+    if not os.access(
+        str(repo_root),
+        os.R_OK | os.X_OK,
+    ):
+        return CheckResult(
+            "FAIL",
+            "Repository",
+            "%s is not readable/traversable"
+            % repo_root,
+        )
+
     return CheckResult(
         "PASS",
         "Repository",
@@ -234,7 +352,9 @@ def check_repository(repo_root: Optional[Path]) -> CheckResult:
     )
 
 
-def check_git_state(repo_root: Optional[Path]) -> CheckResult:
+def check_git_state(
+    repo_root: Optional[Path],
+) -> CheckResult:
     """
     Report current commit, branch, and dirty state.
 
@@ -260,7 +380,11 @@ def check_git_state(repo_root: Optional[Path]) -> CheckResult:
         )
 
     commit_code, commit, commit_error = _run_command(
-        [git, "rev-parse", "HEAD"],
+        [
+            git,
+            "rev-parse",
+            "HEAD",
+        ],
         cwd=repo_root,
     )
 
@@ -323,16 +447,22 @@ def _check_storage_root(
     name: str,
     canonical: str,
     legacy: str,
-    require_existing: bool,
+    require_read: bool,
+    require_write: bool,
+    require_traverse: bool,
 ) -> CheckResult:
-    """Check one configured TrustForge storage root."""
+    """
+    Check one configured TrustForge storage root.
 
-    value, source = _environment_value(
+    Permission checks use os.access and never create a probe file.
+    """
+
+    path, source = _resolve_environment_path(
         canonical,
         legacy,
     )
 
-    if value is None:
+    if path is None:
         return CheckResult(
             "FAIL",
             name,
@@ -340,13 +470,7 @@ def _check_storage_root(
             % canonical,
         )
 
-    path = Path(
-        os.path.expandvars(
-            os.path.expanduser(value)
-        )
-    ).resolve()
-
-    if require_existing and not path.exists():
+    if not path.exists():
         return CheckResult(
             "FAIL",
             name,
@@ -357,7 +481,7 @@ def _check_storage_root(
             ),
         )
 
-    if path.exists() and not path.is_dir():
+    if not path.is_dir():
         return CheckResult(
             "FAIL",
             name,
@@ -368,13 +492,57 @@ def _check_storage_root(
             ),
         )
 
+    missing = []
+
+    if require_read and not os.access(
+        str(path),
+        os.R_OK,
+    ):
+        missing.append("read")
+
+    if require_write and not os.access(
+        str(path),
+        os.W_OK,
+    ):
+        missing.append("write")
+
+    if require_traverse and not os.access(
+        str(path),
+        os.X_OK,
+    ):
+        missing.append("traverse")
+
+    if missing:
+        return CheckResult(
+            "FAIL",
+            name,
+            "%s -> %s missing access: %s"
+            % (
+                source,
+                path,
+                ", ".join(missing),
+            ),
+        )
+
+    access = []
+
+    if require_read:
+        access.append("read")
+
+    if require_write:
+        access.append("write")
+
+    if require_traverse:
+        access.append("traverse")
+
     return CheckResult(
         "PASS",
         name,
-        "%s -> %s"
+        "%s -> %s access=%s"
         % (
             source,
             path,
+            ",".join(access),
         ),
     )
 
@@ -423,6 +591,17 @@ def check_repo_environment(
             "FAIL",
             "Repository environment",
             "%s -> %s does not exist"
+            % (
+                source,
+                configured,
+            ),
+        )
+
+    if not configured.is_dir():
+        return CheckResult(
+            "FAIL",
+            "Repository environment",
+            "%s -> %s is not a directory"
             % (
                 source,
                 configured,
@@ -534,7 +713,8 @@ def check_trustforge_import(
         return CheckResult(
             "FAIL",
             "TrustForge import",
-            "src directory not found: %s" % src,
+            "src directory not found: %s"
+            % src,
         )
 
     environment = os.environ.copy()
@@ -598,6 +778,190 @@ def check_trustforge_import(
     )
 
 
+def check_filesystem_capacity(
+    *,
+    name: str,
+    canonical: str,
+    legacy: str,
+) -> CheckResult:
+    """
+    Report capacity for a configured filesystem.
+
+    Capacity is informational because appropriate free-space requirements vary
+    by experiment.
+    """
+
+    path, source = _resolve_environment_path(
+        canonical,
+        legacy,
+    )
+
+    if path is None:
+        return CheckResult(
+            "SKIP",
+            name,
+            "%s is not set"
+            % canonical,
+        )
+
+    if not path.exists():
+        return CheckResult(
+            "SKIP",
+            name,
+            "%s -> %s does not exist"
+            % (
+                source,
+                path,
+            ),
+        )
+
+    try:
+        usage = shutil.disk_usage(
+            str(path)
+        )
+    except OSError as exc:
+        return CheckResult(
+            "INFO",
+            name,
+            "unable to inspect %s: %s"
+            % (
+                path,
+                exc,
+            ),
+        )
+
+    if usage.total:
+        used_percent = (
+            float(usage.used)
+            / float(usage.total)
+            * 100.0
+        )
+    else:
+        used_percent = 0.0
+
+    return CheckResult(
+        "INFO",
+        name,
+        "%s free=%s total=%s used=%.1f%%"
+        % (
+            path,
+            _format_bytes(usage.free),
+            _format_bytes(usage.total),
+            used_percent,
+        ),
+    )
+
+
+def check_dataset(
+    dataset_id: str,
+) -> CheckResult:
+    """
+    Check one explicitly requested dataset under TRUSTFORGE_DATA_ROOT.
+
+    The check is intentionally generic and does not impose dataset-specific
+    file naming or scientific semantics.
+    """
+
+    problem = _validate_dataset_identifier(
+        dataset_id
+    )
+
+    if problem is not None:
+        return CheckResult(
+            "FAIL",
+            "Dataset %s" % dataset_id,
+            problem,
+        )
+
+    data_root, source = _resolve_environment_path(
+        CANONICAL_DATA_ROOT,
+        LEGACY_DATA_ROOT,
+    )
+
+    if data_root is None:
+        return CheckResult(
+            "FAIL",
+            "Dataset %s" % dataset_id,
+            "%s is not set"
+            % CANONICAL_DATA_ROOT,
+        )
+
+    if not data_root.is_dir():
+        return CheckResult(
+            "FAIL",
+            "Dataset %s" % dataset_id,
+            "%s -> %s is unavailable"
+            % (
+                source,
+                data_root,
+            ),
+        )
+
+    dataset_path = (
+        data_root
+        / dataset_id
+    ).resolve()
+
+    try:
+        dataset_path.relative_to(
+            data_root.resolve()
+        )
+    except ValueError:
+        return CheckResult(
+            "FAIL",
+            "Dataset %s" % dataset_id,
+            "resolved path escapes data root",
+        )
+
+    if not dataset_path.exists():
+        return CheckResult(
+            "FAIL",
+            "Dataset %s" % dataset_id,
+            "not found at %s"
+            % dataset_path,
+        )
+
+    if not dataset_path.is_dir():
+        return CheckResult(
+            "FAIL",
+            "Dataset %s" % dataset_id,
+            "%s is not a directory"
+            % dataset_path,
+        )
+
+    missing = []
+
+    if not os.access(
+        str(dataset_path),
+        os.R_OK,
+    ):
+        missing.append("read")
+
+    if not os.access(
+        str(dataset_path),
+        os.X_OK,
+    ):
+        missing.append("traverse")
+
+    if missing:
+        return CheckResult(
+            "FAIL",
+            "Dataset %s" % dataset_id,
+            "%s missing access: %s"
+            % (
+                dataset_path,
+                ", ".join(missing),
+            ),
+        )
+
+    return CheckResult(
+        "PASS",
+        "Dataset %s" % dataset_id,
+        "%s access=read,traverse"
+        % dataset_path,
+    )
+
+
 def check_tensorflow_capability() -> CheckResult:
     """
     Report TensorFlow availability without importing TensorFlow.
@@ -631,7 +995,8 @@ def check_tensorflow_capability() -> CheckResult:
     return CheckResult(
         "INFO",
         "TensorFlow",
-        "version=%s" % tensorflow_version,
+        "version=%s"
+        % tensorflow_version,
     )
 
 
@@ -650,7 +1015,8 @@ def check_slurm_capability() -> CheckResult:
     return CheckResult(
         "INFO",
         "Slurm",
-        "sbatch=%s" % sbatch,
+        "sbatch=%s"
+        % sbatch,
     )
 
 
@@ -662,7 +1028,9 @@ def check_gpu_capability() -> CheckResult:
     machines may legitimately have no accelerator.
     """
 
-    nvidia_smi = shutil.which("nvidia-smi")
+    nvidia_smi = shutil.which(
+        "nvidia-smi"
+    )
 
     if nvidia_smi is None:
         return CheckResult(
@@ -695,12 +1063,17 @@ def check_gpu_capability() -> CheckResult:
     return CheckResult(
         "INFO",
         "GPU",
-        stdout.replace("\n", "; "),
+        stdout.replace(
+            "\n",
+            "; ",
+        ),
     )
 
 
 def collect_results(
     start: Path,
+    *,
+    datasets: Optional[Sequence[str]] = None,
 ) -> List[CheckResult]:
     """Run all doctor checks."""
 
@@ -718,21 +1091,47 @@ def collect_results(
             name="Data root",
             canonical=CANONICAL_DATA_ROOT,
             legacy=LEGACY_DATA_ROOT,
-            require_existing=True,
+            require_read=True,
+            require_write=False,
+            require_traverse=True,
         ),
         _check_storage_root(
             name="Artifacts root",
             canonical=CANONICAL_ARTIFACTS_ROOT,
             legacy=LEGACY_ARTIFACTS_ROOT,
-            require_existing=True,
+            require_read=True,
+            require_write=True,
+            require_traverse=True,
         ),
         check_schemas(repo_root),
         check_pyyaml(),
         check_trustforge_import(repo_root),
-        check_tensorflow_capability(),
-        check_slurm_capability(),
-        check_gpu_capability(),
+        check_filesystem_capacity(
+            name="Data filesystem",
+            canonical=CANONICAL_DATA_ROOT,
+            legacy=LEGACY_DATA_ROOT,
+        ),
+        check_filesystem_capacity(
+            name="Artifacts filesystem",
+            canonical=CANONICAL_ARTIFACTS_ROOT,
+            legacy=LEGACY_ARTIFACTS_ROOT,
+        ),
     ]
+
+    for dataset_id in datasets or ():
+        results.append(
+            check_dataset(
+                dataset_id
+            )
+        )
+
+    results.extend(
+        [
+            check_tensorflow_capability(),
+            check_slurm_capability(),
+            check_gpu_capability(),
+        ]
+    )
 
     return results
 
@@ -836,20 +1235,35 @@ def main(
         ),
     )
 
+    parser.add_argument(
+        "--dataset",
+        action="append",
+        default=[],
+        help=(
+            "dataset identifier to verify under TRUSTFORGE_DATA_ROOT; "
+            "may be supplied more than once"
+        ),
+    )
+
     arguments = parser.parse_args(
         argv
     )
 
     results = collect_results(
-        Path(arguments.start)
+        Path(arguments.start),
+        datasets=arguments.dataset,
     )
 
     if arguments.json:
         print(
-            _json_results(results)
+            _json_results(
+                results
+            )
         )
     else:
-        _print_results(results)
+        _print_results(
+            results
+        )
 
     has_failure = any(
         result.level == "FAIL"
@@ -860,4 +1274,6 @@ def main(
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(
+        main()
+    )

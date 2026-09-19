@@ -1,0 +1,104 @@
+lineage_version: "1.0"
+
+study_id: paper01_benchmark
+
+historical_identity:
+  name: GenCyberSynth Phase-1
+  repository: edgemindstudio/GenCyberSynth_Phase1_Scaffold
+
+principles:
+  - Historical scientific evidence must remain unchanged.
+  - Later software evolution must not silently redefine an earlier experiment.
+  - Historical executions must not be represented as TrustForge-native executions.
+  - Machine-specific paths describe execution reality, not scientific identity.
+
+git_anchors:
+  seed_aware_final_rerun_configuration:
+    commit: 37c60929b3545e5ff68d9107280a63ece0b62f45
+    role: >
+      Historical Paper 1 seed-aware final-rerun configuration and execution
+      provenance anchor.
+
+  complete_pre_kid_code:
+    commit: cbf7150f351a4978301c095c0e69633ab552af64
+    role: >
+      Exact known complete Paper 1 code state before the later KID evaluation
+      additions.
+
+  first_post_kid_code:
+    commit: a9d6317a34e63df1e4ee445b618c29169e7a26e4
+    role: >
+      First known Paper 1 code state after KID-related evaluation changes.
+
+  cicmaldroid_integration:
+    commit: b75fce9
+    role: >
+      Historical integration anchor for the CICMalDroid Paper 1 cross-dataset
+      workflow.
+
+historical_configs:
+  ustc:
+    path: configs/paper1_final_rerun.yaml
+    status: preserved
+    dataset_id: ustc_tfc2016_malware_nhwc
+
+  cicmaldroid:
+    path: configs/paper1_cicmaldroid.yaml
+    status: preserved
+    dataset_id: cicmaldroid2020_paper1
+
+historical_execution:
+  primary_slurm:
+    path: slurm/run_paper1.slurm
+    role: generic_paper1_array_execution
+    models:
+      - gan
+      - vae
+      - diffusion
+      - autoregressive
+      - restrictedboltzmann
+      - gaussianmixture
+      - maskedautoflow
+    seeds:
+      - 42
+      - 43
+      - 44
+    array_tasks: 21
+
+  downstream_wrapper:
+    path: scripts/paper1_run.sh
+    role: historical_postprocessing_and_reporting
+    note: >
+      This wrapper is not treated as the authoritative training executor.
+
+historical_log_archive:
+  root: papers/paper1_phase1_benchmark/logs/slurm_raw
+  out_files: 370
+  err_files: 370
+  total_files: 740
+
+known_execution:
+  ustc_gan_seed42:
+    archived_log: papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.240316_0.out
+    archived_filename_job_component: "240316"
+    recorded_job_id: "240398"
+    array_task_id: "0"
+    hostname: talon35
+    model: gan
+    seed: 42
+    config: configs/paper1_final_rerun.yaml
+    artifact_root: /home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun
+    effective_config: /tmp/paper1_gan_seed42_240398_0.yaml
+    effective_config_digest:
+      algorithm: sha1
+      value: 83473b4269b4b1cad66ef627ce605bba079e02e4
+    git_commit: 37c60929b3545e5ff68d9107280a63ece0b62f45
+    completion_evidence: >
+      Historical log records lock acquisition, lock release, and the final
+      done marker for MODEL=gan and SEED=42.
+
+migration:
+  trustforge_representation: studies/paper01_benchmark
+  historical_material_moved: false
+  historical_material_rewritten: false
+  scientific_definition_changed: false

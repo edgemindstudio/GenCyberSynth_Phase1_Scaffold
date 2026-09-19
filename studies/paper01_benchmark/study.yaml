@@ -1,0 +1,68 @@
+schema_version: "1.0"
+schema_type: study
+
+study_id: paper01_benchmark
+
+title: GenCyberSynth Phase-1 Benchmark
+
+status: frozen
+
+scientific_question: >
+  How do multiple generative model families compare for synthetic malware-image
+  generation under common dataset, seed, synthetic-budget, and evaluation
+  protocols?
+
+scope:
+  datasets:
+    - ustc_tfc2016_malware_nhwc
+    - cicmaldroid2020_paper1
+
+  models:
+    - gan
+    - vae
+    - diffusion
+    - autoregressive
+    - restrictedboltzmann
+    - gaussianmixture
+    - maskedautoflow
+
+  seeds:
+    - 42
+    - 43
+    - 44
+
+  regimes:
+    - benchmark_generation
+
+  metrics:
+    - balanced_accuracy
+    - macro_f1
+    - macro_auprc
+    - gen_precision
+    - gen_recall
+    - kid
+    - ms_ssim
+
+lineage:
+  repository: edgemindstudio/GenCyberSynth_Phase1_Scaffold
+  historical_name: GenCyberSynth Phase-1
+  origin_commit: 37c6092
+  freeze_commit: a9d6317a34e63df1e4ee445b618c29169e7a26e4
+  release_tags: []
+
+evidence:
+  accepted: true
+  evidence_hashes:
+    - sha256:c3c731f355f4cecfb930d024dd8ee42d97ce952d5abfca73c717af6b2a7a6031
+    - sha256:63fc2cd7b2cde81f2b964cc4407c6efdb1c50ee8bd61bfbbd4384d7eff8fc4f4
+  frozen_tables:
+    - ustc_phase1_scores_dedup.csv
+    - cicmaldroid_phase1_scores_dedup.csv
+
+notes:
+  - Historical study name is retained for provenance.
+  - Utility metrics are primary scientific evidence.
+  - KID and MS-SSIM are supporting diagnostics.
+  - Historical absolute artifact paths are preserved as execution provenance.
+  - Historical executions are not retroactively classified as TrustForge-native executions.
+  - Detailed Git lineage and evidence locations are recorded in lineage.yaml and evidence.yaml.

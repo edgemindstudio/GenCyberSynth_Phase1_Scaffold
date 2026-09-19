@@ -1,0 +1,124 @@
+evidence_map_version: "1.0"
+
+study_id: paper01_benchmark
+
+authority_rule: >
+  Accepted Paper 1 scientific evidence is identified by explicit artifact
+  path, scientific role, and cryptographic digest. Filenames such as
+  latest.json are never authoritative solely because they are newest.
+
+datasets:
+  ustc_tfc2016_malware_nhwc:
+    source_dataset: USTC-TFC2016
+
+    historical_data_path: /home/bruno.fonkeng/gencys/data/USTC-TFC2016_malware_nhwc
+
+    artifact_root: /home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun
+
+    authoritative_result:
+      path: /home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/phase1_scores_dedup.csv
+      role: authoritative_result_table
+      sha256: c3c731f355f4cecfb930d024dd8ee42d97ce952d5abfca73c717af6b2a7a6031
+      rows: 21
+      expected_run_structure:
+        model_families: 7
+        seeds_per_family: 3
+        total_runs: 21
+      status: accepted
+
+    digest_records:
+      original_sidecar:
+        path: /home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/phase1_scores_dedup.sha256
+        recorded_sha256: 9f48138cf5acc5188fb77286a61cbddc8fe1c07e9baef995bd7d76bd2bc2fefa
+        status: historical_record
+        interpretation: >
+          This digest does not match the current accepted
+          phase1_scores_dedup.csv. The exact earlier table bytes corresponding
+          to this digest have not been identified among the current top-level
+          Paper 1 CSV files. The record is preserved rather than overwritten.
+
+      post_kid_sidecar:
+        path: /home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/phase1_scores_dedup_post_kid.sha256
+        recorded_sha256: c3c731f355f4cecfb930d024dd8ee42d97ce952d5abfca73c717af6b2a7a6031
+        status: matches_current_accepted_table
+
+    current_columns:
+      - run_id
+      - model
+      - num_real
+      - num_fake
+      - fid
+      - cfid
+      - kid
+      - ms_ssim
+      - balanced_acc
+      - macro_f1
+      - macro_auprc
+      - gen_precision
+      - gen_recall
+      - computed_at
+      - metrics_version
+      - kid_mode
+
+    accepted_metric_roles:
+      primary:
+        - balanced_acc
+        - macro_f1
+        - macro_auprc
+        - gen_precision
+        - gen_recall
+
+      supporting:
+        - kid
+        - ms_ssim
+
+    notes:
+      - Current accepted table contains 21 model-seed rows.
+      - FID and cFID fields are retained in the table even where values are unavailable.
+      - The older digest record is preserved as provenance and is not silently replaced.
+
+  cicmaldroid2020_paper1:
+    source_dataset: CICMalDroid2020
+
+    historical_data_path: /home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1
+
+    artifact_root: /home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid
+
+    authoritative_result:
+      path: /home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/phase1_scores_dedup.csv
+      role: authoritative_result_table
+      sha256: 63fc2cd7b2cde81f2b964cc4407c6efdb1c50ee8bd61bfbbd4384d7eff8fc4f4
+      status: accepted
+
+    digest_record:
+      path: /home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/phase1_scores_dedup.sha256
+      recorded_sha256: 63fc2cd7b2cde81f2b964cc4407c6efdb1c50ee8bd61bfbbd4384d7eff8fc4f4
+      status: matches_current_accepted_table
+
+historical_logs:
+  repository_root: papers/paper1_phase1_benchmark/logs
+  raw_slurm_root: papers/paper1_phase1_benchmark/logs/slurm_raw
+  out_files: 370
+  err_files: 370
+  total_files: 740
+
+historical_execution_example:
+  experiment: ustc_gan_b2000_seed42
+  archived_log: papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.240316_0.out
+  recorded_job_id: "240398"
+  array_task_id: "0"
+  hostname: talon35
+  model: gan
+  seed: 42
+  config: configs/paper1_final_rerun.yaml
+  artifact_root: /home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun
+  effective_config: /tmp/paper1_gan_seed42_240398_0.yaml
+  effective_config_sha1: 83473b4269b4b1cad66ef627ce605bba079e02e4
+  git_commit: 37c60929b3545e5ff68d9107280a63ece0b62f45
+
+preservation:
+  external_artifacts_modified_by_migration: false
+  historical_logs_modified_by_migration: false
+  historical_configs_modified_by_migration: false
+  old_digest_records_deleted: false
+  historical_executions_reclassified_as_trustforge_native: false

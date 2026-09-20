@@ -1,0 +1,100 @@
+schema_version: '1.0'
+schema_type: experiment
+study_id: paper01_benchmark
+experiment_id: ustc_autoregressive_b2000_seed44
+status: frozen
+description: Historical Paper 1 autoregressive experiment on USTC-TFC2016 using seed 44 and a synthetic
+  budget of 2000 samples per class.
+dataset:
+  dataset_id: ustc_tfc2016_malware_nhwc
+  source_dataset: USTC-TFC2016
+  representation: malware_image_nhwc
+  preparation_stage: paper1_ready
+model:
+  model_id: autoregressive
+  family: autoregressive
+  implementation: historical_gencys_autoregressive
+seed: 44
+training:
+  batch_size: 256
+  learning_rate: 0.001
+  parameters:
+    total_steps: 100000
+    sampling:
+      temperature: 0.95
+      top_k: 100
+      top_p: 0.95
+generation:
+  samples_per_class: 2000
+  total_samples: 18000
+  classes:
+  - class_0
+  - class_1
+  - class_2
+  - class_3
+  - class_4
+  - class_5
+  - class_6
+  - class_7
+  - class_8
+evaluation:
+  evaluator_id: historical_paper1_evaluator
+  metrics:
+  - balanced_accuracy
+  - macro_f1
+  - macro_auprc
+  - gen_precision
+  - gen_recall
+  - kid
+  - ms_ssim
+  primary_metrics:
+  - balanced_accuracy
+  - macro_f1
+  - macro_auprc
+  - gen_precision
+  - gen_recall
+  supporting_metrics:
+  - kid
+  - ms_ssim
+  evaluation_split: val
+  parameters:
+    per_class_cap: 200
+    feature_extractor: domain
+    domain_encoder: malware_encoder_v1
+scientific_parameters:
+  image_shape:
+  - 40
+  - 40
+  - 1
+  num_classes: 9
+  input_scale:
+  - -1
+  - 1
+  num_real: 90000
+  historical_run_id: autoregressive_s44
+  historical_config_git_commit: 37c60929b3545e5ff68d9107280a63ece0b62f45
+  authoritative_result_sha256: c3c731f355f4cecfb930d024dd8ee42d97ce952d5abfca73c717af6b2a7a6031
+execution_requirements:
+  accelerator: gpu
+  gpu_count: 1
+  cpu_count: 8
+  memory_gb: 48
+  walltime: 27-00:00:00
+provenance:
+  repository: edgemindstudio/GenCyberSynth_Phase1_Scaffold
+  config_source: configs/paper1_final_rerun.yaml
+  config_sha256: 559d2f47bd35c72bda6dc0b06a55d38312dfec6c88b4e2f20591118fa5492800
+acceptance:
+  required: true
+  criteria:
+  - historical_run_id_present_in_authoritative_result_table
+  - authoritative_result_hash_preserved
+  - historical_scientific_definition_preserved
+notes:
+- Historical experiment reconstructed from the frozen Paper 1 scientific protocol.
+- The historical configuration is loaded from the recorded Git commit rather than from working-tree file
+  bytes.
+- This contract represents scientific identity and does not retroactively classify the historical execution
+  as a TrustForge-native execution.
+- Execution-specific Git provenance is intentionally omitted unless independently recovered and verified
+  for that historical execution.

@@ -1,0 +1,100 @@
+schema_version: '1.0'
+schema_type: experiment
+study_id: paper01_benchmark
+experiment_id: cicmaldroid_diffusion_b2000_seed44
+status: frozen
+description: Historical Paper 1 diffusion experiment on CICMalDroid2020 using seed 44 and a synthetic
+  budget of 2000 samples per class.
+dataset:
+  dataset_id: cicmaldroid2020_paper1
+  source_dataset: CICMalDroid2020
+  representation: malware_image_nhwc
+  preparation_stage: paper1_ready
+model:
+  model_id: diffusion
+  family: diffusion
+  implementation: historical_gencys_diffusion
+seed: 44
+training:
+  batch_size: 256
+  learning_rate: 0.0002
+  parameters:
+    ema: 0.9999
+    schedule: cosine
+    timesteps: 1000
+    base_filters: 64
+    depth: 2
+    time_embedding_dim: 128
+    total_steps: 200000
+    sampler_steps: 200
+    guidance_weight: 1.5
+generation:
+  samples_per_class: 2000
+  total_samples: 10000
+  classes:
+  - class_0
+  - class_1
+  - class_2
+  - class_3
+  - class_4
+evaluation:
+  evaluator_id: historical_paper1_evaluator
+  metrics:
+  - balanced_accuracy
+  - macro_f1
+  - macro_auprc
+  - gen_precision
+  - gen_recall
+  - kid
+  - ms_ssim
+  primary_metrics:
+  - balanced_accuracy
+  - macro_f1
+  - macro_auprc
+  - gen_precision
+  - gen_recall
+  supporting_metrics:
+  - kid
+  - ms_ssim
+  evaluation_split: val
+  parameters:
+    per_class_cap: 200
+    feature_extractor: domain
+    domain_encoder: malware_encoder_v1
+scientific_parameters:
+  image_shape:
+  - 12
+  - 12
+  - 1
+  num_classes: 5
+  input_scale:
+  - 0
+  - 1
+  num_real: 11598
+  historical_run_id: diffusion_s44
+  historical_config_git_commit: b75fce975f8de2a79b27ee585c96b45d92eae84c
+  authoritative_result_sha256: 63fc2cd7b2cde81f2b964cc4407c6efdb1c50ee8bd61bfbbd4384d7eff8fc4f4
+execution_requirements:
+  accelerator: gpu
+  gpu_count: 1
+  cpu_count: 8
+  memory_gb: 48
+  walltime: 27-00:00:00
+provenance:
+  repository: edgemindstudio/GenCyberSynth_Phase1_Scaffold
+  config_source: configs/paper1_cicmaldroid.yaml
+  config_sha256: 1a0c328293875f59af243e0d7b9d0840d30b2656bed36b4739fb57f4e7e32e75
+acceptance:
+  required: true
+  criteria:
+  - historical_run_id_present_in_authoritative_result_table
+  - authoritative_result_hash_preserved
+  - historical_scientific_definition_preserved
+notes:
+- Historical experiment reconstructed from the frozen Paper 1 scientific protocol.
+- The historical configuration is loaded from the recorded Git commit rather than from working-tree file
+  bytes.
+- This contract represents scientific identity and does not retroactively classify the historical execution
+  as a TrustForge-native execution.
+- Execution-specific Git provenance is intentionally omitted unless independently recovered and verified
+  for that historical execution.

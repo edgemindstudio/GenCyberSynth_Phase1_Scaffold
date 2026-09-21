@@ -34,12 +34,29 @@
         "historical_run_id"
       ],
       "properties": {
-        "experiment_id": {"type": "string", "minLength": 1},
-        "dataset": {"type": "string", "minLength": 1},
-        "family": {"type": "string", "minLength": 1},
-        "seed": {"type": "integer"},
-        "budget_per_class": {"type": "integer", "minimum": 1},
-        "historical_run_id": {"type": "string", "minLength": 1}
+        "experiment_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dataset": {
+          "type": "string",
+          "minLength": 1
+        },
+        "family": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seed": {
+          "type": "integer"
+        },
+        "budget_per_class": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "historical_run_id": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "authoritative_result": {
@@ -53,24 +70,44 @@
         "accepted_metric_match"
       ],
       "properties": {
-        "status": {"const": "verified"},
-        "table_path": {"type": "string", "minLength": 1},
-        "table_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "status": {
+          "const": "verified"
+        },
+        "table_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "table_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
         "row_key": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["run_id"],
+          "required": [
+            "run_id"
+          ],
           "properties": {
-            "run_id": {"type": "string", "minLength": 1}
+            "run_id": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         },
         "accepted_metric_match": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["status", "summary_count"],
+          "required": [
+            "status",
+            "summary_count"
+          ],
           "properties": {
-            "status": {"const": "exact"},
-            "summary_count": {"const": 1}
+            "status": {
+              "const": "exact"
+            },
+            "summary_count": {
+              "const": 1
+            }
           }
         }
       }
@@ -78,10 +115,18 @@
     "accepted_evaluation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["status", "execution", "accepted_summary"],
+      "required": [
+        "status",
+        "execution",
+        "accepted_summary"
+      ],
       "properties": {
-        "status": {"const": "verified"},
-        "execution": {"$ref": "#/$defs/execution"},
+        "status": {
+          "const": "verified"
+        },
+        "execution": {
+          "$ref": "#/$defs/accepted_evaluation_execution"
+        },
         "accepted_summary": {
           "type": "object",
           "additionalProperties": false,
@@ -95,11 +140,19 @@
             "path": {
               "type": "string",
               "minLength": 1,
-              "not": {"pattern": "(^|/)latest\\.json$"}
+              "not": {
+                "pattern": "(^|/)latest\\.json$"
+              }
             },
-            "authority": {"const": "accepted_timestamped_summary"},
-            "metric_match": {"const": "exact"},
-            "config_sha1_match_to_execution": {"const": true}
+            "authority": {
+              "const": "accepted_timestamped_summary"
+            },
+            "metric_match": {
+              "const": "exact"
+            },
+            "config_sha1_match_to_execution": {
+              "const": true
+            }
           }
         }
       }
@@ -107,25 +160,50 @@
     "artifact_production": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["status", "executions", "lineage_claim"],
+      "required": [
+        "status",
+        "executions",
+        "lineage_claim"
+      ],
       "properties": {
         "status": {
-          "enum": ["verified", "strong_candidate", "observed", "unresolved"]
+          "enum": [
+            "verified",
+            "strong_candidate",
+            "observed",
+            "unresolved"
+          ]
         },
         "executions": {
           "type": "array",
-          "items": {"$ref": "#/$defs/artifact_execution"}
+          "items": {
+            "$ref": "#/$defs/artifact_execution"
+          }
         },
         "lineage_claim": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["level", "proven", "reason"],
+          "required": [
+            "level",
+            "proven",
+            "reason"
+          ],
           "properties": {
             "level": {
-              "enum": ["verified", "strong_candidate", "observed", "unresolved"]
+              "enum": [
+                "verified",
+                "strong_candidate",
+                "observed",
+                "unresolved"
+              ]
             },
-            "proven": {"type": "boolean"},
-            "reason": {"type": "string", "minLength": 1}
+            "proven": {
+              "type": "boolean"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         }
       }
@@ -133,54 +211,110 @@
     "historical_executions": {
       "type": "array",
       "minItems": 1,
-      "items": {"$ref": "#/$defs/historical_execution"}
+      "items": {
+        "$ref": "#/$defs/historical_execution"
+      }
     },
     "manifest_evidence": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["seed_specific", "shared_root"],
+      "required": [
+        "seed_specific",
+        "shared_root"
+      ],
       "properties": {
-        "seed_specific": {"$ref": "#/$defs/manifest_entry"},
-        "shared_root": {"$ref": "#/$defs/manifest_entry"}
+        "seed_specific": {
+          "$ref": "#/$defs/manifest_entry"
+        },
+        "shared_root": {
+          "$ref": "#/$defs/manifest_entry"
+        }
       }
     },
     "synthetic_evidence": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["status", "file_count", "layout", "layout_counts"],
+      "required": [
+        "status",
+        "file_count",
+        "layout",
+        "layout_counts"
+      ],
       "properties": {
-        "status": {"enum": ["present", "absent", "unresolved"]},
-        "file_count": {"type": "integer", "minimum": 0},
-        "layout": {"type": "string", "minLength": 1},
+        "status": {
+          "enum": [
+            "present",
+            "absent",
+            "unresolved"
+          ]
+        },
+        "file_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "layout": {
+          "type": "string",
+          "minLength": 1
+        },
         "layout_counts": {
           "type": "object",
-          "additionalProperties": {"type": "integer", "minimum": 0}
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
         }
       }
     },
     "checkpoint_evidence": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["status", "file_count"],
+      "required": [
+        "status",
+        "file_count"
+      ],
       "properties": {
-        "status": {"enum": ["present", "absent", "unresolved"]},
-        "file_count": {"type": "integer", "minimum": 0}
+        "status": {
+          "enum": [
+            "present",
+            "absent",
+            "unresolved"
+          ]
+        },
+        "file_count": {
+          "type": "integer",
+          "minimum": 0
+        }
       }
     },
     "non_authoritative_aliases": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["latest_summary"],
+      "required": [
+        "latest_summary"
+      ],
       "properties": {
         "latest_summary": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["present", "authority", "authoritative", "reason"],
+          "required": [
+            "present",
+            "authority",
+            "authoritative",
+            "reason"
+          ],
           "properties": {
-            "present": {"type": "boolean"},
-            "authority": {"const": "none"},
-            "authoritative": {"const": false},
-            "reason": {"const": "compatibility_alias"}
+            "present": {
+              "type": "boolean"
+            },
+            "authority": {
+              "const": "none"
+            },
+            "authoritative": {
+              "const": false
+            },
+            "reason": {
+              "const": "compatibility_alias"
+            }
           }
         }
       }
@@ -194,17 +328,28 @@
         "artifact_execution_to_surviving_artifacts"
       ],
       "properties": {
-        "accepted_summary_to_evaluation_execution": {"$ref": "#/$defs/provenance_assertion"},
-        "accepted_summary_to_authoritative_result": {"$ref": "#/$defs/provenance_assertion"},
-        "artifact_execution_to_surviving_artifacts": {"$ref": "#/$defs/provenance_assertion"}
+        "accepted_summary_to_evaluation_execution": {
+          "$ref": "#/$defs/provenance_assertion"
+        },
+        "accepted_summary_to_authoritative_result": {
+          "$ref": "#/$defs/provenance_assertion"
+        },
+        "artifact_execution_to_surviving_artifacts": {
+          "$ref": "#/$defs/provenance_assertion"
+        }
       }
     },
     "source_inventory": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["audit_version", "inventory_path"],
+      "required": [
+        "audit_version",
+        "inventory_path"
+      ],
       "properties": {
-        "audit_version": {"const": "M6.4.1-v3.2"},
+        "audit_version": {
+          "const": "M6.4.1-v3.2"
+        },
         "inventory_path": {
           "const": "studies/paper01_benchmark/audits/m6_4_1/paper01_execution_evidence_inventory.json"
         }
@@ -228,47 +373,223 @@
         "log_path"
       ],
       "properties": {
-        "job_id": {"type": ["string", "null"]},
-        "task_id": {"type": ["string", "null"]},
-        "host": {"type": ["string", "null"]},
-        "config_sha1": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
-        "git_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
-        "do_train": {"type": "boolean"},
-        "do_synth": {"type": "boolean"},
-        "do_eval": {"const": true},
+        "job_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "task_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "host": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "config_sha1": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "git_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "do_train": {
+          "type": "boolean"
+        },
+        "do_synth": {
+          "type": "boolean"
+        },
+        "do_eval": {
+          "type": "boolean"
+        },
         "stages": {
           "type": "array",
           "minItems": 1,
-          "items": {"type": "string", "minLength": 1}
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
-        "log_path": {"type": "string", "minLength": 1}
+        "log_path": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "accepted_evaluation_execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "job_id",
+        "task_id",
+        "host",
+        "config_sha1",
+        "git_commit",
+        "do_train",
+        "do_synth",
+        "do_eval",
+        "stages",
+        "log_path"
+      ],
+      "properties": {
+        "job_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "task_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "host": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "config_sha1": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "git_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "do_train": {
+          "type": "boolean"
+        },
+        "do_synth": {
+          "type": "boolean"
+        },
+        "do_eval": {
+          "const": true
+        },
+        "stages": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "log_path": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "artifact_execution": {
-      "allOf": [
-        {"$ref": "#/$defs/execution"},
-        {
-          "type": "object",
-          "required": ["evidence_basis"],
-          "properties": {
-            "evidence_basis": {
-              "type": "array",
-              "minItems": 1,
-              "uniqueItems": true,
-              "items": {"type": "string", "minLength": 1}
-            }
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "job_id",
+        "task_id",
+        "host",
+        "config_sha1",
+        "git_commit",
+        "do_train",
+        "do_synth",
+        "do_eval",
+        "stages",
+        "log_path",
+        "evidence_basis"
+      ],
+      "properties": {
+        "job_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "task_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "host": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "config_sha1": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "git_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "do_train": {
+          "type": "boolean"
+        },
+        "do_synth": {
+          "type": "boolean"
+        },
+        "do_eval": {
+          "type": "boolean"
+        },
+        "stages": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "log_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_basis": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
           }
         }
-      ]
+      }
     },
     "historical_execution": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["job_id", "role", "config_sha1", "git_commit"],
+      "required": [
+        "job_id",
+        "role",
+        "config_sha1",
+        "git_commit"
+      ],
       "properties": {
-        "job_id": {"type": ["string", "null"]},
-        "task_id": {"type": ["string", "null"]},
-        "host": {"type": ["string", "null"]},
+        "job_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "task_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "host": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "role": {
           "type": "array",
           "minItems": 1,
@@ -282,42 +603,108 @@
             ]
           }
         },
-        "config_sha1": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
-        "git_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
-        "do_train": {"type": ["boolean", "null"]},
-        "do_synth": {"type": ["boolean", "null"]},
-        "do_eval": {"type": ["boolean", "null"]},
-        "stages": {"type": "array", "items": {"type": "string", "minLength": 1}},
-        "log_path": {"type": ["string", "null"]}
+        "config_sha1": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "git_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "do_train": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "do_synth": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "do_eval": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "stages": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "log_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       }
     },
     "manifest_entry": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["status", "path"],
+      "required": [
+        "status",
+        "path"
+      ],
       "properties": {
-        "status": {"enum": ["present", "absent", "unresolved"]},
-        "path": {"type": ["string", "null"]},
+        "status": {
+          "enum": [
+            "present",
+            "absent",
+            "unresolved"
+          ]
+        },
+        "path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "authority": {
-          "enum": ["historical_seed_manifest", "compatibility_evidence", "none"]
+          "enum": [
+            "historical_seed_manifest",
+            "compatibility_evidence",
+            "none"
+          ]
         }
       }
     },
     "provenance_assertion": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["status", "basis"],
+      "required": [
+        "status",
+        "basis"
+      ],
       "properties": {
-        "status": {"enum": ["verified", "strong_candidate", "observed", "unresolved"]},
+        "status": {
+          "enum": [
+            "verified",
+            "strong_candidate",
+            "observed",
+            "unresolved"
+          ]
+        },
         "basis": {
           "type": "array",
           "uniqueItems": true,
-          "items": {"type": "string", "minLength": 1}
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
         "limitations": {
           "type": "array",
           "uniqueItems": true,
-          "items": {"type": "string", "minLength": 1}
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
     }

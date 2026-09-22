@@ -1,0 +1,176 @@
+schema_version: trustforge.paper01.execution_evidence_linkage.v1
+experiment:
+  experiment_id: cicmaldroid_vae_b2000_seed42
+  dataset: cicmaldroid2020
+  family: vae
+  seed: 42
+  budget_per_class: 2000
+  historical_run_id: vae_s42
+authoritative_result:
+  status: verified
+  table_path: /home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/phase1_scores_dedup.csv
+  table_sha256: 63fc2cd7b2cde81f2b964cc4407c6efdb1c50ee8bd61bfbbd4384d7eff8fc4f4
+  row_key:
+    run_id: vae_s42
+  accepted_metric_match:
+    status: exact
+    summary_count: 1
+accepted_evaluation:
+  status: verified
+  execution:
+    job_id: '246850'
+    task_id: '3'
+    host: talon35
+    config_sha1: 443dbe99821deb7f74d5b96c14ae805de207f4ff
+    git_commit: a9d6317a34e63df1e4ee445b618c29169e7a26e4
+    do_train: false
+    do_synth: false
+    do_eval: true
+    stages:
+    - eval
+    log_path: papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.246846_3.out
+  accepted_summary:
+    path: /home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/summaries/summary_20260410_090336.json
+    authority: accepted_timestamped_summary
+    metric_match: exact
+    config_sha1_match_to_execution: true
+artifact_production:
+  status: strong_candidate
+  executions:
+  - job_id: '246411'
+    task_id: '3'
+    host: talon35
+    config_sha1: 56b99afd2a88a8dc9c8d951d36c435b47ad716b0
+    git_commit: a9d6317a34e63df1e4ee445b618c29169e7a26e4
+    do_train: true
+    do_synth: true
+    do_eval: true
+    stages:
+    - eval
+    - synth
+    - train
+    log_path: papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.246407_3.out
+    evidence_basis:
+    - synthesis_stage_observed
+    - surviving_artifact_timestamps_nearby
+    - checkpoint_evidence_present
+  lineage_claim:
+    level: strong_candidate
+    proven: false
+    reason: Historical execution explicitly performed synthesis and surviving artifact/checkpoint timing aligns with that execution wave, but timestamp alignment does not prove exclusive artifact lineage.
+historical_executions:
+- job_id: '246352'
+  task_id: '3'
+  host: talon35
+  role:
+  - historical_execution
+  config_sha1: c567b9d1197ad7d0ef4045c7a154e28a6c07492f
+  git_commit: a9d6317a34e63df1e4ee445b618c29169e7a26e4
+  do_train: true
+  do_synth: true
+  do_eval: true
+  stages:
+  - eval
+  - synth
+  - train
+  log_path: papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.246348_3.out
+- job_id: '246411'
+  task_id: '3'
+  host: talon35
+  role:
+  - historical_execution
+  - artifact_producer_candidate
+  config_sha1: 56b99afd2a88a8dc9c8d951d36c435b47ad716b0
+  git_commit: a9d6317a34e63df1e4ee445b618c29169e7a26e4
+  do_train: true
+  do_synth: true
+  do_eval: true
+  stages:
+  - eval
+  - synth
+  - train
+  log_path: papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.246407_3.out
+- job_id: '246841'
+  task_id: '3'
+  host: talon32.cm.cluster
+  role:
+  - historical_execution
+  config_sha1: 8a88db7d16be84e5731a8e3c4f28a8199bb56945
+  git_commit: a9d6317a34e63df1e4ee445b618c29169e7a26e4
+  do_train: false
+  do_synth: false
+  do_eval: true
+  stages:
+  - eval
+  log_path: papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.246841_3.out
+- job_id: '246845'
+  task_id: '3'
+  host: talon35
+  role:
+  - historical_execution
+  config_sha1: d532a877e733cd14908499bb468dc47432c45f22
+  git_commit: a9d6317a34e63df1e4ee445b618c29169e7a26e4
+  do_train: false
+  do_synth: false
+  do_eval: true
+  stages:
+  - eval
+  log_path: papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.246845_3.out
+- job_id: '246850'
+  task_id: '3'
+  host: talon35
+  role:
+  - historical_execution
+  - accepted_evaluator
+  config_sha1: 443dbe99821deb7f74d5b96c14ae805de207f4ff
+  git_commit: a9d6317a34e63df1e4ee445b618c29169e7a26e4
+  do_train: false
+  do_synth: false
+  do_eval: true
+  stages:
+  - eval
+  log_path: papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.246846_3.out
+manifest_evidence:
+  seed_specific:
+    status: absent
+    path: null
+    authority: none
+  shared_root:
+    status: present
+    path: /home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/synthetic/manifest.json
+    authority: compatibility_evidence
+synthetic_evidence:
+  status: present
+  file_count: 10000
+  layout: seed_directory
+  layout_counts:
+    seed_directory: 10000
+checkpoint_evidence:
+  status: present
+  file_count: 8
+non_authoritative_aliases:
+  latest_summary:
+    present: false
+    authority: none
+    authoritative: false
+    reason: compatibility_alias
+provenance_assertions:
+  accepted_summary_to_evaluation_execution:
+    status: verified
+    basis:
+    - matching_config_sha1
+    - execution_log_reports_summary_path
+  accepted_summary_to_authoritative_result:
+    status: verified
+    basis:
+    - exact_accepted_metric_match
+  artifact_execution_to_surviving_artifacts:
+    status: strong_candidate
+    basis:
+    - synthesis_stage_observed
+    - timestamp_alignment
+    limitations:
+    - timestamp_alignment_is_not_execution_proof
+source_inventory:
+  audit_version: M6.4.1-v3.2
+  inventory_path: studies/paper01_benchmark/audits/m6_4_1/paper01_execution_evidence_inventory.json

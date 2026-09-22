@@ -1,0 +1,148 @@
+schema_version: trustforge.paper01.execution_evidence_linkage.v1
+experiment:
+  experiment_id: ustc_vae_b2000_seed44
+  dataset: ustc_tfc2016
+  family: vae
+  seed: 44
+  budget_per_class: 2000
+  historical_run_id: vae_s44
+authoritative_result:
+  status: verified
+  table_path: /home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/phase1_scores_dedup.csv
+  table_sha256: c3c731f355f4cecfb930d024dd8ee42d97ce952d5abfca73c717af6b2a7a6031
+  row_key:
+    run_id: vae_s44
+  accepted_metric_match:
+    status: exact
+    summary_count: 1
+accepted_evaluation:
+  status: verified
+  execution:
+    job_id: '244298'
+    task_id: '5'
+    host: talon35
+    config_sha1: c026dc88954bf2e5576f9593250016fa6fec9b46
+    git_commit: cbf7150f351a4978301c095c0e69633ab552af64
+    do_train: false
+    do_synth: false
+    do_eval: true
+    stages:
+    - eval
+    log_path: papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.244291_5.out
+  accepted_summary:
+    path: /home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/vae/summaries/summary_20260404_161130.json
+    authority: accepted_timestamped_summary
+    metric_match: exact
+    config_sha1_match_to_execution: true
+artifact_production:
+  status: strong_candidate
+  executions:
+  - job_id: '243612'
+    task_id: '5'
+    host: talon35
+    config_sha1: 7e63a1143efe58256fb3f164b9b3a7f87458ea50
+    git_commit: 37c60929b3545e5ff68d9107280a63ece0b62f45
+    do_train: true
+    do_synth: true
+    do_eval: true
+    stages:
+    - eval
+    - synth
+    - train
+    log_path: papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.240316_5.out
+    evidence_basis:
+    - synthesis_stage_observed
+    - surviving_artifact_timestamps_nearby
+    - checkpoint_evidence_present
+  lineage_claim:
+    level: strong_candidate
+    proven: false
+    reason: Historical execution explicitly performed synthesis and surviving artifact/checkpoint timing aligns with that execution wave, but timestamp alignment does not prove exclusive artifact lineage.
+historical_executions:
+- job_id: '243612'
+  task_id: '5'
+  host: talon35
+  role:
+  - historical_execution
+  - artifact_producer_candidate
+  config_sha1: 7e63a1143efe58256fb3f164b9b3a7f87458ea50
+  git_commit: 37c60929b3545e5ff68d9107280a63ece0b62f45
+  do_train: true
+  do_synth: true
+  do_eval: true
+  stages:
+  - eval
+  - synth
+  - train
+  log_path: papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.240316_5.out
+- job_id: '244145'
+  task_id: '5'
+  host: talon35
+  role:
+  - historical_execution
+  config_sha1: 430b8777afc0fb5bbb00e3d6d3810354772dd08a
+  git_commit: 37c60929b3545e5ff68d9107280a63ece0b62f45
+  do_train: false
+  do_synth: false
+  do_eval: true
+  stages:
+  - eval
+  log_path: papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.244141_5.out
+- job_id: '244298'
+  task_id: '5'
+  host: talon35
+  role:
+  - historical_execution
+  - accepted_evaluator
+  config_sha1: c026dc88954bf2e5576f9593250016fa6fec9b46
+  git_commit: cbf7150f351a4978301c095c0e69633ab552af64
+  do_train: false
+  do_synth: false
+  do_eval: true
+  stages:
+  - eval
+  log_path: papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.244291_5.out
+manifest_evidence:
+  seed_specific:
+    status: absent
+    path: null
+    authority: none
+  shared_root:
+    status: present
+    path: /home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/vae/synthetic/manifest.json
+    authority: compatibility_evidence
+synthetic_evidence:
+  status: present
+  file_count: 18000
+  layout: seed_directory
+  layout_counts:
+    seed_directory: 18000
+checkpoint_evidence:
+  status: present
+  file_count: 8
+non_authoritative_aliases:
+  latest_summary:
+    present: false
+    authority: none
+    authoritative: false
+    reason: compatibility_alias
+provenance_assertions:
+  accepted_summary_to_evaluation_execution:
+    status: verified
+    basis:
+    - matching_config_sha1
+    - execution_log_reports_summary_path
+  accepted_summary_to_authoritative_result:
+    status: verified
+    basis:
+    - exact_accepted_metric_match
+  artifact_execution_to_surviving_artifacts:
+    status: strong_candidate
+    basis:
+    - synthesis_stage_observed
+    - timestamp_alignment
+    limitations:
+    - timestamp_alignment_is_not_execution_proof
+source_inventory:
+  audit_version: M6.4.1-v3.2
+  inventory_path: studies/paper01_benchmark/audits/m6_4_1/paper01_execution_evidence_inventory.json

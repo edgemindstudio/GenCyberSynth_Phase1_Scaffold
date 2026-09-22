@@ -1,0 +1,150 @@
+schema_version: trustforge.paper01.execution_evidence_linkage.v1
+experiment:
+  experiment_id: cicmaldroid_diffusion_b2000_seed44
+  dataset: cicmaldroid2020
+  family: diffusion
+  seed: 44
+  budget_per_class: 2000
+  historical_run_id: diffusion_s44
+authoritative_result:
+  status: verified
+  table_path: /home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/phase1_scores_dedup.csv
+  table_sha256: 63fc2cd7b2cde81f2b964cc4407c6efdb1c50ee8bd61bfbbd4384d7eff8fc4f4
+  row_key:
+    run_id: diffusion_s44
+  accepted_metric_match:
+    status: exact
+    summary_count: 1
+accepted_evaluation:
+  status: verified
+  execution:
+    job_id: '246855'
+    task_id: '8'
+    host: talon35
+    config_sha1: 35cfcd257d07d6694b0ddbb2887e21f620b04329
+    git_commit: a9d6317a34e63df1e4ee445b618c29169e7a26e4
+    do_train: false
+    do_synth: false
+    do_eval: true
+    stages:
+    - eval
+    log_path: papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.246846_8.out
+  accepted_summary:
+    path: /home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/summaries/summary_20260410_091143.json
+    authority: accepted_timestamped_summary
+    metric_match: exact
+    config_sha1_match_to_execution: true
+artifact_production:
+  status: strong_candidate
+  executions:
+  - job_id: '246416'
+    task_id: '8'
+    host: talon35
+    config_sha1: b497f7e4914c26a00e980ad465873384422cd884
+    git_commit: a9d6317a34e63df1e4ee445b618c29169e7a26e4
+    do_train: true
+    do_synth: true
+    do_eval: true
+    stages:
+    - eval
+    - synth
+    - train
+    log_path: papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.246407_8.out
+    evidence_basis:
+    - synthesis_stage_observed
+    - surviving_artifact_timestamps_nearby
+    - checkpoint_evidence_present
+  lineage_claim:
+    level: strong_candidate
+    proven: false
+    reason: Historical execution explicitly performed synthesis and surviving artifact/checkpoint timing aligns with that execution wave, but timestamp alignment does not prove exclusive artifact lineage.
+historical_executions:
+- job_id: '246357'
+  task_id: '8'
+  host: talon35
+  role:
+  - historical_execution
+  config_sha1: f31ce9ca9a25361d55bd5cb924b55c871a93ac7b
+  git_commit: a9d6317a34e63df1e4ee445b618c29169e7a26e4
+  do_train: true
+  do_synth: true
+  do_eval: true
+  stages:
+  - eval
+  - synth
+  - train
+  log_path: papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.246348_8.out
+- job_id: '246416'
+  task_id: '8'
+  host: talon35
+  role:
+  - historical_execution
+  - artifact_producer_candidate
+  config_sha1: b497f7e4914c26a00e980ad465873384422cd884
+  git_commit: a9d6317a34e63df1e4ee445b618c29169e7a26e4
+  do_train: true
+  do_synth: true
+  do_eval: true
+  stages:
+  - eval
+  - synth
+  - train
+  log_path: papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.246407_8.out
+- job_id: '246855'
+  task_id: '8'
+  host: talon35
+  role:
+  - historical_execution
+  - accepted_evaluator
+  config_sha1: 35cfcd257d07d6694b0ddbb2887e21f620b04329
+  git_commit: a9d6317a34e63df1e4ee445b618c29169e7a26e4
+  do_train: false
+  do_synth: false
+  do_eval: true
+  stages:
+  - eval
+  log_path: papers/paper1_phase1_benchmark/logs/slurm_raw/slurm-paper1.246846_8.out
+manifest_evidence:
+  seed_specific:
+    status: absent
+    path: null
+    authority: none
+  shared_root:
+    status: present
+    path: /home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/synthetic/manifest.json
+    authority: compatibility_evidence
+synthetic_evidence:
+  status: present
+  file_count: 10000
+  layout: seed_directory
+  layout_counts:
+    seed_directory: 10000
+checkpoint_evidence:
+  status: present
+  file_count: 12
+non_authoritative_aliases:
+  latest_summary:
+    present: true
+    authority: none
+    authoritative: false
+    reason: compatibility_alias
+provenance_assertions:
+  accepted_summary_to_evaluation_execution:
+    status: verified
+    basis:
+    - matching_config_sha1
+    - execution_log_reports_summary_path
+  accepted_summary_to_authoritative_result:
+    status: verified
+    basis:
+    - exact_accepted_metric_match
+  artifact_execution_to_surviving_artifacts:
+    status: strong_candidate
+    basis:
+    - synthesis_stage_observed
+    - timestamp_alignment
+    limitations:
+    - timestamp_alignment_is_not_execution_proof
+source_inventory:
+  audit_version: M6.4.1-v3.2
+  inventory_path: studies/paper01_benchmark/audits/m6_4_1/paper01_execution_evidence_inventory.json

@@ -386,6 +386,111 @@ class TrustForgeDoctorTests(unittest.TestCase):
             "FAIL",
         )
 
+
+    def test_paper01_linkage_skips_without_repository(self) -> None:
+        result = doctor.check_paper01_linkage(
+            None
+        )
+
+        self.assertEqual(
+            result.level,
+            "SKIP",
+        )
+
+        self.assertEqual(
+            result.name,
+            "Paper 1 linkage",
+        )
+
+    def test_paper01_linkage_passes_when_validator_returns_42(self) -> None:
+        completed = mock.Mock(
+            returncode=0,
+            stdout="42\n",
+            stderr="",
+        )
+
+        with mock.patch.object(
+            doctor.subprocess,
+            "run",
+            return_value=completed,
+        ):
+            result = doctor.check_paper01_linkage(
+                REPO_ROOT
+            )
+
+        self.assertEqual(
+            result.level,
+            "PASS",
+        )
+
+        self.assertIn(
+            "42 canonical records",
+            result.detail,
+        )
+
+    def test_paper01_linkage_fails_when_validator_fails(self) -> None:
+        completed = mock.Mock(
+            returncode=1,
+            stdout="",
+            stderr="linkage validation failed",
+        )
+
+        with mock.patch.object(
+            doctor.subprocess,
+            "run",
+            return_value=completed,
+        ):
+            result = doctor.check_paper01_linkage(
+                REPO_ROOT
+            )
+
+        self.assertEqual(
+            result.level,
+            "FAIL",
+        )
+
+        self.assertIn(
+            "linkage validation failed",
+            result.detail,
+        )
+
+    def test_paper01_linkage_fails_on_unexpected_record_count(self) -> None:
+        completed = mock.Mock(
+            returncode=0,
+            stdout="41\n",
+            stderr="",
+        )
+
+        with mock.patch.object(
+            doctor.subprocess,
+            "run",
+            return_value=completed,
+        ):
+            result = doctor.check_paper01_linkage(
+                REPO_ROOT
+            )
+
+        self.assertEqual(
+            result.level,
+            "FAIL",
+        )
+
+        self.assertIn(
+            "expected 42",
+            result.detail,
+        )
+
+    def test_paper01_linkage_real_repository_passes(self) -> None:
+        result = doctor.check_paper01_linkage(
+            REPO_ROOT
+        )
+
+        self.assertEqual(
+            result.level,
+            "PASS",
+            msg=result.detail,
+        )
+
     def test_filesystem_capacity_is_informational(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             environment = {

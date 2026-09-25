@@ -778,6 +778,132 @@ def check_trustforge_import(
     )
 
 
+
+def check_paper01_linkage(
+    repo_root: Optional[Path],
+) -> CheckResult:
+    """
+    Validate the canonical Paper 1 execution-evidence linkage materialization.
+
+    Validation runs in a subprocess with PYTHONPATH pointed at the repository
+    src tree so the standalone doctor can still start in partially broken
+    environments.
+
+    This check is read-only. It does not regenerate linkage records, repair
+    evidence, inspect historical artifact contents, or modify repository state.
+    """
+
+    if sys.version_info[:2] < MINIMUM_PYTHON:
+        return CheckResult(
+            "SKIP",
+            "Paper 1 linkage",
+            "requires Python >= 3.10",
+        )
+
+    if repo_root is None:
+        return CheckResult(
+            "SKIP",
+            "Paper 1 linkage",
+            "repository unavailable",
+        )
+
+    src = repo_root / "src"
+
+    if not src.is_dir():
+        return CheckResult(
+            "FAIL",
+            "Paper 1 linkage",
+            "src directory not found: %s"
+            % src,
+        )
+
+    environment = os.environ.copy()
+    old_pythonpath = environment.get(
+        "PYTHONPATH",
+        "",
+    )
+
+    if old_pythonpath:
+        environment["PYTHONPATH"] = (
+            str(src)
+            + os.pathsep
+            + old_pythonpath
+        )
+    else:
+        environment["PYTHONPATH"] = str(src)
+
+    validation_code = (
+        "from pathlib import Path; "
+        "from trustforge.paper01_execution_evidence "
+        "import load_paper01_linkage_study; "
+        "study = load_paper01_linkage_study(Path.cwd()); "
+        "print(len(study.records))"
+    )
+
+    try:
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                validation_code,
+            ],
+            cwd=str(repo_root),
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+        )
+    except OSError as exc:
+        return CheckResult(
+            "FAIL",
+            "Paper 1 linkage",
+            str(exc),
+        )
+
+    if completed.returncode != 0:
+        detail = (
+            completed.stderr.strip()
+            or completed.stdout.strip()
+            or "canonical Paper 1 linkage validation failed"
+        )
+
+        return CheckResult(
+            "FAIL",
+            "Paper 1 linkage",
+            detail,
+        )
+
+    record_count_text = completed.stdout.strip()
+
+    try:
+        record_count = int(record_count_text)
+    except ValueError:
+        return CheckResult(
+            "FAIL",
+            "Paper 1 linkage",
+            "validator returned unexpected record count: %r"
+            % record_count_text,
+        )
+
+    if record_count != 42:
+        return CheckResult(
+            "FAIL",
+            "Paper 1 linkage",
+            "validated record count=%d, expected 42"
+            % record_count,
+        )
+
+    return CheckResult(
+        "PASS",
+        "Paper 1 linkage",
+        (
+            "42 canonical records; "
+            "index/schema/hash/accepted-evaluator consistency validated"
+        ),
+    )
+
+
 def check_filesystem_capacity(
     *,
     name: str,
@@ -1106,6 +1232,7 @@ def collect_results(
         check_schemas(repo_root),
         check_pyyaml(),
         check_trustforge_import(repo_root),
+        check_paper01_linkage(repo_root),
         check_filesystem_capacity(
             name="Data filesystem",
             canonical=CANONICAL_DATA_ROOT,

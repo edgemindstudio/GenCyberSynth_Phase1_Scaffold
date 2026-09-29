@@ -1,0 +1,1326 @@
+{
+  "audit_version": "M6.5.2-v1.0",
+  "policy_principles": [
+    "POLICY_DECISION != CODE_MODIFICATION",
+    "SCIENTIFIC_EXPERIMENT_IDENTITY != HISTORICAL_EXECUTION_IDENTITY",
+    "latest.json != AUTHORITATIVE_EVIDENCE",
+    "historical_artifacts_modified=NO",
+    "eval/runner.py remains protected",
+    "configuration dependency != executable migration target",
+    "canonical-derived compatibility export may preserve legacy consumer contracts"
+  ],
+  "record_count": 59,
+  "records": [
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO"
+      ],
+      "path": "Makefile",
+      "priority": "P2",
+      "rationale": "Mixed orchestration surface includes destructive or evidence-writing operations. It requires a dedicated safety review before any migration.",
+      "source_accesses": [
+        "reference",
+        "write"
+      ],
+      "source_categories": [
+        "consolidated_jsonl",
+        "historical_paper1_root",
+        "latest_alias",
+        "timestamped_summary"
+      ],
+      "source_classification": "historical_evidence_mutator_or_producer",
+      "source_migration_policy": "review_before_any_migration",
+      "target_interface": "none",
+      "treatment": "REVIEW_BEFORE_MIGRATION"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "configs/paper1_cicmaldroid.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "configs/paper1_config.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "configs/paper1_final.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "configs/paper1_final_rerun.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "configs/paper1_real.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "configs/paper1_smoke.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "historical_behavior_preserved=YES"
+      ],
+      "path": "eval/runner.py",
+      "priority": "NONE",
+      "rationale": "Historical producer/mutator or execution component. Rewriting it could change historical reproducibility or evidence semantics; preserve it.",
+      "source_accesses": [
+        "reference",
+        "write"
+      ],
+      "source_categories": [
+        "latest_alias",
+        "manifest_evidence",
+        "timestamped_summary"
+      ],
+      "source_classification": "historical_pipeline",
+      "source_migration_policy": "protected_do_not_migrate_in_m6_5_1",
+      "target_interface": "none",
+      "treatment": "PRESERVE_HISTORICAL"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "papers/paper2_conditional_generation_done_right/configs/paper2_cicmaldroid_fakeclass_seed42.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "papers/paper2_conditional_generation_done_right/configs/paper2_cicmaldroid_fakeclass_seed43.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "papers/paper2_conditional_generation_done_right/configs/paper2_cicmaldroid_fakeclass_seed44.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "papers/paper2_conditional_generation_done_right/configs/paper2_cicmaldroid_fakeclass_smoke_seed42.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_policy_class_repair_topk5000_b2000_s42.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root",
+        "manifest_evidence"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_policy_class_repair_topk5000_b2000_s43.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root",
+        "manifest_evidence"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_policy_class_repair_topk5000_b2000_s44.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root",
+        "manifest_evidence"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_policy_confidence_ranked_topk1000_b2000_s42.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root",
+        "manifest_evidence"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_policy_confidence_ranked_topk1000_b2000_s43.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root",
+        "manifest_evidence"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_policy_confidence_ranked_topk1000_b2000_s44.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root",
+        "manifest_evidence"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_policy_keep_all_b2000_s42.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root",
+        "manifest_evidence"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_policy_keep_all_b2000_s43.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root",
+        "manifest_evidence"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_policy_keep_all_b2000_s44.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root",
+        "manifest_evidence"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_realonly_balanced_s42.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_realonly_balanced_s43.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "automatic_config_rewrite=NO"
+      ],
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_realonly_balanced_s44.yaml",
+      "priority": "NONE",
+      "rationale": "Configuration records a historical Paper 1 data/artifact dependency. Do not rewrite historical path identity during M6.5; handle only through explicit compatibility/portability work if a future rerun requires it.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "historical_paper1_root"
+      ],
+      "source_classification": "configuration_dependency",
+      "source_migration_policy": "review_dependency_no_automatic_migration",
+      "target_interface": "none",
+      "treatment": "CONFIGURATION_ONLY"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "historical_behavior_preserved=YES"
+      ],
+      "path": "scripts/backfill_kid_and_downstream.py",
+      "priority": "NONE",
+      "rationale": "Historical producer/mutator or execution component. Rewriting it could change historical reproducibility or evidence semantics; preserve it.",
+      "source_accesses": [
+        "read",
+        "reference",
+        "write"
+      ],
+      "source_categories": [
+        "latest_alias",
+        "manifest_evidence",
+        "timestamped_summary"
+      ],
+      "source_classification": "historical_evidence_mutator_or_producer",
+      "source_migration_policy": "review_before_any_migration",
+      "target_interface": "none",
+      "treatment": "PRESERVE_HISTORICAL"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "historical_behavior_preserved=YES"
+      ],
+      "path": "scripts/backfill_ms_ssim_per_class.py",
+      "priority": "NONE",
+      "rationale": "Historical producer/mutator or execution component. Rewriting it could change historical reproducibility or evidence semantics; preserve it.",
+      "source_accesses": [
+        "read",
+        "reference",
+        "write"
+      ],
+      "source_categories": [
+        "manifest_evidence",
+        "timestamped_summary"
+      ],
+      "source_classification": "historical_evidence_mutator_or_producer",
+      "source_migration_policy": "review_before_any_migration",
+      "target_interface": "none",
+      "treatment": "PRESERVE_HISTORICAL"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "legacy_output_contract_preserved=YES"
+      ],
+      "path": "scripts/build_jsonl.sh",
+      "priority": "P1",
+      "rationale": "Builds or transforms legacy consolidated output. Preserve downstream format compatibility while sourcing authoritative rows from canonical Paper 1 linkage through a dedicated export adapter.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "consolidated_jsonl",
+        "timestamped_summary"
+      ],
+      "source_classification": "legacy_or_direct_consumer",
+      "source_migration_policy": "candidate_for_future_canonical_migration",
+      "target_interface": "proposed:trustforge.paper01_exports",
+      "treatment": "WRAP_WITH_COMPATIBILITY_LAYER"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "historical_behavior_preserved=YES"
+      ],
+      "path": "scripts/eval_write_summary.py",
+      "priority": "NONE",
+      "rationale": "Historical producer/mutator or execution component. Rewriting it could change historical reproducibility or evidence semantics; preserve it.",
+      "source_accesses": [
+        "reference",
+        "write"
+      ],
+      "source_categories": [
+        "timestamped_summary"
+      ],
+      "source_classification": "historical_evidence_mutator_or_producer",
+      "source_migration_policy": "review_before_any_migration",
+      "target_interface": "none",
+      "treatment": "PRESERVE_HISTORICAL"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO"
+      ],
+      "path": "scripts/generate_paper01_execution_evidence_linkage.py",
+      "priority": "NONE",
+      "rationale": "Already consumes or implements the governed Paper 1 canonical execution/evidence linkage interface; no migration is required.",
+      "source_accesses": [
+        "reference",
+        "write"
+      ],
+      "source_categories": [
+        "canonical_linkage_interface",
+        "latest_alias",
+        "manifest_evidence"
+      ],
+      "source_classification": "canonical_consumer",
+      "source_migration_policy": "already_canonical",
+      "target_interface": "none",
+      "treatment": "ALREADY_CANONICAL"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO"
+      ],
+      "path": "scripts/inventory_paper01_execution_evidence.py",
+      "priority": "NONE",
+      "rationale": "TrustForge governance/audit tooling intentionally reads historical evidence surfaces to establish provenance; preserve its audit role.",
+      "source_accesses": [
+        "read",
+        "reference",
+        "write"
+      ],
+      "source_categories": [
+        "authoritative_score_table",
+        "latest_alias",
+        "manifest_evidence"
+      ],
+      "source_classification": "governance_auditor",
+      "source_migration_policy": "preserve_governance_tool",
+      "target_interface": "none",
+      "treatment": "GOVERNANCE_TOOL"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "legacy_output_contract_preserved=YES"
+      ],
+      "path": "scripts/jsonl_to_csv.py",
+      "priority": "P2",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "consolidated_jsonl"
+      ],
+      "source_classification": "legacy_or_direct_consumer",
+      "source_migration_policy": "candidate_for_future_canonical_migration",
+      "target_interface": "proposed:trustforge.paper01_exports",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO"
+      ],
+      "path": "scripts/metrics/aggregate.py",
+      "priority": "P1",
+      "rationale": "Directly reads legacy Paper 1 summaries/evidence for reporting, integrity, metrics, or dashboard behavior. Replace authority selection with the canonical linkage loader.",
+      "source_accesses": [
+        "read"
+      ],
+      "source_categories": [
+        "timestamped_summary"
+      ],
+      "source_classification": "legacy_or_direct_consumer",
+      "source_migration_policy": "candidate_for_future_canonical_migration",
+      "target_interface": "trustforge.paper01_execution_evidence.load_paper01_linkage_study",
+      "treatment": "MIGRATE_TO_CANONICAL_INTERFACE"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "historical_behavior_preserved=YES"
+      ],
+      "path": "scripts/metrics/local_fid_kid.py",
+      "priority": "NONE",
+      "rationale": "Historical producer/mutator or execution component. Rewriting it could change historical reproducibility or evidence semantics; preserve it.",
+      "source_accesses": [
+        "read",
+        "reference",
+        "write"
+      ],
+      "source_categories": [
+        "latest_alias",
+        "manifest_evidence",
+        "timestamped_summary"
+      ],
+      "source_classification": "historical_evidence_mutator_or_producer",
+      "source_migration_policy": "review_before_any_migration",
+      "target_interface": "none",
+      "treatment": "PRESERVE_HISTORICAL"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO"
+      ],
+      "path": "scripts/metrics/print_cfid_table.py",
+      "priority": "P1",
+      "rationale": "Directly reads legacy Paper 1 summaries/evidence for reporting, integrity, metrics, or dashboard behavior. Replace authority selection with the canonical linkage loader.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "timestamped_summary"
+      ],
+      "source_classification": "legacy_or_direct_consumer",
+      "source_migration_policy": "candidate_for_future_canonical_migration",
+      "target_interface": "trustforge.paper01_execution_evidence.load_paper01_linkage_study",
+      "treatment": "MIGRATE_TO_CANONICAL_INTERFACE"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "historical_behavior_preserved=YES"
+      ],
+      "path": "scripts/normalize_summaries.py",
+      "priority": "NONE",
+      "rationale": "Historical producer/mutator or execution component. Rewriting it could change historical reproducibility or evidence semantics; preserve it.",
+      "source_accesses": [
+        "read",
+        "reference",
+        "write"
+      ],
+      "source_categories": [
+        "timestamped_summary"
+      ],
+      "source_classification": "historical_evidence_mutator_or_producer",
+      "source_migration_policy": "review_before_any_migration",
+      "target_interface": "none",
+      "treatment": "PRESERVE_HISTORICAL"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO"
+      ],
+      "path": "scripts/phase1_html.py",
+      "priority": "P1",
+      "rationale": "Directly reads legacy Paper 1 summaries/evidence for reporting, integrity, metrics, or dashboard behavior. Replace authority selection with the canonical linkage loader.",
+      "source_accesses": [
+        "read",
+        "write"
+      ],
+      "source_categories": [
+        "timestamped_summary"
+      ],
+      "source_classification": "historical_evidence_mutator_or_producer",
+      "source_migration_policy": "review_before_any_migration",
+      "target_interface": "trustforge.paper01_execution_evidence.load_paper01_linkage_study",
+      "treatment": "MIGRATE_TO_CANONICAL_INTERFACE"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO"
+      ],
+      "path": "scripts/phase1_report.py",
+      "priority": "P1",
+      "rationale": "Directly reads legacy Paper 1 summaries/evidence for reporting, integrity, metrics, or dashboard behavior. Replace authority selection with the canonical linkage loader.",
+      "source_accesses": [
+        "read",
+        "write"
+      ],
+      "source_categories": [
+        "timestamped_summary"
+      ],
+      "source_classification": "historical_evidence_mutator_or_producer",
+      "source_migration_policy": "review_before_any_migration",
+      "target_interface": "trustforge.paper01_execution_evidence.load_paper01_linkage_study",
+      "treatment": "MIGRATE_TO_CANONICAL_INTERFACE"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "legacy_output_contract_preserved=YES"
+      ],
+      "path": "scripts/plots/_common.py",
+      "priority": "P2",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "consolidated_jsonl"
+      ],
+      "source_classification": "legacy_or_direct_consumer",
+      "source_migration_policy": "candidate_for_future_canonical_migration",
+      "target_interface": "proposed:trustforge.paper01_exports",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "legacy_output_contract_preserved=YES"
+      ],
+      "path": "scripts/plots/core/calibration_curves.py",
+      "priority": "P2",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "consolidated_jsonl"
+      ],
+      "source_classification": "legacy_or_direct_consumer",
+      "source_migration_policy": "candidate_for_future_canonical_migration",
+      "target_interface": "proposed:trustforge.paper01_exports",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "legacy_output_contract_preserved=YES"
+      ],
+      "path": "scripts/plots/core/pareto_downstream_vs_similarity.py",
+      "priority": "P2",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "consolidated_jsonl"
+      ],
+      "source_classification": "legacy_or_direct_consumer",
+      "source_migration_policy": "candidate_for_future_canonical_migration",
+      "target_interface": "proposed:trustforge.paper01_exports",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "legacy_output_contract_preserved=YES"
+      ],
+      "path": "scripts/plots/core/per_class_delta_f1.py",
+      "priority": "P2",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "consolidated_jsonl"
+      ],
+      "source_classification": "legacy_or_direct_consumer",
+      "source_migration_policy": "candidate_for_future_canonical_migration",
+      "target_interface": "proposed:trustforge.paper01_exports",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "legacy_output_contract_preserved=YES"
+      ],
+      "path": "scripts/plots/diversity/ms_ssim_hist.py",
+      "priority": "P2",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "consolidated_jsonl"
+      ],
+      "source_classification": "legacy_or_direct_consumer",
+      "source_migration_policy": "candidate_for_future_canonical_migration",
+      "target_interface": "proposed:trustforge.paper01_exports",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "legacy_output_contract_preserved=YES"
+      ],
+      "path": "scripts/plots/diversity/nn_distance_distrib.py",
+      "priority": "P2",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "consolidated_jsonl"
+      ],
+      "source_classification": "legacy_or_direct_consumer",
+      "source_migration_policy": "candidate_for_future_canonical_migration",
+      "target_interface": "proposed:trustforge.paper01_exports",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "legacy_output_contract_preserved=YES"
+      ],
+      "path": "scripts/plots/hparams/ablation_bars.py",
+      "priority": "P2",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "consolidated_jsonl"
+      ],
+      "source_classification": "legacy_or_direct_consumer",
+      "source_migration_policy": "candidate_for_future_canonical_migration",
+      "target_interface": "proposed:trustforge.paper01_exports",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "legacy_output_contract_preserved=YES"
+      ],
+      "path": "scripts/plots/hparams/parallel_coords.py",
+      "priority": "P2",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "consolidated_jsonl"
+      ],
+      "source_classification": "legacy_or_direct_consumer",
+      "source_migration_policy": "candidate_for_future_canonical_migration",
+      "target_interface": "proposed:trustforge.paper01_exports",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "legacy_output_contract_preserved=YES"
+      ],
+      "path": "scripts/plots/imbalance/class_counts_before_after.py",
+      "priority": "P2",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "consolidated_jsonl"
+      ],
+      "source_classification": "legacy_or_direct_consumer",
+      "source_migration_policy": "candidate_for_future_canonical_migration",
+      "target_interface": "proposed:trustforge.paper01_exports",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "legacy_output_contract_preserved=YES"
+      ],
+      "path": "scripts/plots/imbalance/simple_stats_sanity.py",
+      "priority": "P2",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "source_accesses": [
+        "read",
+        "reference"
+      ],
+      "source_categories": [
+        "consolidated_jsonl",
+        "manifest_evidence"
+      ],
+      "source_classification": "legacy_or_direct_consumer",
+      "source_migration_policy": "candidate_for_future_canonical_migration",
+      "target_interface": "proposed:trustforge.paper01_exports",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "legacy_output_contract_preserved=YES"
+      ],
+      "path": "scripts/plots/qual/class_triptychs.py",
+      "priority": "P2",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "consolidated_jsonl",
+        "manifest_evidence"
+      ],
+      "source_classification": "legacy_or_direct_consumer",
+      "source_migration_policy": "candidate_for_future_canonical_migration",
+      "target_interface": "proposed:trustforge.paper01_exports",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "legacy_output_contract_preserved=YES"
+      ],
+      "path": "scripts/summaries_to_jsonl.py",
+      "priority": "P1",
+      "rationale": "Builds or transforms legacy consolidated output. Preserve downstream format compatibility while sourcing authoritative rows from canonical Paper 1 linkage through a dedicated export adapter.",
+      "source_accesses": [
+        "reference",
+        "write"
+      ],
+      "source_categories": [
+        "consolidated_jsonl",
+        "latest_alias",
+        "timestamped_summary"
+      ],
+      "source_classification": "historical_evidence_mutator_or_producer",
+      "source_migration_policy": "review_before_any_migration",
+      "target_interface": "proposed:trustforge.paper01_exports",
+      "treatment": "WRAP_WITH_COMPATIBILITY_LAYER"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO"
+      ],
+      "path": "scripts/trustforge_doctor.py",
+      "priority": "NONE",
+      "rationale": "Already consumes or implements the governed Paper 1 canonical execution/evidence linkage interface; no migration is required.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "canonical_linkage_interface"
+      ],
+      "source_classification": "canonical_consumer",
+      "source_migration_policy": "already_canonical",
+      "target_interface": "none",
+      "treatment": "ALREADY_CANONICAL"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO"
+      ],
+      "path": "scripts/tuning_dashboard.py",
+      "priority": "P1",
+      "rationale": "Directly reads legacy Paper 1 summaries/evidence for reporting, integrity, metrics, or dashboard behavior. Replace authority selection with the canonical linkage loader.",
+      "source_accesses": [
+        "read",
+        "reference"
+      ],
+      "source_categories": [
+        "manifest_evidence",
+        "timestamped_summary"
+      ],
+      "source_classification": "legacy_or_direct_consumer",
+      "source_migration_policy": "candidate_for_future_canonical_migration",
+      "target_interface": "trustforge.paper01_execution_evidence.load_paper01_linkage_study",
+      "treatment": "MIGRATE_TO_CANONICAL_INTERFACE"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "legacy_output_contract_preserved=YES"
+      ],
+      "path": "scripts/utils/backfill_counts.py",
+      "priority": "P1",
+      "rationale": "Builds or transforms legacy consolidated output. Preserve downstream format compatibility while sourcing authoritative rows from canonical Paper 1 linkage through a dedicated export adapter.",
+      "source_accesses": [
+        "reference",
+        "write"
+      ],
+      "source_categories": [
+        "consolidated_jsonl",
+        "manifest_evidence"
+      ],
+      "source_classification": "historical_evidence_mutator_or_producer",
+      "source_migration_policy": "review_before_any_migration",
+      "target_interface": "proposed:trustforge.paper01_exports",
+      "treatment": "WRAP_WITH_COMPATIBILITY_LAYER"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO"
+      ],
+      "path": "src/trustforge/paper01_execution_evidence.py",
+      "priority": "NONE",
+      "rationale": "Already consumes or implements the governed Paper 1 canonical execution/evidence linkage interface; no migration is required.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "canonical_linkage_interface",
+        "latest_alias"
+      ],
+      "source_classification": "canonical_consumer",
+      "source_migration_policy": "already_canonical",
+      "target_interface": "none",
+      "treatment": "ALREADY_CANONICAL"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO"
+      ],
+      "path": "tests/trustforge/test_paper01_execution_evidence.py",
+      "priority": "NONE",
+      "rationale": "Already consumes or implements the governed Paper 1 canonical execution/evidence linkage interface; no migration is required.",
+      "source_accesses": [
+        "reference",
+        "write"
+      ],
+      "source_categories": [
+        "canonical_linkage_interface",
+        "latest_alias"
+      ],
+      "source_classification": "canonical_consumer",
+      "source_migration_policy": "already_canonical",
+      "target_interface": "none",
+      "treatment": "ALREADY_CANONICAL"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "legacy_output_contract_preserved=YES"
+      ],
+      "path": "tools/aggregate_phase1.py",
+      "priority": "P1",
+      "rationale": "Builds or transforms legacy consolidated output. Preserve downstream format compatibility while sourcing authoritative rows from canonical Paper 1 linkage through a dedicated export adapter.",
+      "source_accesses": [
+        "reference",
+        "write"
+      ],
+      "source_categories": [
+        "consolidated_jsonl",
+        "timestamped_summary"
+      ],
+      "source_classification": "historical_evidence_mutator_or_producer",
+      "source_migration_policy": "review_before_any_migration",
+      "target_interface": "proposed:trustforge.paper01_exports",
+      "treatment": "WRAP_WITH_COMPATIBILITY_LAYER"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "legacy_output_contract_preserved=YES"
+      ],
+      "path": "tools/build_paper1_jsonl.py",
+      "priority": "P1",
+      "rationale": "Builds or transforms legacy consolidated output. Preserve downstream format compatibility while sourcing authoritative rows from canonical Paper 1 linkage through a dedicated export adapter.",
+      "source_accesses": [
+        "reference",
+        "write"
+      ],
+      "source_categories": [
+        "consolidated_jsonl"
+      ],
+      "source_classification": "historical_evidence_mutator_or_producer",
+      "source_migration_policy": "review_before_any_migration",
+      "target_interface": "proposed:trustforge.paper01_exports",
+      "treatment": "WRAP_WITH_COMPATIBILITY_LAYER"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO"
+      ],
+      "path": "tools/build_phase1_scores.py",
+      "priority": "P0",
+      "rationale": "Directly reads legacy Paper 1 summaries/evidence for reporting, integrity, metrics, or dashboard behavior. Replace authority selection with the canonical linkage loader. It references latest.json, so eliminating alias-based authority is P0.",
+      "source_accesses": [
+        "reference",
+        "write"
+      ],
+      "source_categories": [
+        "latest_alias"
+      ],
+      "source_classification": "historical_evidence_mutator_or_producer",
+      "source_migration_policy": "review_before_any_migration",
+      "target_interface": "trustforge.paper01_execution_evidence.load_paper01_linkage_study",
+      "treatment": "MIGRATE_TO_CANONICAL_INTERFACE"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO"
+      ],
+      "path": "tools/check_phase1_integrity.py",
+      "priority": "P0",
+      "rationale": "Directly reads legacy Paper 1 summaries/evidence for reporting, integrity, metrics, or dashboard behavior. Replace authority selection with the canonical linkage loader. It references latest.json, so eliminating alias-based authority is P0.",
+      "source_accesses": [
+        "reference"
+      ],
+      "source_categories": [
+        "latest_alias"
+      ],
+      "source_classification": "legacy_or_direct_consumer",
+      "source_migration_policy": "candidate_for_future_canonical_migration",
+      "target_interface": "trustforge.paper01_execution_evidence.load_paper01_linkage_study",
+      "treatment": "MIGRATE_TO_CANONICAL_INTERFACE"
+    },
+    {
+      "constraints": [
+        "historical_artifacts_modified=NO",
+        "eval_runner_modified=NO",
+        "latest_json_authoritative=NO",
+        "historical_behavior_preserved=YES"
+      ],
+      "path": "tools/freeze_phase1_snapshots.py",
+      "priority": "NONE",
+      "rationale": "Historical producer/mutator or execution component. Rewriting it could change historical reproducibility or evidence semantics; preserve it.",
+      "source_accesses": [
+        "read",
+        "write"
+      ],
+      "source_categories": [
+        "timestamped_summary"
+      ],
+      "source_classification": "historical_evidence_mutator_or_producer",
+      "source_migration_policy": "review_before_any_migration",
+      "target_interface": "none",
+      "treatment": "PRESERVE_HISTORICAL"
+    }
+  ],
+  "repository_head": "d88a717465f175a6e3025eb95d1274bab21a0e04",
+  "source_audit": {
+    "audit_version": "M6.5.1-v1.0",
+    "path": "studies/paper01_benchmark/audits/m6_5_1/paper01_downstream_consumer_inventory.json",
+    "primary_record_count": 59,
+    "record_count": 71,
+    "sha256": "e363b5f15209fd4e320065b25e9120d109f738a3653bc363c75b40570df166e3"
+  },
+  "study_id": "paper01_benchmark",
+  "summary": {
+    "priorities": {
+      "NONE": 34,
+      "P0": 2,
+      "P1": 10,
+      "P2": 13
+    },
+    "treatments": {
+      "ALREADY_CANONICAL": 4,
+      "CONFIGURATION_ONLY": 22,
+      "GOVERNANCE_TOOL": 1,
+      "MIGRATE_TO_CANONICAL_INTERFACE": 7,
+      "PRESERVE_HISTORICAL": 7,
+      "REVIEW_BEFORE_MIGRATION": 1,
+      "USE_CANONICAL_DERIVED_EXPORT": 12,
+      "WRAP_WITH_COMPATIBILITY_LAYER": 5
+    }
+  }
+}

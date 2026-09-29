@@ -38,10 +38,16 @@ SMOKE_MODEL           ?= gan
 SEEDS                 ?= 42 43 44
 SYN_PER_CLASS         ?= 1000
 
-# Paper-1 lock defaults
+# Historical Paper-1 snapshot defaults
 PHASE1_SUMMARY_NAME    ?= paper1.json
 PHASE1_MANIFEST_NAME   ?= paper1_manifest.json
 PHASE1_ALLOWED_BUDGETS ?= 2000
+
+# Canonical Paper-1 consumer identity.
+# Intentionally empty: scientific identity must be supplied explicitly.
+PHASE1_DATASET             ?=
+PHASE1_SEED                ?=
+TRUSTFORGE_ARTIFACTS_ROOT  ?=
 
 # Paths
 SUMMARIES_DIR          ?= artifacts/summaries
@@ -180,7 +186,7 @@ models-seeds:
 	done
 
 # -----------------------------------------------------------------------------
-# Phase-1 lock + sanity gate
+# Historical Phase-1 snapshot operations + canonical Paper-1 consumer gate
 # -----------------------------------------------------------------------------
 phase1_freeze:
 	PHASE1_ALLOWED_BUDGETS='$(PHASE1_ALLOWED_BUDGETS)' \
@@ -189,13 +195,20 @@ phase1_freeze:
 	$(PY) tools/freeze_phase1_snapshots.py
 
 phase1_scores:
-	PHASE1_SUMMARY_NAME="$(PHASE1_SUMMARY_NAME)" \
-	$(PY) tools/build_phase1_scores.py
+	test -n "$(PHASE1_DATASET)" || { echo "PHASE1_DATASET is required"; exit 2; }
+	test -n "$(PHASE1_SEED)" || { echo "PHASE1_SEED is required"; exit 2; }
+	test -n "$(TRUSTFORGE_ARTIFACTS_ROOT)" || { echo "TRUSTFORGE_ARTIFACTS_ROOT is required"; exit 2; }
+	PHASE1_DATASET="$(PHASE1_DATASET)" \
+	PHASE1_SEED="$(PHASE1_SEED)" \
+	TRUSTFORGE_ARTIFACTS_ROOT="$(TRUSTFORGE_ARTIFACTS_ROOT)" \
+	PYTHONPATH="$(CURDIR)/src" $(PY) tools/build_phase1_scores.py
 
 phase1_check:
-	PHASE1_ALLOWED_BUDGETS="$(PHASE1_ALLOWED_BUDGETS)" \
-	PHASE1_SUMMARY_NAME="$(PHASE1_SUMMARY_NAME)" \
-	$(PY) tools/check_phase1_integrity.py
+	test -n "$(PHASE1_DATASET)" || { echo "PHASE1_DATASET is required"; exit 2; }
+	test -n "$(PHASE1_SEED)" || { echo "PHASE1_SEED is required"; exit 2; }
+	PHASE1_DATASET="$(PHASE1_DATASET)" \
+	PHASE1_SEED="$(PHASE1_SEED)" \
+	PYTHONPATH="$(CURDIR)/src" $(PY) tools/check_phase1_integrity.py
 
 # Run on compute if needed
 phase1_backfill:
@@ -203,7 +216,17 @@ phase1_backfill:
 	PHASE1_MANIFEST_NAME='$(PHASE1_MANIFEST_NAME)' \
 	$(PY) scripts/backfill_kid_and_downstream.py
 
-phase1_gate: phase1_freeze phase1_scores phase1_check
+phase1_gate:
+	test -n "$(PHASE1_DATASET)" || { echo "PHASE1_DATASET is required"; exit 2; }
+	test -n "$(PHASE1_SEED)" || { echo "PHASE1_SEED is required"; exit 2; }
+	test -n "$(TRUSTFORGE_ARTIFACTS_ROOT)" || { echo "TRUSTFORGE_ARTIFACTS_ROOT is required"; exit 2; }
+	PHASE1_DATASET="$(PHASE1_DATASET)" \
+	PHASE1_SEED="$(PHASE1_SEED)" \
+	PYTHONPATH="$(CURDIR)/src" $(PY) tools/check_phase1_integrity.py
+	PHASE1_DATASET="$(PHASE1_DATASET)" \
+	PHASE1_SEED="$(PHASE1_SEED)" \
+	TRUSTFORGE_ARTIFACTS_ROOT="$(TRUSTFORGE_ARTIFACTS_ROOT)" \
+	PYTHONPATH="$(CURDIR)/src" $(PY) tools/build_phase1_scores.py
 	@echo "[phase1_gate] OK"
 
 # -----------------------------------------------------------------------------
@@ -269,8 +292,10 @@ figs-all: figs-core figs-diversity figs-imbalance figs-qual figs-hparams
 # -----------------------------------------------------------------------------
 # Paper-1 / Phase-1 one-command flow
 # -----------------------------------------------------------------------------
-paper1_prepare: phase1_gate
-	@echo "[paper1_prepare] OK"
+# Historical snapshot preparation remains separate from the canonical
+# read-only phase1_gate until the legacy Paper-1 build chain is migrated.
+paper1_prepare: phase1_freeze
+	@echo "[paper1_prepare] historical snapshot prepared"
 
 paper1_build: paper1-jsonl scores-csv table figs-all report
 	@echo "[paper1_build] OK"

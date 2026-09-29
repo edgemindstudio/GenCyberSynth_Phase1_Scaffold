@@ -1,0 +1,2785 @@
+{
+  "audit_version": "M6.5.1-v1.0",
+  "record_count": 71,
+  "records": [
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "consolidated_jsonl"
+      ],
+      "classification": "test_or_ci",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "p = Path(\"artifacts/summaries/phase1_summaries.jsonl\")",
+          "line_number": 155
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "artifacts/summaries/phase1_summaries.jsonl",
+          "line_number": 176
+        }
+      ],
+      "migration_policy": "review_only",
+      "path": ".github/workflows/ci.yml",
+      "sha256": "2f0f35c0a3eb8a945a7e345c8ebdafbfbb19fd01f35d067d93c730fb75deb135"
+    },
+    {
+      "accesses": [
+        "reference",
+        "write"
+      ],
+      "categories": [
+        "consolidated_jsonl",
+        "historical_paper1_root",
+        "latest_alias",
+        "timestamped_summary"
+      ],
+      "classification": "historical_evidence_mutator_or_producer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "OUT_JSONL              ?= $(SUMMARIES_DIR)/phase1_summaries.jsonl",
+          "line_number": 48
+        },
+        {
+          "access": "write",
+          "category": "consolidated_jsonl",
+          "line": "rm -f artifacts/summaries/phase1_summaries.jsonl || true",
+          "line_number": 348
+        },
+        {
+          "access": "write",
+          "category": "timestamped_summary",
+          "line": "find artifacts -type f -path \"artifacts/*/summaries/summary_*.json\" -delete || true",
+          "line_number": 350
+        },
+        {
+          "access": "write",
+          "category": "latest_alias",
+          "line": "rm -f artifacts/*/summaries/latest.json || true",
+          "line_number": 351
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "echo \"export ARTS=/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun\"",
+          "line_number": 396
+        }
+      ],
+      "migration_policy": "review_before_any_migration",
+      "path": "Makefile",
+      "sha256": "400182106ba727595ae86470d67d22519be36f730426c6c48f4fc8e8e62897a0"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "consolidated_jsonl",
+        "timestamped_summary"
+      ],
+      "classification": "documentation",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "- **Per-run JSON summaries**: `artifacts/<model>/summaries/summary_*.json`",
+          "line_number": 101
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "- **Consolidated JSONL**: `artifacts/summaries/phase1_summaries.jsonl`",
+          "line_number": 102
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "--glob \"artifacts/*/summaries/summary_*.json\" \\",
+          "line_number": 136
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "--out artifacts/summaries/phase1_summaries.jsonl \\",
+          "line_number": 137
+        }
+      ],
+      "migration_policy": "review_only",
+      "path": "README.md",
+      "sha256": "8ccaa9dc4a7ba7de2abac0af9dc609a4b68595c92789a16ffa7255dd0c7dbf51"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "consolidated_jsonl",
+        "timestamped_summary"
+      ],
+      "classification": "documentation",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "- Per-run eval JSON: `artifacts/<model>/summaries/summary_*.json`",
+          "line_number": 79
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "- Consolidated JSONL: `artifacts/summaries/phase1_summaries.jsonl`",
+          "line_number": 80
+        }
+      ],
+      "migration_policy": "review_only",
+      "path": "Runbook.md",
+      "sha256": "3a6f5032a9dd6d5ae686d58fbf2a8f5a5a5d6b90d2f640a7b01042d64dd78e3b"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "DATA_DIR: \"/home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1\"",
+          "line_number": 26
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "artifacts: \"/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid\"",
+          "line_number": 33
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "summaries_dir: \"/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/summaries\"",
+          "line_number": 34
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "configs/paper1_cicmaldroid.yaml",
+      "sha256": "76da1e6a6feaeb96010fbf5abe2a02e7afe3c7b0771e95268dedbae799888dbd"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "artifacts: \"/home/bruno.fonkeng/gencys/artifacts_paper1_clean\"",
+          "line_number": 32
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "summaries_dir: \"/home/bruno.fonkeng/gencys/artifacts_paper1_clean/summaries\"",
+          "line_number": 33
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "configs/paper1_config.yaml",
+      "sha256": "16332c3a2dcdfe1625b6aac4b908ec6e7896e827c5ba9b6f3e7247d0baaf9c8e"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "artifacts: \"/home/bruno.fonkeng/gencys/artifacts_paper1_final\"",
+          "line_number": 32
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "summaries_dir: \"/home/bruno.fonkeng/gencys/artifacts_paper1_final/summaries\"",
+          "line_number": 33
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "configs/paper1_final.yaml",
+      "sha256": "b5eb6997b0c4b85593e39a48ac3fce3667fe40c715eee36c3198f900505c8170"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "artifacts: \"/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun\"",
+          "line_number": 32
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "summaries_dir: \"/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/summaries\"",
+          "line_number": 33
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "configs/paper1_final_rerun.yaml",
+      "sha256": "559d2f47bd35c72bda6dc0b06a55d38312dfec6c88b4e2f20591118fa5492800"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "artifacts: \"/home/bruno.fonkeng/gencys/artifacts_paper1_real\"",
+          "line_number": 32
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "summaries_dir: \"/home/bruno.fonkeng/gencys/artifacts_paper1_real/summaries\"",
+          "line_number": 33
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "configs/paper1_real.yaml",
+      "sha256": "456527c7efaf4d403e13d34edff56e1fbeeae6bea6837e54d746b5918591d4ef"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "artifacts: \"/home/bruno.fonkeng/gencys/artifacts_paper1_smoke\"",
+          "line_number": 32
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "summaries_dir: \"/home/bruno.fonkeng/gencys/artifacts_paper1_smoke/summaries\"",
+          "line_number": 33
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "configs/paper1_smoke.yaml",
+      "sha256": "338fef78402d393511417e89e5f07a3cb406e055ff1b2dda4e20a62384127011"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "latest_alias"
+      ],
+      "classification": "documentation",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "## 14. latest.json Rule",
+          "line_number": 385
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "latest.json may be useful operationally.",
+          "line_number": 387
+        }
+      ],
+      "migration_policy": "review_only",
+      "path": "docs/REPRODUCIBILITY_CONTRACT.md",
+      "sha256": "a4fdd89464634c1c64374afd379218697160a7daf9e68f05c89035b4d4267bef"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root",
+        "latest_alias"
+      ],
+      "classification": "documentation",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "~/gencys/artifacts_paper1_*",
+          "line_number": 114
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "~/gencys/paper1_evidence",
+          "line_number": 124
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "- assume latest.json is authoritative scientific evidence.",
+          "line_number": 348
+        }
+      ],
+      "migration_policy": "review_only",
+      "path": "docs/STORAGE_AND_PATHS.md",
+      "sha256": "9367b38b9cc1e51a833aaeea14cc8465950f95e51306983151afddad34f5a42e"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "authoritative_score_table",
+        "latest_alias",
+        "manifest_evidence",
+        "timestamped_summary"
+      ],
+      "classification": "documentation",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "`MISSING SEED MANIFEST \u2260 MISSING EXPERIMENT`",
+          "line_number": 27
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "`latest.json \u2260 AUTHORITATIVE EVIDENCE`",
+          "line_number": 35
+        },
+        {
+          "access": "reference",
+          "category": "authoritative_score_table",
+          "line": "table_path: /historical/path/phase1_scores_dedup.csv",
+          "line_number": 75
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "path: /historical/path/summary_20260410_091359.json",
+          "line_number": 99
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "path: /historical/path/gaussianmixture/synthetic/manifest.json",
+          "line_number": 157
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "3. `latest.json` MUST NOT count toward the accepted historical summary count.",
+          "line_number": 263
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "Paper 1 specifically contains three known seed-manifest exceptions:",
+          "line_number": 328
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "## 11. `latest.json` Rule",
+          "line_number": 354
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "`latest.json` is a historical compatibility/convenience alias.",
+          "line_number": 356
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "`latest.json \u2260 AUTHORITATIVE EVIDENCE`",
+          "line_number": 370
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "* `latest.json`;",
+          "line_number": 430
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "* no `latest.json` is authoritative;",
+          "line_number": 446
+        }
+      ],
+      "migration_policy": "review_only",
+      "path": "docs/paper01_execution_evidence_linkage_schema.md",
+      "sha256": "634d0d8513e82c55c4fb9f75377b93b17dfda5b145f212e749b512b7daf31a70"
+    },
+    {
+      "accesses": [
+        "reference",
+        "write"
+      ],
+      "categories": [
+        "latest_alias",
+        "manifest_evidence",
+        "timestamped_summary"
+      ],
+      "classification": "historical_pipeline",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "{artifacts}/{model}/summaries/summary_YYYYMMDD_HHMMSS.json",
+          "line_number": 11
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "{artifacts}/{model}/summaries/latest.json",
+          "line_number": 13
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "- summary_*.json",
+          "line_number": 33
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "- latest.json",
+          "line_number": 34
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "def _load_manifest_local(manifest_path: str) -> Dict[str, Any]:",
+          "line_number": 226
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "We also resolve relative image paths relative to the directory containing manifest.json.",
+          "line_number": 240
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "with open(manifest_path, \"r\") as f:",
+          "line_number": 242
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "# Baseline manifests live at synthetic/<config_id>/seed<seed>/manifest.json.",
+          "line_number": 285
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "# Policy manifests may live deeper, e.g. synthetic/<config_id>/seed<seed>/policy/<policy_id>/manifest.json.",
+          "line_number": 286
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "base_dir = os.path.dirname(manifest_path)",
+          "line_number": 288
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "<synth_root>/<model>_<CFG>_seed<SEED>/manifest.json",
+          "line_number": 711
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "return os.path.join(run_dir, \"manifest.json\")",
+          "line_number": 730
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "<synth_root>/<config_id>/seed<seed>/manifest.json",
+          "line_number": 766
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "return os.path.join(synth_root, config_id, f\"seed{seed}\", \"manifest.json\")",
+          "line_number": 768
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "#       <synth_root>/manifest.json",
+          "line_number": 791
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "#       <synth_root>/<model>_<CFG>_seed<SEED>/manifest.json",
+          "line_number": 794
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "#     shared = os.path.join(synth_root, \"manifest.json\")",
+          "line_number": 796
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "<synth_root>/<config_id>/seed<seed>/manifest.json",
+          "line_number": 809
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "<synth_root>/<config_id>/manifest.json",
+          "line_number": 811
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "<synth_root>/<model>_<CFG>_seed<SEED>/manifest.json",
+          "line_number": 813
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "<synth_root>/seed<seed>/manifest.json",
+          "line_number": 815
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "<synth_root>/manifest.json",
+          "line_number": 817
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "explicit = ((config.get(\"run_meta\") or {}).get(\"manifest_path\")) if isinstance(config, dict) else None",
+          "line_number": 819
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "raise FileNotFoundError(f\"Explicit run_meta.manifest_path does not exist: {explicit}\")",
+          "line_number": 823
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "shared = os.path.join(synth_root, \"manifest.json\")",
+          "line_number": 825
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "p = os.path.join(synth_root, config_id, f\"seed{seed}\", \"manifest.json\")",
+          "line_number": 831
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "p2 = os.path.join(synth_root, config_id, \"manifest.json\")",
+          "line_number": 836
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "seed_only = os.path.join(synth_root, f\"seed{seed}\", \"manifest.json\")",
+          "line_number": 846
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "#   {artifacts}/{model}/synthetic/manifest.json",
+          "line_number": 1013
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "# man_path = os.path.join(synth_root, \"manifest.json\")",
+          "line_number": 1014
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "rm[\"manifest_path\"] = man_path",
+          "line_number": 1031
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "# synth_manifest = _Path(synth_root) / \"manifest.json\"",
+          "line_number": 1162
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "# out_path = os.path.join(summaries_dir, f\"summary_{stamp}.json\")",
+          "line_number": 1291
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "out_path = os.path.join(summaries_dir, f\"summary_{stamp}.json\")",
+          "line_number": 1297
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "rec[\"manifest_path\"] = man_path",
+          "line_number": 1779
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "rm[\"manifest_path\"] = man_path",
+          "line_number": 1784
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "# 1) Always patch manifest_path (safe, no dependencies)",
+          "line_number": 1820
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "_cur[\"manifest_path\"] = man_path",
+          "line_number": 1830
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "rm2[\"manifest_path\"] = man_path",
+          "line_number": 1833
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "print(f\"[eval] patched manifest_path into summary: {man_path}\")",
+          "line_number": 1865
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "# --- latest.json ----------------------------------------------------------",
+          "line_number": 1932
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "with open(os.path.join(summaries_dir, \"latest.json\"), \"w\") as fdst:",
+          "line_number": 1937
+        }
+      ],
+      "migration_policy": "protected_do_not_migrate_in_m6_5_1",
+      "path": "eval/runner.py",
+      "sha256": "fec5d8dcf6adbefe16a1532ac852ce5e027747868de1d86c7a4235ea41ebb15c"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "DATA_DIR: /home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1",
+          "line_number": 9
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "papers/paper2_conditional_generation_done_right/configs/paper2_cicmaldroid_fakeclass_seed42.yaml",
+      "sha256": "7ffcfa8bce016ccb7d89f2112ac6c4bed152b2d1ce0e4b766bb22aaf3b5c75d1"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "DATA_DIR: /home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1",
+          "line_number": 9
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "papers/paper2_conditional_generation_done_right/configs/paper2_cicmaldroid_fakeclass_seed43.yaml",
+      "sha256": "d1096b19bb9acec479d546c9e28e3f3d6e615786210bc3ed957247423bc84765"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "DATA_DIR: /home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1",
+          "line_number": 9
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "papers/paper2_conditional_generation_done_right/configs/paper2_cicmaldroid_fakeclass_seed44.yaml",
+      "sha256": "7428f3f8ac2b75663431405a7279191427e517b9ed5f96b4cd7d2d190bad4c93"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "DATA_DIR: /home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1",
+          "line_number": 9
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "papers/paper2_conditional_generation_done_right/configs/paper2_cicmaldroid_fakeclass_smoke_seed42.yaml",
+      "sha256": "fe408358bdec2db8e2691e8bf2a38d5eb27f6ea32f3f9b70ea4d00f6583cc048"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root"
+      ],
+      "classification": "documentation",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "- Prepared data directory: `/home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1`",
+          "line_number": 19
+        }
+      ],
+      "migration_policy": "review_only",
+      "path": "papers/paper2_conditional_generation_done_right/notes/paper2_cicmaldroid_seed42_findings.md",
+      "sha256": "8f2d3b6e6579939107a4cbf7cf14f2ee6e72f7a0e14290030ba2e18abd477f88"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root",
+        "manifest_evidence"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "manifest_path: /home/bruno.fonkeng/gencys/artifacts_paper4_cicmaldroid/gan/synthetic/paper4_cic_baseline_b2000/seed42/policy/class_repair_topk5000/manifest.json",
+          "line_number": 17
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "DATA_DIR: /home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1",
+          "line_number": 21
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_policy_class_repair_topk5000_b2000_s42.yaml",
+      "sha256": "6bfb57c11c8a4de958dbf807ad2f34f3091f25c9ec05ef98bda370788474f9e2"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root",
+        "manifest_evidence"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "manifest_path: /home/bruno.fonkeng/gencys/artifacts_paper4_cicmaldroid/gan/synthetic/paper4_cic_baseline_b2000/seed43/policy/class_repair_topk5000/manifest.json",
+          "line_number": 17
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "DATA_DIR: /home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1",
+          "line_number": 21
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_policy_class_repair_topk5000_b2000_s43.yaml",
+      "sha256": "d41f299796b28c4c59b988090a79d082a5531643bad5dd989d698920cc2ff1e5"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root",
+        "manifest_evidence"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "manifest_path: /home/bruno.fonkeng/gencys/artifacts_paper4_cicmaldroid/gan/synthetic/paper4_cic_baseline_b2000/seed44/policy/class_repair_topk5000/manifest.json",
+          "line_number": 17
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "DATA_DIR: /home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1",
+          "line_number": 21
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_policy_class_repair_topk5000_b2000_s44.yaml",
+      "sha256": "92b26dac369c9960ad30a060f9e76ac8e6537241ccb6093bcfffd210c914b2c6"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root",
+        "manifest_evidence"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "manifest_path: /home/bruno.fonkeng/gencys/artifacts_paper4_cicmaldroid/gan/synthetic/paper4_cic_baseline_b2000/seed42/policy/confidence_ranked_topk1000/manifest.json",
+          "line_number": 16
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "DATA_DIR: /home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1",
+          "line_number": 20
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_policy_confidence_ranked_topk1000_b2000_s42.yaml",
+      "sha256": "53c91a6de02224c9e4ba57ef3552d45e1650ac2c03f4e6b9fb238671cf184d5a"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root",
+        "manifest_evidence"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "manifest_path: /home/bruno.fonkeng/gencys/artifacts_paper4_cicmaldroid/gan/synthetic/paper4_cic_baseline_b2000/seed43/policy/confidence_ranked_topk1000/manifest.json",
+          "line_number": 16
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "DATA_DIR: /home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1",
+          "line_number": 20
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_policy_confidence_ranked_topk1000_b2000_s43.yaml",
+      "sha256": "e84e39d2a055575712baad3b0f359e51a166a9343f2e046d25be1848a1de73ae"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root",
+        "manifest_evidence"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "manifest_path: /home/bruno.fonkeng/gencys/artifacts_paper4_cicmaldroid/gan/synthetic/paper4_cic_baseline_b2000/seed44/policy/confidence_ranked_topk1000/manifest.json",
+          "line_number": 16
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "DATA_DIR: /home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1",
+          "line_number": 20
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_policy_confidence_ranked_topk1000_b2000_s44.yaml",
+      "sha256": "6cb2d9871f86221958e65063a61a15e6917cb80991c8273b8a470b6865f13b1c"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root",
+        "manifest_evidence"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "manifest_path: /home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/seed42/manifest.json",
+          "line_number": 12
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "manifest_path: /home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/seed42/manifest.json",
+          "line_number": 12
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "DATA_DIR: /home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1",
+          "line_number": 16
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_policy_keep_all_b2000_s42.yaml",
+      "sha256": "6e58073d9596a7a6ecd303e187939262cff988bf9a148134b7fdc1aa08cdb212"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root",
+        "manifest_evidence"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "manifest_path: /home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/seed43/manifest.json",
+          "line_number": 12
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "manifest_path: /home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/seed43/manifest.json",
+          "line_number": 12
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "DATA_DIR: /home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1",
+          "line_number": 16
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_policy_keep_all_b2000_s43.yaml",
+      "sha256": "5d4c533912f4c7adf693a12e13efb358d599574c2b6c12a963b4a1a34ae870ff"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root",
+        "manifest_evidence"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "manifest_path: /home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/seed44/manifest.json",
+          "line_number": 12
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "manifest_path: /home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/seed44/manifest.json",
+          "line_number": 12
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "DATA_DIR: /home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1",
+          "line_number": 16
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_policy_keep_all_b2000_s44.yaml",
+      "sha256": "bee81b8dfa7fe6b7abc848383a8cb5e10673d3e6aa1edd2fb187fe9927a12833"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "DATA_DIR: /home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1",
+          "line_number": 14
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_realonly_balanced_s42.yaml",
+      "sha256": "fbd2f5082d961d9001d108f26e0083e0c7d19bb8f6ff5cd86f59cfec24c839d3"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "DATA_DIR: /home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1",
+          "line_number": 14
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_realonly_balanced_s43.yaml",
+      "sha256": "c48ec912e8baea03a110381497e612634d0fcf48565dfdbcf298ed434b0abcb5"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "historical_paper1_root"
+      ],
+      "classification": "configuration_dependency",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "DATA_DIR: /home/bruno.fonkeng/gencys/data/CICMalDroid2020_pipeline_paper1",
+          "line_number": 14
+        }
+      ],
+      "migration_policy": "review_dependency_no_automatic_migration",
+      "path": "papers/paper4_selective_synth_policies/configs/paper4_cic_realonly_balanced_s44.yaml",
+      "sha256": "d102521a371ae690417b2c9d6ec0f784db78eaf4753083a425d239a059bbe95e"
+    },
+    {
+      "accesses": [
+        "read",
+        "reference",
+        "write"
+      ],
+      "categories": [
+        "latest_alias",
+        "manifest_evidence",
+        "timestamped_summary"
+      ],
+      "classification": "historical_evidence_mutator_or_producer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "artifacts/<model>/summaries/summary_*.json so your existing pipeline",
+          "line_number": 6
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "## If user pins a single file (paper1.json / latest.json), patch ONLY that",
+          "line_number": 77
+        },
+        {
+          "access": "read",
+          "category": "timestamped_summary",
+          "line": "# return sorted(sdir.glob(\"summary_*.json\"))",
+          "line_number": 83
+        },
+        {
+          "access": "read",
+          "category": "timestamped_summary",
+          "line": "return sorted(sdir.glob(\"summary_*.json\"))",
+          "line_number": 92
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "# manifest_name = os.environ.get(\"PHASE1_MANIFEST_NAME\", \"manifest.json\").strip()",
+          "line_number": 97
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "return ART / model / \"synthetic\" / \"manifest.json\"",
+          "line_number": 105
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "def _load_manifest_xy(manifest_path: Path, cap_per_class: int, seed: int) -> tuple[np.ndarray, np.ndarray]:",
+          "line_number": 108
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "\"\"\"Loads grayscale PNGs pointed to by manifest.json and returns (x, y_int).\"\"\"",
+          "line_number": 109
+        },
+        {
+          "access": "read",
+          "category": "manifest_evidence",
+          "line": "d = json.loads(manifest_path.read_text())",
+          "line_number": 110
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "raise RuntimeError(f\"manifest has no 'paths': {manifest_path}\")",
+          "line_number": 113
+        }
+      ],
+      "migration_policy": "review_before_any_migration",
+      "path": "scripts/backfill_kid_and_downstream.py",
+      "sha256": "acea9fb0eb9d7ae5f4d27189b2eab90451fa897e79d2b476bebb3d84a55840d3"
+    },
+    {
+      "accesses": [
+        "read",
+        "reference",
+        "write"
+      ],
+      "categories": [
+        "manifest_evidence",
+        "timestamped_summary"
+      ],
+      "classification": "historical_evidence_mutator_or_producer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "man = Path(\"artifacts\")/model/\"synthetic\"/\"manifest.json\"",
+          "line_number": 22
+        },
+        {
+          "access": "read",
+          "category": "timestamped_summary",
+          "line": "files = sorted(sdir.glob(\"summary_*.json\"))",
+          "line_number": 58
+        }
+      ],
+      "migration_policy": "review_before_any_migration",
+      "path": "scripts/backfill_ms_ssim_per_class.py",
+      "sha256": "e1b1704c115ed2d86dedbf9fd74170cf34412b8472d3151cf76dfd0ac770d6b7"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "consolidated_jsonl",
+        "timestamped_summary"
+      ],
+      "classification": "legacy_or_direct_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "# Consolidate per-model summary_*.json \u2192 artifacts/summaries/phase1_summaries.jsonl",
+          "line_number": 3
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "# Consolidate per-model summary_*.json \u2192 artifacts/summaries/phase1_summaries.jsonl",
+          "line_number": 3
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "OUT_JSONL=\"${OUT_JSONL:-artifacts/summaries/phase1_summaries.jsonl}\"",
+          "line_number": 16
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "run_pass \"pass1\" \"artifacts/*/summaries/summary_*.json\" \\",
+          "line_number": 68
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "|| run_pass \"pass2\" \"phase1-artifacts-raw/artifacts/*/summaries/summary_*.json\" \\",
+          "line_number": 69
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "|| run_pass \"pass3\" \"phase1-artifacts-raw/*/summaries/summary_*.json\" \\",
+          "line_number": 70
+        }
+      ],
+      "migration_policy": "candidate_for_future_canonical_migration",
+      "path": "scripts/build_jsonl.sh",
+      "sha256": "52e26c294511d97a467437bb49d2c4b370e5102c30cfbb7566084b06d57078b5"
+    },
+    {
+      "accesses": [
+        "reference",
+        "write"
+      ],
+      "categories": [
+        "timestamped_summary"
+      ],
+      "classification": "historical_evidence_mutator_or_producer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "File path (usually artifacts/<model>/summaries/summary_YYYYMMDD_HHMMSS.json).",
+          "line_number": 99
+        }
+      ],
+      "migration_policy": "review_before_any_migration",
+      "path": "scripts/eval_write_summary.py",
+      "sha256": "6dbeef48adbe14b42d8881a85c74e45fa02bf1a002593684ab3d7ddc4098dcb0"
+    },
+    {
+      "accesses": [
+        "reference",
+        "write"
+      ],
+      "categories": [
+        "canonical_linkage_interface",
+        "latest_alias",
+        "manifest_evidence"
+      ],
+      "classification": "canonical_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "- never treat latest.json as authoritative evidence;",
+          "line_number": 11
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "latest.json != AUTHORITATIVE EVIDENCE",
+          "line_number": 23
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "\"studies/paper01_benchmark/execution_evidence\"",
+          "line_number": 58
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "if Path(str(summary[\"path\"])).name == \"latest.json\":",
+          "line_number": 326
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "f\"{audit_exp['experiment_id']}: latest.json cannot be accepted\"",
+          "line_number": 328
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "seed_manifest = manifest_entry(manifests, \"seed_specific_manifest\")",
+          "line_number": 660
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "\"seed_specific\": seed_manifest,",
+          "line_number": 790
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "if accepted_summary_path.name == \"latest.json\":",
+          "line_number": 848
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "f\"{experiment['experiment_id']}: latest.json is not authoritative\"",
+          "line_number": 850
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "print(f\"[M6.4.2B] latest.json aliases observed: {latest_aliases}\")",
+          "line_number": 1125
+        }
+      ],
+      "migration_policy": "already_canonical",
+      "path": "scripts/generate_paper01_execution_evidence_linkage.py",
+      "sha256": "6eebeb907b81461f631038f6790f01960ec1d1061cc80715dabc0c867b524ddb"
+    },
+    {
+      "accesses": [
+        "read",
+        "reference",
+        "write"
+      ],
+      "categories": [
+        "authoritative_score_table",
+        "latest_alias",
+        "manifest_evidence"
+      ],
+      "classification": "governance_auditor",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "MISSING SEED MANIFEST != MISSING EXPERIMENT",
+          "line_number": 15
+        },
+        {
+          "access": "read",
+          "category": "manifest_evidence",
+          "line": "for path in synthetic_root.rglob(\"manifest.json\"):",
+          "line_number": 574
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "if path.name == \"manifest.json\":",
+          "line_number": 624
+        },
+        {
+          "access": "reference",
+          "category": "authoritative_score_table",
+          "line": "Extract the exact metric semantics used by phase1_scores_dedup.csv.",
+          "line_number": 806
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "latest.json is a compatibility/convenience alias and MUST NOT be counted",
+          "line_number": 961
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "latest.json IS NOT AUTHORITATIVE EVIDENCE.",
+          "line_number": 966
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "if path.name == \"latest.json\":",
+          "line_number": 1015
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "\"MISSING SEED MANIFEST != MISSING EXPERIMENT\",",
+          "line_number": 1183
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "\"latest.json IS NOT AUTHORITATIVE EVIDENCE\",",
+          "line_number": 1186
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "\"| Experiment | Run ID | Seed manifest | Shared root manifest | Synthetic | Layout | Layout counts | Checkpoints | Summaries | latest.json aliases | Exact accepted summary | Logs | SHA1-bound summary/log | Multi-wave |\",",
+          "line_number": 1273
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "\"| Experiment | Run ID | Seed manifest | Shared root manifest | Synthetic | Layout | Layout counts | Checkpoints | Summaries | latest.json aliases | Exact accepted summary | Logs | SHA1-bound summary/log | Multi-wave |\",",
+          "line_number": 1273
+        }
+      ],
+      "migration_policy": "preserve_governance_tool",
+      "path": "scripts/inventory_paper01_execution_evidence.py",
+      "sha256": "cc37788c3e6271d8ae11caba98f6e0801b9ea232f7ca9658032c3b5ca2bbdd07"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "consolidated_jsonl"
+      ],
+      "classification": "legacy_or_direct_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "[--src artifacts/summaries/phase1_summaries.jsonl] \\",
+          "line_number": 15
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "ap.add_argument(\"--src\", default=\"artifacts/summaries/phase1_summaries.jsonl\")",
+          "line_number": 65
+        }
+      ],
+      "migration_policy": "candidate_for_future_canonical_migration",
+      "path": "scripts/jsonl_to_csv.py",
+      "sha256": "23f4b5b3e9dd44125a352cc0f2fc5c679c43c7d301dc94df42beb0783695bb7e"
+    },
+    {
+      "accesses": [
+        "read"
+      ],
+      "categories": [
+        "timestamped_summary"
+      ],
+      "classification": "legacy_or_direct_consumer",
+      "evidence": [
+        {
+          "access": "read",
+          "category": "timestamped_summary",
+          "line": "files += glob.glob(f\"{arts_root}/{m}/summaries/summary_*.json\")",
+          "line_number": 93
+        }
+      ],
+      "migration_policy": "candidate_for_future_canonical_migration",
+      "path": "scripts/metrics/aggregate.py",
+      "sha256": "e5f98d3a8dfe75fa71da0da1a95bdf51c585fa507ee679452293e8501f0452e2"
+    },
+    {
+      "accesses": [
+        "read",
+        "reference",
+        "write"
+      ],
+      "categories": [
+        "latest_alias",
+        "manifest_evidence",
+        "timestamped_summary"
+      ],
+      "classification": "historical_evidence_mutator_or_producer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "def _load_manifest(manifest_path: Path) -> Dict[str, Any]:",
+          "line_number": 127
+        },
+        {
+          "access": "read",
+          "category": "manifest_evidence",
+          "line": "man = json.loads(manifest_path.read_text())",
+          "line_number": 128
+        },
+        {
+          "access": "read",
+          "category": "timestamped_summary",
+          "line": "files = sorted(summ_dir.glob(\"summary_*.json\"))",
+          "line_number": 213
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "latest_path = files[-1] if files else (summ_dir / \"summary_manual.json\")",
+          "line_number": 214
+        },
+        {
+          "access": "write",
+          "category": "latest_alias",
+          "line": "(summ_dir / \"latest.json\").write_text(json.dumps(rec, indent=2))",
+          "line_number": 233
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "man_path = artifacts / args.model / \"synthetic\" / \"manifest.json\"",
+          "line_number": 252
+        }
+      ],
+      "migration_policy": "review_before_any_migration",
+      "path": "scripts/metrics/local_fid_kid.py",
+      "sha256": "e4007a260d4481721452f71450fc45b7708b984bd7b413317e9128fb39743877"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "timestamped_summary"
+      ],
+      "classification": "legacy_or_direct_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "pat = os.path.expanduser(f\"~/gencys/artifacts/{m}/summaries/summary_*.json\")",
+          "line_number": 5
+        }
+      ],
+      "migration_policy": "candidate_for_future_canonical_migration",
+      "path": "scripts/metrics/print_cfid_table.py",
+      "sha256": "7f4f2e4988ed1224a83893764397c6315b930a272972dcf2ae211af034cd87f4"
+    },
+    {
+      "accesses": [
+        "read",
+        "reference",
+        "write"
+      ],
+      "categories": [
+        "timestamped_summary"
+      ],
+      "classification": "historical_evidence_mutator_or_producer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "artifacts/*/summaries/summary_*.json",
+          "line_number": 8
+        },
+        {
+          "access": "read",
+          "category": "timestamped_summary",
+          "line": "files = sorted(glob.glob(\"artifacts/*/summaries/summary_*.json\"))",
+          "line_number": 120
+        }
+      ],
+      "migration_policy": "review_before_any_migration",
+      "path": "scripts/normalize_summaries.py",
+      "sha256": "dfdf9cfb591cf67592d4b735ecf1650359ec79ee837a5a0ecacea28d5b86a8b2"
+    },
+    {
+      "accesses": [
+        "read",
+        "write"
+      ],
+      "categories": [
+        "timestamped_summary"
+      ],
+      "classification": "historical_evidence_mutator_or_producer",
+      "evidence": [
+        {
+          "access": "read",
+          "category": "timestamped_summary",
+          "line": "files = sorted((ART/m/\"summaries\").glob(\"summary_*.json\"))",
+          "line_number": 10
+        }
+      ],
+      "migration_policy": "review_before_any_migration",
+      "path": "scripts/phase1_html.py",
+      "sha256": "55cc5e7c9c3e3d09c09fb2ee2f95b3eb5bfbf994dd059af11161b81050ad2ded"
+    },
+    {
+      "accesses": [
+        "read",
+        "write"
+      ],
+      "categories": [
+        "timestamped_summary"
+      ],
+      "classification": "historical_evidence_mutator_or_producer",
+      "evidence": [
+        {
+          "access": "read",
+          "category": "timestamped_summary",
+          "line": "files = sorted(sdir.glob(\"summary_*.json\"))",
+          "line_number": 12
+        }
+      ],
+      "migration_policy": "review_before_any_migration",
+      "path": "scripts/phase1_report.py",
+      "sha256": "e163bc289cde5cd1a5927aa8423916e4222244eb229e1592e7587e795532c86f"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "consolidated_jsonl"
+      ],
+      "classification": "legacy_or_direct_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "DEFAULT_JSONL = Path(\"artifacts/summaries/phase1_summaries.jsonl\")",
+          "line_number": 38
+        }
+      ],
+      "migration_policy": "candidate_for_future_canonical_migration",
+      "path": "scripts/plots/_common.py",
+      "sha256": "c6d62669d0d899087238833c60663246f18b83e480f3f6144677165056bdcfaa"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "consolidated_jsonl"
+      ],
+      "classification": "legacy_or_direct_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "- Reads consolidated JSONL (phase1_summaries.jsonl)",
+          "line_number": 7
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "ap.add_argument(\"--jsonl\", default=str(PLOT_OUT_DIR.parent / \"summaries\" / \"phase1_summaries.jsonl\"),",
+          "line_number": 146
+        }
+      ],
+      "migration_policy": "candidate_for_future_canonical_migration",
+      "path": "scripts/plots/core/calibration_curves.py",
+      "sha256": "36cbdea020cb077c7cf37b56fb088edd79b507c62531323d6dd124422f4d5f5f"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "consolidated_jsonl"
+      ],
+      "classification": "legacy_or_direct_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "artifacts/summaries/phase1_summaries.jsonl",
+          "line_number": 13
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "ap.add_argument(\"--jsonl\", default=str(PLOT_OUT_DIR.parent / \"summaries\" / \"phase1_summaries.jsonl\"),",
+          "line_number": 206
+        }
+      ],
+      "migration_policy": "candidate_for_future_canonical_migration",
+      "path": "scripts/plots/core/pareto_downstream_vs_similarity.py",
+      "sha256": "006fb3f93cdcee44ce0c939d084ce133abd4e43bbc917b40054ad665ff8df49a"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "consolidated_jsonl"
+      ],
+      "classification": "legacy_or_direct_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "- artifacts/summaries/phase1_summaries.jsonl  (one JSON object per line)",
+          "line_number": 17
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "default=\"artifacts/summaries/phase1_summaries.jsonl\",",
+          "line_number": 293
+        }
+      ],
+      "migration_policy": "candidate_for_future_canonical_migration",
+      "path": "scripts/plots/core/per_class_delta_f1.py",
+      "sha256": "a3ff14d06a8e54096ab488cab586ee975af88dc280bf585e5dd344d2e250ec11"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "consolidated_jsonl"
+      ],
+      "classification": "legacy_or_direct_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "- artifacts/summaries/phase1_summaries.jsonl",
+          "line_number": 19
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "default=\"artifacts/summaries/phase1_summaries.jsonl\",",
+          "line_number": 216
+        }
+      ],
+      "migration_policy": "candidate_for_future_canonical_migration",
+      "path": "scripts/plots/diversity/ms_ssim_hist.py",
+      "sha256": "cf0b7b358d209bc29b1d580f91cd4b4581d0b1b6fa2db8bd517fbd15b13c854a"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "consolidated_jsonl"
+      ],
+      "classification": "legacy_or_direct_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "- artifacts/summaries/phase1_summaries.jsonl (or another JSONL via --jsonl)",
+          "line_number": 10
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "ap.add_argument(\"--jsonl\", default=\"artifacts/summaries/phase1_summaries.jsonl\", help=\"Path to consolidated JSONL file\")",
+          "line_number": 346
+        }
+      ],
+      "migration_policy": "candidate_for_future_canonical_migration",
+      "path": "scripts/plots/diversity/nn_distance_distrib.py",
+      "sha256": "a192fa7e9902c09b8dc7c4eb3fafd2c5d6479f0403e5beec1bbed8defa0fe720"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "consolidated_jsonl"
+      ],
+      "classification": "legacy_or_direct_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "- JSONL is one-run-per-line (artifacts/summaries/phase1_summaries.jsonl).",
+          "line_number": 25
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "ap.add_argument(\"--jsonl\", default=\"artifacts/summaries/phase1_summaries.jsonl\",",
+          "line_number": 267
+        }
+      ],
+      "migration_policy": "candidate_for_future_canonical_migration",
+      "path": "scripts/plots/hparams/ablation_bars.py",
+      "sha256": "345d1b63c6f06d6abcdac08a5cc0ff1e73246447a105ed30812ab487d73119cf"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "consolidated_jsonl"
+      ],
+      "classification": "legacy_or_direct_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "- Reads consolidated JSONL: artifacts/summaries/phase1_summaries.jsonl",
+          "line_number": 13
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "ap.add_argument(\"--jsonl\", default=\"artifacts/summaries/phase1_summaries.jsonl\",",
+          "line_number": 245
+        }
+      ],
+      "migration_policy": "candidate_for_future_canonical_migration",
+      "path": "scripts/plots/hparams/parallel_coords.py",
+      "sha256": "7d4ee775e8754c5b1766921687bf88ea42c2111ece66dbca787c866224d68383"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "consolidated_jsonl"
+      ],
+      "classification": "legacy_or_direct_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "--jsonl artifacts/summaries/phase1_summaries.jsonl",
+          "line_number": 44
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "ap.add_argument(\"--jsonl\", default=\"artifacts/summaries/phase1_summaries.jsonl\",",
+          "line_number": 221
+        }
+      ],
+      "migration_policy": "candidate_for_future_canonical_migration",
+      "path": "scripts/plots/imbalance/class_counts_before_after.py",
+      "sha256": "976c87f437b82f6502e72f10dcf6e8f2dad2823f858a6fa5264b1dae0b457620"
+    },
+    {
+      "accesses": [
+        "read",
+        "reference"
+      ],
+      "categories": [
+        "consolidated_jsonl",
+        "manifest_evidence"
+      ],
+      "classification": "legacy_or_direct_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "\"\"\"Try to fetch manifest_path for the given model from JSONL rows.\"\"\"",
+          "line_number": 96
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "if \"model\" not in df.columns or \"manifest_path\" not in df.columns:",
+          "line_number": 97
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "rows = df[df[\"model\"].astype(str) == model][\"manifest_path\"].dropna()",
+          "line_number": 99
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "def _synth_paths_from_manifest(manifest_path: Path, limit: int) -> List[Path]:",
+          "line_number": 106
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "\"\"\"Parse manifest.json and return up to `limit` absolute Paths (best-effort).\"\"\"",
+          "line_number": 107
+        },
+        {
+          "access": "read",
+          "category": "manifest_evidence",
+          "line": "data = json.loads(manifest_path.read_text())",
+          "line_number": 109
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "p = (manifest_path.parent / p).resolve()",
+          "line_number": 115
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "ap.add_argument(\"--jsonl\", default=\"artifacts/summaries/phase1_summaries.jsonl\",",
+          "line_number": 357
+        }
+      ],
+      "migration_policy": "candidate_for_future_canonical_migration",
+      "path": "scripts/plots/imbalance/simple_stats_sanity.py",
+      "sha256": "9a13be87ac22d5c9474aac9daa680890a3f2f22ead22d381db4dd574e241961a"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "consolidated_jsonl",
+        "manifest_evidence"
+      ],
+      "classification": "legacy_or_direct_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "- Consolidated JSONL: artifacts/summaries/phase1_summaries.jsonl",
+          "line_number": 19
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "(used to locate the latest manifest_path per model).",
+          "line_number": 20
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "- Synth manifests: artifacts/<model>/synthetic/manifest.json",
+          "line_number": 21
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "--jsonl artifacts/summaries/phase1_summaries.jsonl",
+          "line_number": 44
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "if \"model\" not in df.columns or \"manifest_path\" not in df.columns:",
+          "line_number": 98
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "rows = df[df[\"model\"].astype(str) == model][\"manifest_path\"].dropna()",
+          "line_number": 100
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "ap.add_argument(\"--jsonl\", default=\"artifacts/summaries/phase1_summaries.jsonl\", help=\"Consolidated JSONL path.\")",
+          "line_number": 318
+        }
+      ],
+      "migration_policy": "candidate_for_future_canonical_migration",
+      "path": "scripts/plots/qual/class_triptychs.py",
+      "sha256": "64a759a6607dd2507660d18be9aeef0ff955cae3d5c180dbefe88bb848daf737"
+    },
+    {
+      "accesses": [
+        "reference",
+        "write"
+      ],
+      "categories": [
+        "consolidated_jsonl",
+        "latest_alias",
+        "timestamped_summary"
+      ],
+      "classification": "historical_evidence_mutator_or_producer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "- Scans for summary_*.json under artifacts/*/summaries/ (configurable).",
+          "line_number": 9
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "summary_*.json / latest.json. This script ensures those audit fields are preserved in",
+          "line_number": 49
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "summary_*.json / latest.json. This script ensures those audit fields are preserved in",
+          "line_number": 49
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "phase1_summaries.jsonl by:",
+          "line_number": 50
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "default=\"artifacts/*/summaries/summary_*.json\",",
+          "line_number": 74
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "default=\"artifacts/summaries/phase1_summaries.jsonl\",",
+          "line_number": 79
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "summary_YYYYMMDD_HHMMSS.json",
+          "line_number": 151
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "print(\"No summary_*.json files found.\", file=sys.stderr)",
+          "line_number": 347
+        }
+      ],
+      "migration_policy": "review_before_any_migration",
+      "path": "scripts/summaries_to_jsonl.py",
+      "sha256": "fcdbe26decb66d1aead775deedbfcc4aa496e5ed5fb396b058510f897c18dad0"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "canonical_linkage_interface"
+      ],
+      "classification": "canonical_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "\"from trustforge.paper01_execution_evidence \"",
+          "line_number": 837
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "\"import load_paper01_linkage_study; \"",
+          "line_number": 838
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "\"study = load_paper01_linkage_study(Path.cwd()); \"",
+          "line_number": 839
+        }
+      ],
+      "migration_policy": "already_canonical",
+      "path": "scripts/trustforge_doctor.py",
+      "sha256": "c753a83bd1c88bdf26ec92be0131eec7fdc2cdd9d3e04f13d48092b0fc60a1c3"
+    },
+    {
+      "accesses": [
+        "read",
+        "reference"
+      ],
+      "categories": [
+        "manifest_evidence",
+        "timestamped_summary"
+      ],
+      "classification": "legacy_or_direct_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "artifacts/<model>/synthetic/<model>_<CFG>_seed<SEED>/manifest.json",
+          "line_number": 8
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "- Latest eval summary (best-effort): finds newest summary_*.json containing run_meta.manifest_path",
+          "line_number": 11
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "- Latest eval summary (best-effort): finds newest summary_*.json containing run_meta.manifest_path",
+          "line_number": 11
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "manifest_path: Path",
+          "line_number": 41
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "Best-effort: among summary_*.json in model summaries dir, return newest file",
+          "line_number": 60
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "whose .run_meta.manifest_path or .manifest_path matches expected_manifest.",
+          "line_number": 61
+        },
+        {
+          "access": "read",
+          "category": "timestamped_summary",
+          "line": "candidates = sorted(model_summaries_dir.glob(\"summary_*.json\"), key=lambda p: p.stat().st_mtime, reverse=True)",
+          "line_number": 63
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "mp = obj.get(\"manifest_path\")",
+          "line_number": 69
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "rmp = rm.get(\"manifest_path\")",
+          "line_number": 73
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "manifest = run_dir / \"manifest.json\"",
+          "line_number": 120
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "manifest_path=manifest,",
+          "line_number": 142
+        }
+      ],
+      "migration_policy": "candidate_for_future_canonical_migration",
+      "path": "scripts/tuning_dashboard.py",
+      "sha256": "fe06a81b108677985351b883a7b59e94013be08063255d8be380b245584fc2a5"
+    },
+    {
+      "accesses": [
+        "reference",
+        "write"
+      ],
+      "categories": [
+        "consolidated_jsonl",
+        "manifest_evidence"
+      ],
+      "classification": "historical_evidence_mutator_or_producer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "--in artifacts/summaries/phase1_summaries.jsonl \\",
+          "line_number": 15
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "def count_synth_from_manifest(manifest_path: Path) -> Dict[int, int]:",
+          "line_number": 43
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "if not manifest_path or not manifest_path.exists():",
+          "line_number": 44
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "with open(manifest_path, \"r\", encoding=\"utf-8\") as f:",
+          "line_number": 46
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "ap.add_argument(\"--in\",  dest=\"inp\", required=True, help=\"Input JSONL (e.g., artifacts/summaries/phase1_summaries.jsonl)\")",
+          "line_number": 71
+        }
+      ],
+      "migration_policy": "review_before_any_migration",
+      "path": "scripts/utils/backfill_counts.py",
+      "sha256": "01bbed896c7c4f6fc67bf5a269cd7e05b9453ac8b58654eecd6333fb677a9066"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "canonical_linkage_interface",
+        "latest_alias"
+      ],
+      "classification": "canonical_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "latest.json != AUTHORITATIVE EVIDENCE",
+          "line_number": 14
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "DEFAULT_LINKAGE_DIR = Path(\"studies/paper01_benchmark/execution_evidence\")",
+          "line_number": 33
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "if accepted_summary_path.name == \"latest.json\":",
+          "line_number": 183
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "f\"{path}: latest.json cannot be authoritative evidence\"",
+          "line_number": 185
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "def load_paper01_linkage_study(",
+          "line_number": 439
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "- latest.json authority safeguards;",
+          "line_number": 455
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "study = load_paper01_linkage_study(repo_root)",
+          "line_number": 495
+        }
+      ],
+      "migration_policy": "already_canonical",
+      "path": "src/trustforge/paper01_execution_evidence.py",
+      "sha256": "52ad70e04da7e6263dc43218ef595db5b7e43aa5a6b431d78337a662da53a5ce"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "authoritative_score_table",
+        "historical_paper1_root"
+      ],
+      "classification": "documentation",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "authoritative_score_table",
+          "line": "`/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/phase1_scores_dedup.csv`",
+          "line_number": 89
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "`/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/phase1_scores_dedup.csv`",
+          "line_number": 89
+        },
+        {
+          "access": "reference",
+          "category": "authoritative_score_table",
+          "line": "`/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/phase1_scores_dedup.csv`",
+          "line_number": 97
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "`/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/phase1_scores_dedup.csv`",
+          "line_number": 97
+        }
+      ],
+      "migration_policy": "review_only",
+      "path": "studies/paper01_benchmark/README.md",
+      "sha256": "5b75e9acac001b83ca6ec033f91c3fa3b64a01594b9cf0cb39e73d05cf338c59"
+    },
+    {
+      "accesses": [
+        "read",
+        "reference"
+      ],
+      "categories": [
+        "manifest_evidence",
+        "timestamped_summary"
+      ],
+      "classification": "test_or_ci",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "manifest = Path(synth_root) / \"manifest.json\"",
+          "line_number": 34
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "# eval writes summary_*.json under artifacts/<model>/summaries/",
+          "line_number": 37
+        },
+        {
+          "access": "read",
+          "category": "timestamped_summary",
+          "line": "summaries = sorted(summaries_dir.glob(\"summary_*.json\"))",
+          "line_number": 47
+        }
+      ],
+      "migration_policy": "review_only",
+      "path": "tests/test_smoke.py",
+      "sha256": "ef1a2255b29275ffc083bfc6a54b2f316b54b42592716ff62d4aa24b97b4f5c2"
+    },
+    {
+      "accesses": [
+        "reference",
+        "write"
+      ],
+      "categories": [
+        "canonical_linkage_interface",
+        "latest_alias"
+      ],
+      "classification": "canonical_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "from trustforge.paper01_execution_evidence import (",
+          "line_number": 9
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "load_paper01_linkage_study,",
+          "line_number": 11
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "study = load_paper01_linkage_study(REPO_ROOT)",
+          "line_number": 71
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "study = load_paper01_linkage_study(REPO_ROOT)",
+          "line_number": 79
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "study = load_paper01_linkage_study(REPO_ROOT)",
+          "line_number": 95
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "study = load_paper01_linkage_study(REPO_ROOT)",
+          "line_number": 102
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "study = load_paper01_linkage_study(REPO_ROOT)",
+          "line_number": 114
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "study = load_paper01_linkage_study(REPO_ROOT)",
+          "line_number": 124
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "load_paper01_linkage_study(repo)",
+          "line_number": 154
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "\"/historical/summaries/latest.json\"",
+          "line_number": 169
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "match=\"latest.json\",",
+          "line_number": 183
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "load_paper01_linkage_study(repo)",
+          "line_number": 185
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "load_paper01_linkage_study(repo)",
+          "line_number": 208
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "load_paper01_linkage_study(repo)",
+          "line_number": 226
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "load_paper01_linkage_study(repo)",
+          "line_number": 245
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "load_paper01_linkage_study(repo)",
+          "line_number": 266
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "load_paper01_linkage_study(repo)",
+          "line_number": 287
+        },
+        {
+          "access": "reference",
+          "category": "canonical_linkage_interface",
+          "line": "load_paper01_linkage_study(repo)",
+          "line_number": 314
+        }
+      ],
+      "migration_policy": "already_canonical",
+      "path": "tests/trustforge/test_paper01_execution_evidence.py",
+      "sha256": "398e8c570b5b85cbb454cd2270c9ac6e5ddd0ef1975b1e163a7c464d53f88b73"
+    },
+    {
+      "accesses": [
+        "reference",
+        "write"
+      ],
+      "categories": [
+        "latest_alias",
+        "timestamped_summary"
+      ],
+      "classification": "test_or_ci",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "timestamped = summaries_root / \"summary_20260410_091359.json\"",
+          "line_number": 113
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "latest = summaries_root / \"latest.json\"",
+          "line_number": 114
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "assert Path(historical[0].path).name == \"summary_20260410_091359.json\"",
+          "line_number": 150
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "assert Path(aliases[0].path).name == \"latest.json\"",
+          "line_number": 154
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "# latest.json may survive as an observed compatibility alias, but must",
+          "line_number": 270
+        }
+      ],
+      "migration_policy": "review_only",
+      "path": "tests/trustforge/test_paper01_execution_evidence_inventory.py",
+      "sha256": "f820e14ffe6b8bb436096a5ca3e0032a2f3f52c95757e59a7a4d47cfb949bc4a"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "latest_alias"
+      ],
+      "classification": "test_or_ci",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "assert accepted_path.name != \"latest.json\"",
+          "line_number": 116
+        }
+      ],
+      "migration_policy": "review_only",
+      "path": "tests/trustforge/test_paper01_execution_evidence_linkage_generator.py",
+      "sha256": "afdc852eb56a16cace5acfad274a4606cec331c91c80d1076f86cdf8ca4651f9"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "authoritative_score_table",
+        "historical_paper1_root",
+        "latest_alias",
+        "manifest_evidence",
+        "timestamped_summary"
+      ],
+      "classification": "test_or_ci",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "\"/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/\"",
+          "line_number": 38
+        },
+        {
+          "access": "reference",
+          "category": "authoritative_score_table",
+          "line": "\"phase1_scores_dedup.csv\"",
+          "line_number": 39
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "\"/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/\"",
+          "line_number": 67
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "\"gaussianmixture/summaries/summary_20260410_091359.json\"",
+          "line_number": 68
+        },
+        {
+          "access": "reference",
+          "category": "historical_paper1_root",
+          "line": "\"/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/\"",
+          "line_number": 172
+        },
+        {
+          "access": "reference",
+          "category": "manifest_evidence",
+          "line": "\"gaussianmixture/synthetic/manifest.json\"",
+          "line_number": 173
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "\"/historical/summaries/latest.json\"",
+          "line_number": 395
+        }
+      ],
+      "migration_policy": "review_only",
+      "path": "tests/trustforge/test_paper01_execution_evidence_linkage_schema.py",
+      "sha256": "da2b5bae55e1255ed5c0e9f31c542123a9a42cf450a1d08a8de93f55eb5d0be2"
+    },
+    {
+      "accesses": [
+        "reference",
+        "write"
+      ],
+      "categories": [
+        "consolidated_jsonl",
+        "timestamped_summary"
+      ],
+      "classification": "historical_evidence_mutator_or_producer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "- phase1_summaries.jsonl",
+          "line_number": 8
+        },
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "JSONL_NAME = \"phase1_summaries.jsonl\"",
+          "line_number": 56
+        },
+        {
+          "access": "reference",
+          "category": "timestamped_summary",
+          "line": "if \"summaries\" not in summary_path.parts:",
+          "line_number": 189
+        }
+      ],
+      "migration_policy": "review_before_any_migration",
+      "path": "tools/aggregate_phase1.py",
+      "sha256": "28bdcdfa79e3409040b52ecb6eedeaee3ddd6e1dd1917289387b88c88c440bd7"
+    },
+    {
+      "accesses": [
+        "reference",
+        "write"
+      ],
+      "categories": [
+        "consolidated_jsonl"
+      ],
+      "classification": "historical_evidence_mutator_or_producer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "consolidated_jsonl",
+          "line": "OUT_JSONL = Path(os.getenv(\"OUT_JSONL\", \"artifacts/summaries/phase1_summaries.jsonl\"))",
+          "line_number": 7
+        }
+      ],
+      "migration_policy": "review_before_any_migration",
+      "path": "tools/build_paper1_jsonl.py",
+      "sha256": "f0bf96bcf90a445a608f0606d0ad5481fa58dcc7eb55ffe40b7160f97259f5b4"
+    },
+    {
+      "accesses": [
+        "reference",
+        "write"
+      ],
+      "categories": [
+        "latest_alias"
+      ],
+      "classification": "historical_evidence_mutator_or_producer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "#   latest.json  -> whatever is newest (can be 25/class after smoke)",
+          "line_number": 15
+        },
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "SUMMARY_NAME = os.environ.get(\"PHASE1_SUMMARY_NAME\", \"latest.json\").strip()",
+          "line_number": 17
+        }
+      ],
+      "migration_policy": "review_before_any_migration",
+      "path": "tools/build_phase1_scores.py",
+      "sha256": "4db3d8e33f7fc5c8ac422f8ee525bb72712bf983daa1604bdc37cd4e7c2c823c"
+    },
+    {
+      "accesses": [
+        "reference"
+      ],
+      "categories": [
+        "latest_alias"
+      ],
+      "classification": "legacy_or_direct_consumer",
+      "evidence": [
+        {
+          "access": "reference",
+          "category": "latest_alias",
+          "line": "#   latest.json -> newest run (dev/smoke)",
+          "line_number": 12
+        }
+      ],
+      "migration_policy": "candidate_for_future_canonical_migration",
+      "path": "tools/check_phase1_integrity.py",
+      "sha256": "3ec3bab36b41c05c7b392627b07af547fbffbbbad3b79da09e2ee1f3fd3dc6f3"
+    },
+    {
+      "accesses": [
+        "read",
+        "write"
+      ],
+      "categories": [
+        "timestamped_summary"
+      ],
+      "classification": "historical_evidence_mutator_or_producer",
+      "evidence": [
+        {
+          "access": "read",
+          "category": "timestamped_summary",
+          "line": "cands = sorted((model_dir / \"summaries\").glob(\"summary_*.json\"), reverse=True)",
+          "line_number": 20
+        }
+      ],
+      "migration_policy": "review_before_any_migration",
+      "path": "tools/freeze_phase1_snapshots.py",
+      "sha256": "b3ab5fe4feeba9053a61fa21f1178add11ef4c4aa97f12d7adf65b753927ded2"
+    }
+  ],
+  "repository_head": "1cc580ec2c47e6108a12fb429adb3bdb8d8f1ff8",
+  "study_id": "paper01_benchmark",
+  "summary": {
+    "categories": {
+      "authoritative_score_table": 4,
+      "canonical_linkage_interface": 4,
+      "consolidated_jsonl": 21,
+      "historical_paper1_root": 27,
+      "latest_alias": 17,
+      "manifest_evidence": 22,
+      "timestamped_summary": 22
+    },
+    "classifications": {
+      "canonical_consumer": 4,
+      "configuration_dependency": 22,
+      "documentation": 7,
+      "governance_auditor": 1,
+      "historical_evidence_mutator_or_producer": 14,
+      "historical_pipeline": 1,
+      "legacy_or_direct_consumer": 17,
+      "test_or_ci": 5
+    },
+    "migration_policies": {
+      "already_canonical": 4,
+      "candidate_for_future_canonical_migration": 17,
+      "preserve_governance_tool": 1,
+      "protected_do_not_migrate_in_m6_5_1": 1,
+      "review_before_any_migration": 14,
+      "review_dependency_no_automatic_migration": 22,
+      "review_only": 12
+    }
+  }
+}

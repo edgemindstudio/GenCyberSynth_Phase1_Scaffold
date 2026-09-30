@@ -1,22 +1,77 @@
 #!/usr/bin/env bash
 # scripts/build_jsonl.sh
-# Consolidate per-model summary_*.json → artifacts/summaries/phase1_summaries.jsonl
-# Works both locally and in CI (handles several artifact layouts).
 #
-# Behavior:
-#   - Default: idempotent append (summaries_to_jsonl.py skips already-ingested source_path)
-#   - Full rebuild: RESET_JSONL=1 forces a clean rebuild (passes --reset)
+# Transitional Paper 1 JSONL compatibility wrapper.
 #
-# Exit codes:
-#   - summaries_to_jsonl.py: 0 = wrote >=1 line, 2 = wrote 0 lines (no new files)
-#   - We treat 0 and 2 as success.
+# Canonical mode:
+#   PHASE1_DATASET and PHASE1_SEED are both set.
+#   Authority comes from TrustForge canonical linkage.
+#
+# Legacy compatibility mode:
+#   Neither variable is set.
+#   Historical/CI glob collection behavior is preserved.
+#
+# A partial scientific identity fails closed.
 
 set -euo pipefail
 
 OUT_JSONL="${OUT_JSONL:-artifacts/summaries/phase1_summaries.jsonl}"
 SCHEMA_PATH="${SCHEMA_PATH:-gcs-core/gcs_core/schemas/eval_summary.lite.schema.json}"
+REPO_ROOT="${REPO_ROOT:-$(pwd)}"
+PYTHON_BIN="${PYTHON:-python}"
 
-echo "Building consolidated JSONL…"
+dataset="${PHASE1_DATASET:-}"
+seed="${PHASE1_SEED:-}"
+
+if [[ -n "${dataset}" || -n "${seed}" ]]; then
+  if [[ -z "${dataset}" ]]; then
+    echo "PHASE1_DATASET is required when PHASE1_SEED is set" >&2
+    exit 2
+  fi
+  if [[ -z "${seed}" ]]; then
+    echo "PHASE1_SEED is required when PHASE1_DATASET is set" >&2
+    exit 2
+  fi
+
+  echo "Building canonical Paper 1 JSONL compatibility export…"
+  echo "[canonical] dataset=${dataset} seed=${seed}"
+
+  cmd=(
+    "${PYTHON_BIN}"
+    scripts/summaries_to_jsonl.py
+    --canonical
+    --repo-root "${REPO_ROOT}"
+    --dataset "${dataset}"
+    --seed "${seed}"
+    --out "${OUT_JSONL}"
+  )
+
+  if [[ -f "${SCHEMA_PATH}" ]]; then
+    echo "Using schema: ${SCHEMA_PATH}"
+    cmd+=(--schema "${SCHEMA_PATH}")
+  else
+    echo "Schema not found → skipping JSON Schema validation"
+  fi
+
+  if [[ "${RESET_JSONL:-0}" == "1" ]]; then
+    cmd+=(--reset)
+  fi
+
+  set +e
+  PYTHONPATH="${REPO_ROOT}/src" "${cmd[@]}"
+  rc=$?
+  set -e
+
+  if [[ "${rc}" -eq 0 || "${rc}" -eq 2 ]]; then
+    echo "Built ${OUT_JSONL}"
+    exit 0
+  fi
+
+  echo "ERROR: canonical summaries_to_jsonl.py failed (exit=${rc})" >&2
+  exit "${rc}"
+fi
+
+echo "Building consolidated JSONL in legacy compatibility mode…"
 
 run_pass () {
   local label="$1"
@@ -25,12 +80,13 @@ run_pass () {
   if compgen -G "${glob}" >/dev/null; then
     echo "[${label}] ${glob}"
 
-    # Build command as an array to avoid accidental empty args.
-    cmd=(python scripts/summaries_to_jsonl.py
-         --glob "${glob}"
-         --out  "${OUT_JSONL}")
+    cmd=(
+      "${PYTHON_BIN}"
+      scripts/summaries_to_jsonl.py
+      --glob "${glob}"
+      --out "${OUT_JSONL}"
+    )
 
-    # Optional schema
     if [[ -f "${SCHEMA_PATH}" ]]; then
       echo "Using schema: ${SCHEMA_PATH}"
       cmd+=(--schema "${SCHEMA_PATH}")
@@ -38,12 +94,10 @@ run_pass () {
       echo "Schema not found → skipping JSON Schema validation (fast path)"
     fi
 
-    # Optional reset (only when explicitly requested)
     if [[ "${RESET_JSONL:-0}" == "1" ]]; then
       cmd+=(--reset)
     fi
 
-    # Run and accept rc=0 or rc=2 as success
     set +e
     "${cmd[@]}"
     rc=$?
@@ -61,10 +115,6 @@ run_pass () {
   return 1
 }
 
-# Try, in order:
-#  1) Local runner outputs
-#  2) Downloaded artifact with an 'artifacts/' prefix
-#  3) Downloaded artifact flattened one level (no 'artifacts/' prefix)
 run_pass "pass1" "artifacts/*/summaries/summary_*.json" \
 || run_pass "pass2" "phase1-artifacts-raw/artifacts/*/summaries/summary_*.json" \
 || run_pass "pass3" "phase1-artifacts-raw/*/summaries/summary_*.json" \

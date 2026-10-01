@@ -1,0 +1,469 @@
+{
+  "audit": "M7.2B",
+  "authority_statement": "Runtime filesystem compatibility was validated only through manifest_path carried by canonical-derived rows. Fallback synthetic discovery was not invoked and is not scientific authority.",
+  "checks": [
+    {
+      "detail": "rows=7",
+      "name": "exactly_seven_rows",
+      "passed": true
+    },
+    {
+      "detail": "families=['autoregressive', 'diffusion', 'gan', 'gaussianmixture', 'maskedautoflow', 'restrictedboltzmann', 'vae']",
+      "name": "exactly_seven_families",
+      "passed": true
+    },
+    {
+      "detail": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/autoregressive/synthetic/manifest.json",
+      "name": "top_level_manifest_path:autoregressive",
+      "passed": true
+    },
+    {
+      "detail": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/autoregressive/synthetic/manifest.json",
+      "name": "manifest_exists:autoregressive",
+      "passed": true
+    },
+    {
+      "detail": "records=10000",
+      "name": "manifest_records:autoregressive",
+      "passed": true
+    },
+    {
+      "detail": "existing_images=64",
+      "name": "simple_stats_manifest_images:autoregressive",
+      "passed": true
+    },
+    {
+      "detail": "classes=['0', '1', '2', '3', '4']",
+      "name": "class_labels:autoregressive",
+      "passed": true
+    },
+    {
+      "detail": "class_counts={'0': 32, '1': 32, '2': 32, '3': 32, '4': 32}",
+      "name": "class_triptych_manifest_images:autoregressive",
+      "passed": true
+    },
+    {
+      "detail": "resolved=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/autoregressive/synthetic/manifest.json expected=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/autoregressive/synthetic/manifest.json",
+      "name": "consumer_lookup_simple_stats:autoregressive",
+      "passed": true
+    },
+    {
+      "detail": "resolved=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/autoregressive/synthetic/manifest.json expected=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/autoregressive/synthetic/manifest.json",
+      "name": "consumer_lookup_class_triptychs:autoregressive",
+      "passed": true
+    },
+    {
+      "detail": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/synthetic/manifest.json",
+      "name": "top_level_manifest_path:diffusion",
+      "passed": true
+    },
+    {
+      "detail": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/synthetic/manifest.json",
+      "name": "manifest_exists:diffusion",
+      "passed": true
+    },
+    {
+      "detail": "records=10000",
+      "name": "manifest_records:diffusion",
+      "passed": true
+    },
+    {
+      "detail": "existing_images=64",
+      "name": "simple_stats_manifest_images:diffusion",
+      "passed": true
+    },
+    {
+      "detail": "classes=['0', '1', '2', '3', '4']",
+      "name": "class_labels:diffusion",
+      "passed": true
+    },
+    {
+      "detail": "class_counts={'0': 32, '1': 32, '2': 32, '3': 32, '4': 32}",
+      "name": "class_triptych_manifest_images:diffusion",
+      "passed": true
+    },
+    {
+      "detail": "resolved=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/synthetic/manifest.json expected=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/synthetic/manifest.json",
+      "name": "consumer_lookup_simple_stats:diffusion",
+      "passed": true
+    },
+    {
+      "detail": "resolved=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/synthetic/manifest.json expected=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/synthetic/manifest.json",
+      "name": "consumer_lookup_class_triptychs:diffusion",
+      "passed": true
+    },
+    {
+      "detail": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/manifest.json",
+      "name": "top_level_manifest_path:gan",
+      "passed": true
+    },
+    {
+      "detail": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/manifest.json",
+      "name": "manifest_exists:gan",
+      "passed": true
+    },
+    {
+      "detail": "records=10000",
+      "name": "manifest_records:gan",
+      "passed": true
+    },
+    {
+      "detail": "existing_images=64",
+      "name": "simple_stats_manifest_images:gan",
+      "passed": true
+    },
+    {
+      "detail": "classes=['0', '1', '2', '3', '4']",
+      "name": "class_labels:gan",
+      "passed": true
+    },
+    {
+      "detail": "class_counts={'0': 32, '1': 32, '2': 32, '3': 32, '4': 32}",
+      "name": "class_triptych_manifest_images:gan",
+      "passed": true
+    },
+    {
+      "detail": "resolved=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/manifest.json expected=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/manifest.json",
+      "name": "consumer_lookup_simple_stats:gan",
+      "passed": true
+    },
+    {
+      "detail": "resolved=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/manifest.json expected=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/manifest.json",
+      "name": "consumer_lookup_class_triptychs:gan",
+      "passed": true
+    },
+    {
+      "detail": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gaussianmixture/synthetic/manifest.json",
+      "name": "top_level_manifest_path:gaussianmixture",
+      "passed": true
+    },
+    {
+      "detail": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gaussianmixture/synthetic/manifest.json",
+      "name": "manifest_exists:gaussianmixture",
+      "passed": true
+    },
+    {
+      "detail": "records=10000",
+      "name": "manifest_records:gaussianmixture",
+      "passed": true
+    },
+    {
+      "detail": "existing_images=64",
+      "name": "simple_stats_manifest_images:gaussianmixture",
+      "passed": true
+    },
+    {
+      "detail": "classes=['0', '1', '2', '3', '4']",
+      "name": "class_labels:gaussianmixture",
+      "passed": true
+    },
+    {
+      "detail": "class_counts={'0': 32, '1': 32, '2': 32, '3': 32, '4': 32}",
+      "name": "class_triptych_manifest_images:gaussianmixture",
+      "passed": true
+    },
+    {
+      "detail": "resolved=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gaussianmixture/synthetic/manifest.json expected=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gaussianmixture/synthetic/manifest.json",
+      "name": "consumer_lookup_simple_stats:gaussianmixture",
+      "passed": true
+    },
+    {
+      "detail": "resolved=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gaussianmixture/synthetic/manifest.json expected=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gaussianmixture/synthetic/manifest.json",
+      "name": "consumer_lookup_class_triptychs:gaussianmixture",
+      "passed": true
+    },
+    {
+      "detail": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/maskedautoflow/synthetic/manifest.json",
+      "name": "top_level_manifest_path:maskedautoflow",
+      "passed": true
+    },
+    {
+      "detail": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/maskedautoflow/synthetic/manifest.json",
+      "name": "manifest_exists:maskedautoflow",
+      "passed": true
+    },
+    {
+      "detail": "records=10000",
+      "name": "manifest_records:maskedautoflow",
+      "passed": true
+    },
+    {
+      "detail": "existing_images=64",
+      "name": "simple_stats_manifest_images:maskedautoflow",
+      "passed": true
+    },
+    {
+      "detail": "classes=['0', '1', '2', '3', '4']",
+      "name": "class_labels:maskedautoflow",
+      "passed": true
+    },
+    {
+      "detail": "class_counts={'0': 32, '1': 32, '2': 32, '3': 32, '4': 32}",
+      "name": "class_triptych_manifest_images:maskedautoflow",
+      "passed": true
+    },
+    {
+      "detail": "resolved=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/maskedautoflow/synthetic/manifest.json expected=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/maskedautoflow/synthetic/manifest.json",
+      "name": "consumer_lookup_simple_stats:maskedautoflow",
+      "passed": true
+    },
+    {
+      "detail": "resolved=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/maskedautoflow/synthetic/manifest.json expected=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/maskedautoflow/synthetic/manifest.json",
+      "name": "consumer_lookup_class_triptychs:maskedautoflow",
+      "passed": true
+    },
+    {
+      "detail": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/restrictedboltzmann/synthetic/manifest.json",
+      "name": "top_level_manifest_path:restrictedboltzmann",
+      "passed": true
+    },
+    {
+      "detail": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/restrictedboltzmann/synthetic/manifest.json",
+      "name": "manifest_exists:restrictedboltzmann",
+      "passed": true
+    },
+    {
+      "detail": "records=10000",
+      "name": "manifest_records:restrictedboltzmann",
+      "passed": true
+    },
+    {
+      "detail": "existing_images=64",
+      "name": "simple_stats_manifest_images:restrictedboltzmann",
+      "passed": true
+    },
+    {
+      "detail": "classes=['0', '1', '2', '3', '4']",
+      "name": "class_labels:restrictedboltzmann",
+      "passed": true
+    },
+    {
+      "detail": "class_counts={'0': 32, '1': 32, '2': 32, '3': 32, '4': 32}",
+      "name": "class_triptych_manifest_images:restrictedboltzmann",
+      "passed": true
+    },
+    {
+      "detail": "resolved=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/restrictedboltzmann/synthetic/manifest.json expected=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/restrictedboltzmann/synthetic/manifest.json",
+      "name": "consumer_lookup_simple_stats:restrictedboltzmann",
+      "passed": true
+    },
+    {
+      "detail": "resolved=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/restrictedboltzmann/synthetic/manifest.json expected=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/restrictedboltzmann/synthetic/manifest.json",
+      "name": "consumer_lookup_class_triptychs:restrictedboltzmann",
+      "passed": true
+    },
+    {
+      "detail": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/synthetic/manifest.json",
+      "name": "top_level_manifest_path:vae",
+      "passed": true
+    },
+    {
+      "detail": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/synthetic/manifest.json",
+      "name": "manifest_exists:vae",
+      "passed": true
+    },
+    {
+      "detail": "records=10000",
+      "name": "manifest_records:vae",
+      "passed": true
+    },
+    {
+      "detail": "existing_images=64",
+      "name": "simple_stats_manifest_images:vae",
+      "passed": true
+    },
+    {
+      "detail": "classes=['0', '1', '2', '3', '4']",
+      "name": "class_labels:vae",
+      "passed": true
+    },
+    {
+      "detail": "class_counts={'0': 32, '1': 32, '2': 32, '3': 32, '4': 32}",
+      "name": "class_triptych_manifest_images:vae",
+      "passed": true
+    },
+    {
+      "detail": "resolved=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/synthetic/manifest.json expected=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/synthetic/manifest.json",
+      "name": "consumer_lookup_simple_stats:vae",
+      "passed": true
+    },
+    {
+      "detail": "resolved=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/synthetic/manifest.json expected=/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/synthetic/manifest.json",
+      "name": "consumer_lookup_class_triptychs:vae",
+      "passed": true
+    }
+  ],
+  "dataset": "cicmaldroid2020",
+  "models": [
+    {
+      "class_labels": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "class_triptych_counts": {
+        "0": 32,
+        "1": 32,
+        "2": 32,
+        "3": 32,
+        "4": 32
+      },
+      "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/autoregressive/synthetic/manifest.json",
+      "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/autoregressive/synthetic/manifest.json",
+      "manifest_exists": true,
+      "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/autoregressive/synthetic/manifest.json",
+      "manifest_records": 10000,
+      "model": "autoregressive",
+      "simple_stats_images": 64
+    },
+    {
+      "class_labels": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "class_triptych_counts": {
+        "0": 32,
+        "1": 32,
+        "2": 32,
+        "3": 32,
+        "4": 32
+      },
+      "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/synthetic/manifest.json",
+      "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/synthetic/manifest.json",
+      "manifest_exists": true,
+      "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/synthetic/manifest.json",
+      "manifest_records": 10000,
+      "model": "diffusion",
+      "simple_stats_images": 64
+    },
+    {
+      "class_labels": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "class_triptych_counts": {
+        "0": 32,
+        "1": 32,
+        "2": 32,
+        "3": 32,
+        "4": 32
+      },
+      "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/manifest.json",
+      "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/manifest.json",
+      "manifest_exists": true,
+      "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/manifest.json",
+      "manifest_records": 10000,
+      "model": "gan",
+      "simple_stats_images": 64
+    },
+    {
+      "class_labels": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "class_triptych_counts": {
+        "0": 32,
+        "1": 32,
+        "2": 32,
+        "3": 32,
+        "4": 32
+      },
+      "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gaussianmixture/synthetic/manifest.json",
+      "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gaussianmixture/synthetic/manifest.json",
+      "manifest_exists": true,
+      "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gaussianmixture/synthetic/manifest.json",
+      "manifest_records": 10000,
+      "model": "gaussianmixture",
+      "simple_stats_images": 64
+    },
+    {
+      "class_labels": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "class_triptych_counts": {
+        "0": 32,
+        "1": 32,
+        "2": 32,
+        "3": 32,
+        "4": 32
+      },
+      "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/maskedautoflow/synthetic/manifest.json",
+      "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/maskedautoflow/synthetic/manifest.json",
+      "manifest_exists": true,
+      "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/maskedautoflow/synthetic/manifest.json",
+      "manifest_records": 10000,
+      "model": "maskedautoflow",
+      "simple_stats_images": 64
+    },
+    {
+      "class_labels": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "class_triptych_counts": {
+        "0": 32,
+        "1": 32,
+        "2": 32,
+        "3": 32,
+        "4": 32
+      },
+      "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/restrictedboltzmann/synthetic/manifest.json",
+      "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/restrictedboltzmann/synthetic/manifest.json",
+      "manifest_exists": true,
+      "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/restrictedboltzmann/synthetic/manifest.json",
+      "manifest_records": 10000,
+      "model": "restrictedboltzmann",
+      "simple_stats_images": 64
+    },
+    {
+      "class_labels": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "class_triptych_counts": {
+        "0": 32,
+        "1": 32,
+        "2": 32,
+        "3": 32,
+        "4": 32
+      },
+      "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/synthetic/manifest.json",
+      "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/synthetic/manifest.json",
+      "manifest_exists": true,
+      "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/synthetic/manifest.json",
+      "manifest_records": 10000,
+      "model": "vae",
+      "simple_stats_images": 64
+    }
+  ],
+  "seed": 42,
+  "status": "PASS",
+  "summary": {
+    "checks_failed": 0,
+    "checks_passed": 58,
+    "checks_total": 58,
+    "models": 7,
+    "rows": 7
+  }
+}

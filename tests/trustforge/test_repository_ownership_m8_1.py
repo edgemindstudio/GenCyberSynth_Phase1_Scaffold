@@ -179,3 +179,10 @@ def test_no_destructive_historical_operations_in_source():
     ]
     for token in forbidden:
         assert token not in source
+
+def test_rendered_markdown_has_exactly_one_newline_at_eof():
+    data = inv.build_inventory(REPO_ROOT)
+    md = inv.render_markdown(data).rstrip() + "\n"
+    assert md.endswith("\n")
+    assert not md.endswith("\n\n")
+

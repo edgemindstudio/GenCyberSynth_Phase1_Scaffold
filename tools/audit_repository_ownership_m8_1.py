@@ -454,7 +454,7 @@ def write_outputs(repo: Path, inv: dict[str, Any]) -> list[Path]:
         ),
         encoding="utf-8",
     )
-    md_path.write_text(render_markdown(inv) + "\n", encoding="utf-8")
+    md_path.write_text(render_markdown(inv).rstrip() + "\n", encoding="utf-8")
 
     return [json_path, yaml_path, md_path]
 

@@ -1,0 +1,2127 @@
+{
+  "audit": "M7.4",
+  "authority_statement": "All 42 Paper 1 experiments are exercised through explicit dataset+seed canonical export authority and canonical-derived compatibility/runtime interfaces. Historical experiments are not rerun and filesystem fallback is not scientific authority.",
+  "checks": [
+    {
+      "detail": "views=6 missing=[] extra=[]",
+      "name": "exact_six_views",
+      "passed": true
+    },
+    {
+      "detail": "passed=6/6",
+      "name": "all_views_pass",
+      "passed": true
+    },
+    {
+      "detail": "experiments=42",
+      "name": "exact_42_experiments",
+      "passed": true
+    },
+    {
+      "detail": "passed=6/6",
+      "name": "all_jsonl_subaudits_pass",
+      "passed": true
+    },
+    {
+      "detail": "passed=6/6",
+      "name": "all_runtime_subaudits_pass",
+      "passed": true
+    },
+    {
+      "detail": "expected 7 JSONL rows and 7 runtime models per view",
+      "name": "seven_rows_and_models_per_view",
+      "passed": true
+    }
+  ],
+  "status": "PASS",
+  "summary": {
+    "checks_failed": 0,
+    "checks_passed": 6,
+    "checks_total": 6,
+    "experiments": 42,
+    "jsonl_checks_passed": 222,
+    "jsonl_checks_total": 222,
+    "runtime_checks_passed": 348,
+    "runtime_checks_total": 348,
+    "views": 6,
+    "views_passed": 6
+  },
+  "views": [
+    {
+      "dataset": "ustc_tfc2016",
+      "experiments": 7,
+      "jsonl": {
+        "capabilities": {
+          "calibration": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "counts": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "downstream_utility": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "generative_similarity": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "manifest_path": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "ms_ssim_per_class": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "nn_distance": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "per_class_counts": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "per_class_f1": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          }
+        },
+        "checks_passed": 37,
+        "checks_total": 37,
+        "rows": 7,
+        "status": "PASS"
+      },
+      "runtime": {
+        "checks_passed": 58,
+        "checks_total": 58,
+        "model_evidence": [
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/autoregressive/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/autoregressive/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/autoregressive/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "autoregressive",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/diffusion/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/diffusion/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/diffusion/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "diffusion",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gan/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gan/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gan/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "gan",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gaussianmixture/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gaussianmixture/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gaussianmixture/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "gaussianmixture",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/maskedautoflow/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/maskedautoflow/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/maskedautoflow/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "maskedautoflow",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/restrictedboltzmann/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/restrictedboltzmann/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/restrictedboltzmann/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "restrictedboltzmann",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/vae/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/vae/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/vae/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "vae",
+            "simple_stats_images": 64
+          }
+        ],
+        "models": 7,
+        "status": "PASS"
+      },
+      "seed": 42,
+      "status": "PASS"
+    },
+    {
+      "dataset": "ustc_tfc2016",
+      "experiments": 7,
+      "jsonl": {
+        "capabilities": {
+          "calibration": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "counts": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "downstream_utility": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "generative_similarity": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "manifest_path": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "ms_ssim_per_class": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "nn_distance": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "per_class_counts": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "per_class_f1": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          }
+        },
+        "checks_passed": 37,
+        "checks_total": 37,
+        "rows": 7,
+        "status": "PASS"
+      },
+      "runtime": {
+        "checks_passed": 58,
+        "checks_total": 58,
+        "model_evidence": [
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/autoregressive/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/autoregressive/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/autoregressive/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "autoregressive",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/diffusion/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/diffusion/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/diffusion/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "diffusion",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gan/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gan/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gan/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "gan",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gaussianmixture/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gaussianmixture/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gaussianmixture/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "gaussianmixture",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/maskedautoflow/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/maskedautoflow/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/maskedautoflow/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "maskedautoflow",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/restrictedboltzmann/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/restrictedboltzmann/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/restrictedboltzmann/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "restrictedboltzmann",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/vae/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/vae/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/vae/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "vae",
+            "simple_stats_images": 64
+          }
+        ],
+        "models": 7,
+        "status": "PASS"
+      },
+      "seed": 43,
+      "status": "PASS"
+    },
+    {
+      "dataset": "ustc_tfc2016",
+      "experiments": 7,
+      "jsonl": {
+        "capabilities": {
+          "calibration": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "counts": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "downstream_utility": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "generative_similarity": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "manifest_path": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "ms_ssim_per_class": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "nn_distance": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "per_class_counts": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "per_class_f1": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          }
+        },
+        "checks_passed": 37,
+        "checks_total": 37,
+        "rows": 7,
+        "status": "PASS"
+      },
+      "runtime": {
+        "checks_passed": 58,
+        "checks_total": 58,
+        "model_evidence": [
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/autoregressive/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/autoregressive/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/autoregressive/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "autoregressive",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/diffusion/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/diffusion/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/diffusion/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "diffusion",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gan/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gan/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gan/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "gan",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gaussianmixture/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gaussianmixture/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/gaussianmixture/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "gaussianmixture",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/maskedautoflow/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/maskedautoflow/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/maskedautoflow/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "maskedautoflow",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/restrictedboltzmann/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/restrictedboltzmann/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/restrictedboltzmann/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "restrictedboltzmann",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32,
+              "5": 32,
+              "6": 32,
+              "7": 32,
+              "8": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/vae/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/vae/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_final_rerun/vae/synthetic/manifest.json",
+            "manifest_records": 18000,
+            "model": "vae",
+            "simple_stats_images": 64
+          }
+        ],
+        "models": 7,
+        "status": "PASS"
+      },
+      "seed": 44,
+      "status": "PASS"
+    },
+    {
+      "dataset": "cicmaldroid2020",
+      "experiments": 7,
+      "jsonl": {
+        "capabilities": {
+          "calibration": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "counts": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "downstream_utility": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "generative_similarity": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "manifest_path": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "ms_ssim_per_class": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "nn_distance": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "per_class_counts": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "per_class_f1": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          }
+        },
+        "checks_passed": 37,
+        "checks_total": 37,
+        "rows": 7,
+        "status": "PASS"
+      },
+      "runtime": {
+        "checks_passed": 58,
+        "checks_total": 58,
+        "model_evidence": [
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/autoregressive/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/autoregressive/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/autoregressive/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "autoregressive",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "diffusion",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "gan",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gaussianmixture/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gaussianmixture/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gaussianmixture/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "gaussianmixture",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/maskedautoflow/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/maskedautoflow/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/maskedautoflow/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "maskedautoflow",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/restrictedboltzmann/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/restrictedboltzmann/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/restrictedboltzmann/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "restrictedboltzmann",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "vae",
+            "simple_stats_images": 64
+          }
+        ],
+        "models": 7,
+        "status": "PASS"
+      },
+      "seed": 42,
+      "status": "PASS"
+    },
+    {
+      "dataset": "cicmaldroid2020",
+      "experiments": 7,
+      "jsonl": {
+        "capabilities": {
+          "calibration": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "counts": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "downstream_utility": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "generative_similarity": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "manifest_path": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "ms_ssim_per_class": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "nn_distance": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "per_class_counts": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "per_class_f1": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          }
+        },
+        "checks_passed": 37,
+        "checks_total": 37,
+        "rows": 7,
+        "status": "PASS"
+      },
+      "runtime": {
+        "checks_passed": 58,
+        "checks_total": 58,
+        "model_evidence": [
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/autoregressive/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/autoregressive/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/autoregressive/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "autoregressive",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "diffusion",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "gan",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gaussianmixture/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gaussianmixture/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gaussianmixture/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "gaussianmixture",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/maskedautoflow/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/maskedautoflow/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/maskedautoflow/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "maskedautoflow",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/restrictedboltzmann/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/restrictedboltzmann/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/restrictedboltzmann/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "restrictedboltzmann",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "vae",
+            "simple_stats_images": 64
+          }
+        ],
+        "models": 7,
+        "status": "PASS"
+      },
+      "seed": 43,
+      "status": "PASS"
+    },
+    {
+      "dataset": "cicmaldroid2020",
+      "experiments": 7,
+      "jsonl": {
+        "capabilities": {
+          "calibration": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "counts": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "downstream_utility": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "generative_similarity": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "manifest_path": {
+            "all_rows": true,
+            "any_rows": true,
+            "available_rows": 7,
+            "per_family": {
+              "autoregressive": true,
+              "diffusion": true,
+              "gan": true,
+              "gaussianmixture": true,
+              "maskedautoflow": true,
+              "restrictedboltzmann": true,
+              "vae": true
+            },
+            "total_rows": 7
+          },
+          "ms_ssim_per_class": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "nn_distance": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "per_class_counts": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          },
+          "per_class_f1": {
+            "all_rows": false,
+            "any_rows": false,
+            "available_rows": 0,
+            "per_family": {
+              "autoregressive": false,
+              "diffusion": false,
+              "gan": false,
+              "gaussianmixture": false,
+              "maskedautoflow": false,
+              "restrictedboltzmann": false,
+              "vae": false
+            },
+            "total_rows": 7
+          }
+        },
+        "checks_passed": 37,
+        "checks_total": 37,
+        "rows": 7,
+        "status": "PASS"
+      },
+      "runtime": {
+        "checks_passed": 58,
+        "checks_total": 58,
+        "model_evidence": [
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/autoregressive/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/autoregressive/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/autoregressive/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "autoregressive",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/diffusion/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "diffusion",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gan/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "gan",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gaussianmixture/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gaussianmixture/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/gaussianmixture/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "gaussianmixture",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/maskedautoflow/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/maskedautoflow/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/maskedautoflow/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "maskedautoflow",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/restrictedboltzmann/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/restrictedboltzmann/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/restrictedboltzmann/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "restrictedboltzmann",
+            "simple_stats_images": 64
+          },
+          {
+            "class_labels": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "class_triptych_counts": {
+              "0": 32,
+              "1": 32,
+              "2": 32,
+              "3": 32,
+              "4": 32
+            },
+            "consumer_lookup_class_triptychs": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/synthetic/manifest.json",
+            "consumer_lookup_simple_stats": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/synthetic/manifest.json",
+            "manifest_exists": true,
+            "manifest_path": "/home/bruno.fonkeng/gencys/artifacts_paper1_cicmaldroid/vae/synthetic/manifest.json",
+            "manifest_records": 10000,
+            "model": "vae",
+            "simple_stats_images": 64
+          }
+        ],
+        "models": 7,
+        "status": "PASS"
+      },
+      "seed": 44,
+      "status": "PASS"
+    }
+  ]
+}

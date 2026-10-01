@@ -1,0 +1,491 @@
+{
+  "audit": "M7.2A",
+  "authority_statement": "All structural rows derive from explicit dataset+seed canonical export authority. Optional metrics are reported but never invented or used to select authority.",
+  "capabilities": {
+    "calibration": {
+      "all_rows": false,
+      "any_rows": false,
+      "available_rows": 0,
+      "per_family": {
+        "autoregressive": false,
+        "diffusion": false,
+        "gan": false,
+        "gaussianmixture": false,
+        "maskedautoflow": false,
+        "restrictedboltzmann": false,
+        "vae": false
+      },
+      "total_rows": 7
+    },
+    "counts": {
+      "all_rows": true,
+      "any_rows": true,
+      "available_rows": 7,
+      "per_family": {
+        "autoregressive": true,
+        "diffusion": true,
+        "gan": true,
+        "gaussianmixture": true,
+        "maskedautoflow": true,
+        "restrictedboltzmann": true,
+        "vae": true
+      },
+      "total_rows": 7
+    },
+    "downstream_utility": {
+      "all_rows": true,
+      "any_rows": true,
+      "available_rows": 7,
+      "per_family": {
+        "autoregressive": true,
+        "diffusion": true,
+        "gan": true,
+        "gaussianmixture": true,
+        "maskedautoflow": true,
+        "restrictedboltzmann": true,
+        "vae": true
+      },
+      "total_rows": 7
+    },
+    "generative_similarity": {
+      "all_rows": true,
+      "any_rows": true,
+      "available_rows": 7,
+      "per_family": {
+        "autoregressive": true,
+        "diffusion": true,
+        "gan": true,
+        "gaussianmixture": true,
+        "maskedautoflow": true,
+        "restrictedboltzmann": true,
+        "vae": true
+      },
+      "total_rows": 7
+    },
+    "manifest_path": {
+      "all_rows": true,
+      "any_rows": true,
+      "available_rows": 7,
+      "per_family": {
+        "autoregressive": true,
+        "diffusion": true,
+        "gan": true,
+        "gaussianmixture": true,
+        "maskedautoflow": true,
+        "restrictedboltzmann": true,
+        "vae": true
+      },
+      "total_rows": 7
+    },
+    "ms_ssim_per_class": {
+      "all_rows": false,
+      "any_rows": false,
+      "available_rows": 0,
+      "per_family": {
+        "autoregressive": false,
+        "diffusion": false,
+        "gan": false,
+        "gaussianmixture": false,
+        "maskedautoflow": false,
+        "restrictedboltzmann": false,
+        "vae": false
+      },
+      "total_rows": 7
+    },
+    "nn_distance": {
+      "all_rows": false,
+      "any_rows": false,
+      "available_rows": 0,
+      "per_family": {
+        "autoregressive": false,
+        "diffusion": false,
+        "gan": false,
+        "gaussianmixture": false,
+        "maskedautoflow": false,
+        "restrictedboltzmann": false,
+        "vae": false
+      },
+      "total_rows": 7
+    },
+    "per_class_counts": {
+      "all_rows": false,
+      "any_rows": false,
+      "available_rows": 0,
+      "per_family": {
+        "autoregressive": false,
+        "diffusion": false,
+        "gan": false,
+        "gaussianmixture": false,
+        "maskedautoflow": false,
+        "restrictedboltzmann": false,
+        "vae": false
+      },
+      "total_rows": 7
+    },
+    "per_class_f1": {
+      "all_rows": false,
+      "any_rows": false,
+      "available_rows": 0,
+      "per_family": {
+        "autoregressive": false,
+        "diffusion": false,
+        "gan": false,
+        "gaussianmixture": false,
+        "maskedautoflow": false,
+        "restrictedboltzmann": false,
+        "vae": false
+      },
+      "total_rows": 7
+    }
+  },
+  "checks": [
+    {
+      "detail": "rows=7",
+      "name": "exactly_seven_rows",
+      "passed": true
+    },
+    {
+      "detail": "families=['autoregressive', 'diffusion', 'gan', 'gaussianmixture', 'maskedautoflow', 'restrictedboltzmann', 'vae']",
+      "name": "exactly_seven_families",
+      "passed": true
+    },
+    {
+      "detail": "all required fields present",
+      "name": "required_fields:row1",
+      "passed": true
+    },
+    {
+      "detail": "seed=42 requested=42",
+      "name": "seed_identity:row1",
+      "passed": true
+    },
+    {
+      "detail": "budget_per_class=2000",
+      "name": "paper01_budget:row1",
+      "passed": true
+    },
+    {
+      "detail": "source=summary_20260404_162027.json",
+      "name": "canonical_source:row1",
+      "passed": true
+    },
+    {
+      "detail": "dataset=None requested='ustc_tfc2016'",
+      "name": "dataset_if_present:row1",
+      "passed": true
+    },
+    {
+      "detail": "all required fields present",
+      "name": "required_fields:row2",
+      "passed": true
+    },
+    {
+      "detail": "seed=42 requested=42",
+      "name": "seed_identity:row2",
+      "passed": true
+    },
+    {
+      "detail": "budget_per_class=2000",
+      "name": "paper01_budget:row2",
+      "passed": true
+    },
+    {
+      "detail": "source=summary_20260404_161557.json",
+      "name": "canonical_source:row2",
+      "passed": true
+    },
+    {
+      "detail": "dataset=None requested='ustc_tfc2016'",
+      "name": "dataset_if_present:row2",
+      "passed": true
+    },
+    {
+      "detail": "all required fields present",
+      "name": "required_fields:row3",
+      "passed": true
+    },
+    {
+      "detail": "seed=42 requested=42",
+      "name": "seed_identity:row3",
+      "passed": true
+    },
+    {
+      "detail": "budget_per_class=2000",
+      "name": "paper01_budget:row3",
+      "passed": true
+    },
+    {
+      "detail": "source=summary_20260404_161124.json",
+      "name": "canonical_source:row3",
+      "passed": true
+    },
+    {
+      "detail": "dataset=None requested='ustc_tfc2016'",
+      "name": "dataset_if_present:row3",
+      "passed": true
+    },
+    {
+      "detail": "all required fields present",
+      "name": "required_fields:row4",
+      "passed": true
+    },
+    {
+      "detail": "seed=42 requested=42",
+      "name": "seed_identity:row4",
+      "passed": true
+    },
+    {
+      "detail": "budget_per_class=2000",
+      "name": "paper01_budget:row4",
+      "passed": true
+    },
+    {
+      "detail": "source=summary_20260404_162938.json",
+      "name": "canonical_source:row4",
+      "passed": true
+    },
+    {
+      "detail": "dataset=None requested='ustc_tfc2016'",
+      "name": "dataset_if_present:row4",
+      "passed": true
+    },
+    {
+      "detail": "all required fields present",
+      "name": "required_fields:row5",
+      "passed": true
+    },
+    {
+      "detail": "seed=42 requested=42",
+      "name": "seed_identity:row5",
+      "passed": true
+    },
+    {
+      "detail": "budget_per_class=2000",
+      "name": "paper01_budget:row5",
+      "passed": true
+    },
+    {
+      "detail": "source=summary_20260404_163418.json",
+      "name": "canonical_source:row5",
+      "passed": true
+    },
+    {
+      "detail": "dataset=None requested='ustc_tfc2016'",
+      "name": "dataset_if_present:row5",
+      "passed": true
+    },
+    {
+      "detail": "all required fields present",
+      "name": "required_fields:row6",
+      "passed": true
+    },
+    {
+      "detail": "seed=42 requested=42",
+      "name": "seed_identity:row6",
+      "passed": true
+    },
+    {
+      "detail": "budget_per_class=2000",
+      "name": "paper01_budget:row6",
+      "passed": true
+    },
+    {
+      "detail": "source=summary_20260404_162457.json",
+      "name": "canonical_source:row6",
+      "passed": true
+    },
+    {
+      "detail": "dataset=None requested='ustc_tfc2016'",
+      "name": "dataset_if_present:row6",
+      "passed": true
+    },
+    {
+      "detail": "all required fields present",
+      "name": "required_fields:row7",
+      "passed": true
+    },
+    {
+      "detail": "seed=42 requested=42",
+      "name": "seed_identity:row7",
+      "passed": true
+    },
+    {
+      "detail": "budget_per_class=2000",
+      "name": "paper01_budget:row7",
+      "passed": true
+    },
+    {
+      "detail": "source=summary_20260404_160704.json",
+      "name": "canonical_source:row7",
+      "passed": true
+    },
+    {
+      "detail": "dataset=None requested='ustc_tfc2016'",
+      "name": "dataset_if_present:row7",
+      "passed": true
+    }
+  ],
+  "consumers": [
+    {
+      "optional_capabilities": {
+        "counts": {
+          "all_rows": true,
+          "any_rows": true,
+          "available_rows": 7
+        },
+        "downstream_utility": {
+          "all_rows": true,
+          "any_rows": true,
+          "available_rows": 7
+        },
+        "generative_similarity": {
+          "all_rows": true,
+          "any_rows": true,
+          "available_rows": 7
+        }
+      },
+      "path": "scripts/jsonl_to_csv.py",
+      "structural_contract": "PASS"
+    },
+    {
+      "optional_capabilities": {},
+      "path": "scripts/plots/_common.py",
+      "structural_contract": "PASS"
+    },
+    {
+      "optional_capabilities": {
+        "calibration": {
+          "all_rows": false,
+          "any_rows": false,
+          "available_rows": 0
+        }
+      },
+      "path": "scripts/plots/core/calibration_curves.py",
+      "structural_contract": "PASS"
+    },
+    {
+      "optional_capabilities": {
+        "downstream_utility": {
+          "all_rows": true,
+          "any_rows": true,
+          "available_rows": 7
+        },
+        "generative_similarity": {
+          "all_rows": true,
+          "any_rows": true,
+          "available_rows": 7
+        }
+      },
+      "path": "scripts/plots/core/pareto_downstream_vs_similarity.py",
+      "structural_contract": "PASS"
+    },
+    {
+      "optional_capabilities": {
+        "per_class_f1": {
+          "all_rows": false,
+          "any_rows": false,
+          "available_rows": 0
+        }
+      },
+      "path": "scripts/plots/core/per_class_delta_f1.py",
+      "structural_contract": "PASS"
+    },
+    {
+      "optional_capabilities": {
+        "generative_similarity": {
+          "all_rows": true,
+          "any_rows": true,
+          "available_rows": 7
+        },
+        "ms_ssim_per_class": {
+          "all_rows": false,
+          "any_rows": false,
+          "available_rows": 0
+        }
+      },
+      "path": "scripts/plots/diversity/ms_ssim_hist.py",
+      "structural_contract": "PASS"
+    },
+    {
+      "optional_capabilities": {
+        "nn_distance": {
+          "all_rows": false,
+          "any_rows": false,
+          "available_rows": 0
+        }
+      },
+      "path": "scripts/plots/diversity/nn_distance_distrib.py",
+      "structural_contract": "PASS"
+    },
+    {
+      "optional_capabilities": {
+        "downstream_utility": {
+          "all_rows": true,
+          "any_rows": true,
+          "available_rows": 7
+        }
+      },
+      "path": "scripts/plots/hparams/ablation_bars.py",
+      "structural_contract": "PASS"
+    },
+    {
+      "optional_capabilities": {
+        "downstream_utility": {
+          "all_rows": true,
+          "any_rows": true,
+          "available_rows": 7
+        },
+        "generative_similarity": {
+          "all_rows": true,
+          "any_rows": true,
+          "available_rows": 7
+        }
+      },
+      "path": "scripts/plots/hparams/parallel_coords.py",
+      "structural_contract": "PASS"
+    },
+    {
+      "optional_capabilities": {
+        "per_class_counts": {
+          "all_rows": false,
+          "any_rows": false,
+          "available_rows": 0
+        }
+      },
+      "path": "scripts/plots/imbalance/class_counts_before_after.py",
+      "structural_contract": "PASS"
+    },
+    {
+      "optional_capabilities": {
+        "manifest_path": {
+          "all_rows": true,
+          "any_rows": true,
+          "available_rows": 7
+        }
+      },
+      "path": "scripts/plots/imbalance/simple_stats_sanity.py",
+      "structural_contract": "PASS"
+    },
+    {
+      "optional_capabilities": {
+        "manifest_path": {
+          "all_rows": true,
+          "any_rows": true,
+          "available_rows": 7
+        }
+      },
+      "path": "scripts/plots/qual/class_triptychs.py",
+      "structural_contract": "PASS"
+    }
+  ],
+  "dataset": "ustc_tfc2016",
+  "seed": 42,
+  "status": "PASS",
+  "summary": {
+    "checks_failed": 0,
+    "checks_passed": 37,
+    "checks_total": 37,
+    "p2_consumers": 12,
+    "rows": 7
+  }
+}

@@ -1,0 +1,265 @@
+{
+  "audit": "M7.3",
+  "authority_statement": "The Makefile is an orchestration surface, not a source of scientific authority. Canonical Paper 1 authority remains in TrustForge linkage/export interfaces. Historical and destructive Make targets retain their existing semantics and must not be silently reinterpreted as canonical.",
+  "checks": [
+    {
+      "detail": "targets=21 canonical=3 historical=4 mixed=12 destructive=2",
+      "name": "classification_partition",
+      "passed": true
+    },
+    {
+      "detail": "priority=P2",
+      "name": "policy_priority_p2",
+      "passed": true
+    },
+    {
+      "detail": "treatment=REVIEW_BEFORE_MIGRATION",
+      "name": "policy_review_before_migration",
+      "passed": true
+    },
+    {
+      "detail": "historical artifacts must remain unmodified",
+      "name": "policy_no_historical_mutation",
+      "passed": true
+    },
+    {
+      "detail": "latest.json cannot be scientific authority",
+      "name": "policy_no_latest_authority",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "canonical_target:phase1_check",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "canonical_target:phase1_gate",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "canonical_target:phase1_scores",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "historical_target:normalize-summaries",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "historical_target:paper1_prepare",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "historical_target:phase1_backfill",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "historical_target:phase1_freeze",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "mixed_target:figs-all",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "mixed_target:figs-core",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "mixed_target:figs-diversity",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "mixed_target:figs-hparams",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "mixed_target:figs-imbalance",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "mixed_target:figs-qual",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "mixed_target:paper1",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "mixed_target:paper1-jsonl",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "mixed_target:paper1_build",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "mixed_target:report",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "mixed_target:scores-csv",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "mixed_target:table",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "destructive_target:clean-summaries",
+      "passed": true
+    },
+    {
+      "detail": "expected markers present",
+      "name": "destructive_target:clean-synth",
+      "passed": true
+    },
+    {
+      "detail": "paper1-jsonl remains dual/legacy by default; canonical identity is not forced",
+      "name": "paper1_jsonl_canonical_identity_not_forced",
+      "passed": true
+    }
+  ],
+  "decision": {
+    "audit_passed": true,
+    "makefile_modification_authorized": false,
+    "reason": "The Makefile safely exposes canonical P0 gates separately, while historical and destructive targets remain visibly distinct. However paper1-jsonl and its dependent report/figure/build chain remain mixed-authority by default. M7.3 records this boundary; it does not authorize editing historical orchestration. Any future canonical Make entrypoint should be additive and separately named rather than silently changing historical targets.",
+    "recommendation": "NO_CHANGE_DURING_M7_3_REVIEW"
+  },
+  "status": "PASS",
+  "summary": {
+    "canonical_safe": 3,
+    "checks_failed": 0,
+    "checks_passed": 27,
+    "checks_total": 27,
+    "destructive": 2,
+    "historical_preserved": 4,
+    "mixed_authority": 12,
+    "targets_reviewed": 21
+  },
+  "targets": [
+    {
+      "classification": "destructive",
+      "migration_action": "operator_only_no_migration",
+      "target": "clean-summaries"
+    },
+    {
+      "classification": "destructive",
+      "migration_action": "operator_only_no_migration",
+      "target": "clean-synth"
+    },
+    {
+      "classification": "mixed_authority",
+      "migration_action": "do_not_relabel_as_canonical",
+      "target": "figs-all"
+    },
+    {
+      "classification": "mixed_authority",
+      "migration_action": "do_not_relabel_as_canonical",
+      "target": "figs-core"
+    },
+    {
+      "classification": "mixed_authority",
+      "migration_action": "do_not_relabel_as_canonical",
+      "target": "figs-diversity"
+    },
+    {
+      "classification": "mixed_authority",
+      "migration_action": "do_not_relabel_as_canonical",
+      "target": "figs-hparams"
+    },
+    {
+      "classification": "mixed_authority",
+      "migration_action": "do_not_relabel_as_canonical",
+      "target": "figs-imbalance"
+    },
+    {
+      "classification": "mixed_authority",
+      "migration_action": "do_not_relabel_as_canonical",
+      "target": "figs-qual"
+    },
+    {
+      "classification": "historical_preserved",
+      "migration_action": "preserve_historical",
+      "target": "normalize-summaries"
+    },
+    {
+      "classification": "mixed_authority",
+      "migration_action": "do_not_relabel_as_canonical",
+      "target": "paper1"
+    },
+    {
+      "classification": "mixed_authority",
+      "migration_action": "do_not_relabel_as_canonical",
+      "target": "paper1-jsonl"
+    },
+    {
+      "classification": "mixed_authority",
+      "migration_action": "do_not_relabel_as_canonical",
+      "target": "paper1_build"
+    },
+    {
+      "classification": "historical_preserved",
+      "migration_action": "preserve_historical",
+      "target": "paper1_prepare"
+    },
+    {
+      "classification": "historical_preserved",
+      "migration_action": "preserve_historical",
+      "target": "phase1_backfill"
+    },
+    {
+      "classification": "canonical_safe",
+      "migration_action": "preserve",
+      "target": "phase1_check"
+    },
+    {
+      "classification": "historical_preserved",
+      "migration_action": "preserve_historical",
+      "target": "phase1_freeze"
+    },
+    {
+      "classification": "canonical_safe",
+      "migration_action": "preserve",
+      "target": "phase1_gate"
+    },
+    {
+      "classification": "canonical_safe",
+      "migration_action": "preserve",
+      "target": "phase1_scores"
+    },
+    {
+      "classification": "mixed_authority",
+      "migration_action": "do_not_relabel_as_canonical",
+      "target": "report"
+    },
+    {
+      "classification": "mixed_authority",
+      "migration_action": "do_not_relabel_as_canonical",
+      "target": "scores-csv"
+    },
+    {
+      "classification": "mixed_authority",
+      "migration_action": "do_not_relabel_as_canonical",
+      "target": "table"
+    }
+  ]
+}

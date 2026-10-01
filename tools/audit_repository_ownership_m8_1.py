@@ -40,6 +40,8 @@ CLASSIFICATIONS = {
     "AMBIGUOUS_REQUIRES_REVIEW",
 }
 
+BASELINE_REF = "d60f9c97e6b01b78cd615aa0fdb4aa61f3acce51"
+
 OUTPUT_REL = Path("studies/repository_migration/audits/m8_1")
 
 PAPER_REF_RE = re.compile(
@@ -68,20 +70,23 @@ def run_git(repo: Path, *args: str) -> str:
     return proc.stdout
 
 
-def repo_identity(repo: Path) -> dict[str, str]:
+def verify_baseline(repo: Path, ref: str) -> str:
+    return run_git(repo, "rev-parse", f"{ref}^{{commit}}").strip()
+
+
+def current_repository_identity(repo: Path) -> dict[str, str]:
     return {
-        "head": run_git(repo, "rev-parse", "HEAD").strip(),
+        "current_head": run_git(repo, "rev-parse", "HEAD").strip(),
         "branch": run_git(repo, "branch", "--show-current").strip(),
     }
 
 
-def tracked_files(repo: Path) -> list[str]:
+def tracked_files_at_ref(repo: Path, ref: str) -> list[str]:
     return sorted(
         line.strip()
-        for line in run_git(repo, "ls-files").splitlines()
+        for line in run_git(repo, "ls-tree", "-r", "--name-only", ref).splitlines()
         if line.strip()
     )
-
 
 def classify_path(path: str) -> str:
     p = path.replace("\\", "/")
@@ -232,26 +237,33 @@ def is_text_candidate(path: str) -> bool:
     }
 
 
-def read_text(repo: Path, rel: str) -> str | None:
-    path = repo / rel
+def read_text_at_ref(repo: Path, ref: str, rel: str) -> str | None:
+    if not is_text_candidate(rel):
+        return None
     try:
-        if not path.is_file() or path.stat().st_size > 2_000_000:
-            return None
-        return path.read_text(encoding="utf-8", errors="replace")
-    except OSError:
+        proc = subprocess.run(
+            ["git", "show", f"{ref}:{rel}"],
+            cwd=repo,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except subprocess.CalledProcessError:
         return None
 
+    if len(proc.stdout) > 2_000_000:
+        return None
 
-def dependency_signals(repo: Path, files: Iterable[str]) -> dict[str, Any]:
+    return proc.stdout.decode("utf-8", errors="replace")
+
+def dependency_signals(repo: Path, ref: str, files: Iterable[str]) -> dict[str, Any]:
     paper_refs: Counter[str] = Counter()
     trustforge_imports: list[dict[str, Any]] = []
     root_imports: list[dict[str, Any]] = []
     app_main_invocations: list[dict[str, Any]] = []
 
     for rel in files:
-        if not is_text_candidate(rel):
-            continue
-        text = read_text(repo, rel)
+        text = read_text_at_ref(repo, ref, rel)
         if text is None:
             continue
 
@@ -312,8 +324,10 @@ def component_rollup(files: list[str]) -> list[dict[str, Any]]:
     return rows
 
 
-def build_inventory(repo: Path) -> dict[str, Any]:
-    files = tracked_files(repo)
+def build_inventory(repo: Path, baseline_ref: str = BASELINE_REF) -> dict[str, Any]:
+    baseline_commit = verify_baseline(repo, baseline_ref)
+    files = tracked_files_at_ref(repo, baseline_commit)
+
     by_class: dict[str, list[str]] = defaultdict(list)
     for rel in files:
         by_class[classify_path(rel)].append(rel)
@@ -330,11 +344,16 @@ def build_inventory(repo: Path) -> dict[str, Any]:
     ]
 
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "milestone": "M8.1",
         "title": "Repository-wide ownership and dependency inventory",
         "mode": "READ_ONLY_AUDIT",
-        "repository": repo_identity(repo),
+        "snapshot": {
+            "baseline_ref": baseline_ref,
+            "baseline_commit": baseline_commit,
+            "tracked_file_count": len(files),
+        },
+        "generation_context": current_repository_identity(repo),
         "authority_boundary": {
             "future_owner_assignments_performed": False,
             "migration_actions_authorized": False,
@@ -361,10 +380,9 @@ def build_inventory(repo: Path) -> dict[str, Any]:
             },
         },
         "component_rollup": component_rollup(files),
-        "dependency_signals": dependency_signals(repo, files),
+        "dependency_signals": dependency_signals(repo, baseline_commit, files),
         "files": classified_files,
     }
-
 
 def render_markdown(inv: dict[str, Any]) -> str:
     lines: list[str] = []
@@ -372,8 +390,13 @@ def render_markdown(inv: dict[str, Any]) -> str:
         "# M8.1 — Repository Ownership & Dependency Inventory",
         "",
         f"**Mode:** {inv['mode']}",
-        f"**HEAD:** `{inv['repository']['head']}`",
-        f"**Branch:** `{inv['repository']['branch']}`",
+        f"**Baseline commit:** `{inv['snapshot']['baseline_commit']}`",
+        f"**Generation branch:** `{inv['generation_context']['branch']}`",
+        "",
+        "## Snapshot boundary",
+        "",
+        "This audit is pinned to the accepted pre-M8 repository snapshot.",
+        "Its classification counts remain stable after M8.1 itself is committed.",
         "",
         "## Authority boundary",
         "",
@@ -430,7 +453,7 @@ def render_markdown(inv: dict[str, Any]) -> str:
         "- `future_owner`, `migration_action`, and `authority_decision` remain null.",
         "",
     ]
-    return "\n".join(lines)
+    return "\n".join(lines).rstrip() + "\n"
 
 
 def write_outputs(repo: Path, inv: dict[str, Any]) -> list[Path]:
@@ -454,7 +477,7 @@ def write_outputs(repo: Path, inv: dict[str, Any]) -> list[Path]:
         ),
         encoding="utf-8",
     )
-    md_path.write_text(render_markdown(inv).rstrip() + "\n", encoding="utf-8")
+    md_path.write_text(render_markdown(inv), encoding="utf-8")
 
     return [json_path, yaml_path, md_path]
 
@@ -462,6 +485,11 @@ def write_outputs(repo: Path, inv: dict[str, Any]) -> list[Path]:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
+    parser.add_argument(
+        "--baseline-ref",
+        default=BASELINE_REF,
+        help="Git commit/tree to audit. Defaults to the accepted pre-M8 snapshot.",
+    )
     parser.add_argument(
         "--check-only",
         action="store_true",
@@ -477,7 +505,7 @@ def main() -> int:
     if not (repo / ".git").exists():
         raise SystemExit(f"Not a Git repository root: {repo}")
 
-    inv = build_inventory(repo)
+    inv = build_inventory(repo, args.baseline_ref)
 
     unknown = {
         row["classification"]
@@ -487,8 +515,9 @@ def main() -> int:
     if unknown:
         raise SystemExit(f"Unknown classifications produced: {sorted(unknown)}")
 
-    print(f"[m8.1] head={inv['repository']['head']}")
-    print(f"[m8.1] branch={inv['repository']['branch']}")
+    print(f"[m8.1] baseline={inv['snapshot']['baseline_commit']}")
+    print(f"[m8.1] current_head={inv['generation_context']['current_head']}")
+    print(f"[m8.1] branch={inv['generation_context']['branch']}")
     print(f"[m8.1] tracked_files={inv['summary']['tracked_file_count']}")
     for cls, count in inv["summary"]["classification_counts"].items():
         print(f"[m8.1] {cls}={count}")

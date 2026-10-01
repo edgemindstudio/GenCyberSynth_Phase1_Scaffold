@@ -180,9 +180,31 @@ def test_no_destructive_historical_operations_in_source():
     for token in forbidden:
         assert token not in source
 
-def test_rendered_markdown_has_exactly_one_newline_at_eof():
+def test_baseline_is_accepted_pre_m8_snapshot():
+    assert inv.BASELINE_REF == "d60f9c97e6b01b78cd615aa0fdb4aa61f3acce51"
+    assert inv.verify_baseline(REPO_ROOT, inv.BASELINE_REF) == inv.BASELINE_REF
+
+
+def test_baseline_snapshot_remains_1024_files_after_m8_commits():
+    files = inv.tracked_files_at_ref(REPO_ROOT, inv.BASELINE_REF)
+    assert len(files) == 1024
+    assert "tools/audit_repository_ownership_m8_1.py" not in files
+    assert "tests/trustforge/test_repository_ownership_m8_1.py" not in files
+    assert not any(
+        p.startswith("studies/repository_migration/audits/m8_1/")
+        for p in files
+    )
+
+
+def test_inventory_is_pinned_to_baseline():
     data = inv.build_inventory(REPO_ROOT)
-    md = inv.render_markdown(data).rstrip() + "\n"
+    assert data["snapshot"]["baseline_commit"] == inv.BASELINE_REF
+    assert data["summary"]["tracked_file_count"] == 1024
+
+
+def test_markdown_has_exactly_one_newline_at_eof():
+    data = inv.build_inventory(REPO_ROOT)
+    md = inv.render_markdown(data)
     assert md.endswith("\n")
     assert not md.endswith("\n\n")
 

@@ -1,0 +1,213 @@
+{
+  "acceptance": "ACCEPTED",
+  "acceptance_statement": "Paper 1 canonical evidence architecture is formally accepted for TrustForge migration. Canonical scientific authority is explicit and validated across all 42 experiments; downstream consumer compatibility is verified; historical execution artifacts and legacy workflows remain preserved under their existing authority boundaries; and no Makefile reinterpretation or historical artifact rewrite is authorized by this acceptance.",
+  "audit": "M7.5",
+  "checks": [
+    {
+      "detail": "status=PASS",
+      "name": "status:m6_5_5",
+      "passed": true
+    },
+    {
+      "detail": "status=PASS",
+      "name": "status:m7_1",
+      "passed": true
+    },
+    {
+      "detail": "status=PASS",
+      "name": "status:m7_2a_ustc",
+      "passed": true
+    },
+    {
+      "detail": "status=PASS",
+      "name": "status:m7_2a_cic",
+      "passed": true
+    },
+    {
+      "detail": "status=PASS",
+      "name": "status:m7_2b_ustc",
+      "passed": true
+    },
+    {
+      "detail": "status=PASS",
+      "name": "status:m7_2b_cic",
+      "passed": true
+    },
+    {
+      "detail": "status=PASS",
+      "name": "status:m7_3",
+      "passed": true
+    },
+    {
+      "detail": "status=PASS",
+      "name": "status:m7_4",
+      "passed": true
+    },
+    {
+      "detail": "observed=(26, 26) expected=(26, 26)",
+      "name": "m6_5_5_checks",
+      "passed": true
+    },
+    {
+      "detail": "observed=(2, 10, 13) expected=(2, 10, 13)",
+      "name": "m6_5_5_migrated_counts",
+      "passed": true
+    },
+    {
+      "detail": "observed=(13, 12, 10, 2, 1) expected=(13, 12, 10, 2, 1)",
+      "name": "m7_1_p2_partition",
+      "passed": true
+    },
+    {
+      "detail": "observed=(26, 26) expected=(26, 26)",
+      "name": "m7_1_checks",
+      "passed": true
+    },
+    {
+      "detail": "observed=7 expected=7",
+      "name": "m7_2a_ustc_rows",
+      "passed": true
+    },
+    {
+      "detail": "observed=(37, 37) expected=(37, 37)",
+      "name": "m7_2a_ustc_checks",
+      "passed": true
+    },
+    {
+      "detail": "observed=12 expected=12",
+      "name": "m7_2a_ustc_p2_consumers",
+      "passed": true
+    },
+    {
+      "detail": "observed=7 expected=7",
+      "name": "m7_2a_cic_rows",
+      "passed": true
+    },
+    {
+      "detail": "observed=(37, 37) expected=(37, 37)",
+      "name": "m7_2a_cic_checks",
+      "passed": true
+    },
+    {
+      "detail": "observed=12 expected=12",
+      "name": "m7_2a_cic_p2_consumers",
+      "passed": true
+    },
+    {
+      "detail": "observed=(7, 7) expected=(7, 7)",
+      "name": "m7_2b_ustc_rows_models",
+      "passed": true
+    },
+    {
+      "detail": "observed=(58, 58) expected=(58, 58)",
+      "name": "m7_2b_ustc_checks",
+      "passed": true
+    },
+    {
+      "detail": "observed=(7, 7) expected=(7, 7)",
+      "name": "m7_2b_cic_rows_models",
+      "passed": true
+    },
+    {
+      "detail": "observed=(58, 58) expected=(58, 58)",
+      "name": "m7_2b_cic_checks",
+      "passed": true
+    },
+    {
+      "detail": "observed=(21, 3, 4, 12, 2) expected=(21, 3, 4, 12, 2)",
+      "name": "m7_3_target_partition",
+      "passed": true
+    },
+    {
+      "detail": "observed=(27, 27) expected=(27, 27)",
+      "name": "m7_3_checks",
+      "passed": true
+    },
+    {
+      "detail": "observed=False expected=False",
+      "name": "m7_3_no_makefile_change_authorized",
+      "passed": true
+    },
+    {
+      "detail": "observed='NO_CHANGE_DURING_M7_3_REVIEW' expected='NO_CHANGE_DURING_M7_3_REVIEW'",
+      "name": "m7_3_recommendation",
+      "passed": true
+    },
+    {
+      "detail": "observed=(6, 6) expected=(6, 6)",
+      "name": "m7_4_views",
+      "passed": true
+    },
+    {
+      "detail": "observed=42 expected=42",
+      "name": "m7_4_experiments",
+      "passed": true
+    },
+    {
+      "detail": "observed=(6, 6) expected=(6, 6)",
+      "name": "m7_4_matrix_checks",
+      "passed": true
+    },
+    {
+      "detail": "observed=(222, 222) expected=(222, 222)",
+      "name": "m7_4_jsonl_checks",
+      "passed": true
+    },
+    {
+      "detail": "observed=(348, 348) expected=(348, 348)",
+      "name": "m7_4_runtime_checks",
+      "passed": true
+    }
+  ],
+  "evidence": {
+    "m6_5_5": {
+      "path": "studies/paper01_benchmark/audits/m6_5_5/paper01_migration_closure_audit.json",
+      "status": "PASS"
+    },
+    "m7_1": {
+      "path": "studies/paper01_benchmark/audits/m7_1/paper01_p2_interface_audit.json",
+      "status": "PASS"
+    },
+    "m7_2a_cic": {
+      "path": "studies/paper01_benchmark/audits/m7_2a/paper01_jsonl_compat_cicmaldroid2020_seed42.json",
+      "status": "PASS"
+    },
+    "m7_2a_ustc": {
+      "path": "studies/paper01_benchmark/audits/m7_2a/paper01_jsonl_compat_ustc_tfc2016_seed42.json",
+      "status": "PASS"
+    },
+    "m7_2b_cic": {
+      "path": "studies/paper01_benchmark/audits/m7_2b/paper01_filesystem_runtime_cicmaldroid2020_seed42.json",
+      "status": "PASS"
+    },
+    "m7_2b_ustc": {
+      "path": "studies/paper01_benchmark/audits/m7_2b/paper01_filesystem_runtime_ustc_tfc2016_seed42.json",
+      "status": "PASS"
+    },
+    "m7_3": {
+      "path": "studies/paper01_benchmark/audits/m7_3/paper01_makefile_safety_review.json",
+      "status": "PASS"
+    },
+    "m7_4": {
+      "path": "studies/paper01_benchmark/audits/m7_4/paper01_cross_dataset_seed_matrix.json",
+      "status": "PASS"
+    }
+  },
+  "preserved_distinctions": [
+    "SCIENTIFIC_EXPERIMENT_IDENTITY != HISTORICAL_EXECUTION_IDENTITY",
+    "ARTIFACT_PRODUCER != ACCEPTED_EVALUATOR != AUTHORITATIVE_RESULT_ROW",
+    "latest.json != AUTHORITATIVE_EVIDENCE",
+    "FILESYSTEM_FALLBACK != SCIENTIFIC_AUTHORITY",
+    "OPERATIONAL_COMPLETION_STATUS != ACCEPTED_SCIENTIFIC_EVIDENCE",
+    "MAKEFILE_ORCHESTRATION != SCIENTIFIC_AUTHORITY"
+  ],
+  "status": "PASS",
+  "summary": {
+    "canonical_experiments": 42,
+    "checks_failed": 0,
+    "checks_passed": 31,
+    "checks_total": 31,
+    "dataset_seed_views": 6,
+    "governed_reports": 8
+  }
+}

@@ -1,0 +1,229 @@
+{
+  "audit": "M7.1",
+  "checks": [
+    {
+      "detail": "observed=13 expected=13 missing=[] extra=[]",
+      "name": "p2_policy_inventory",
+      "passed": true
+    },
+    {
+      "detail": "expected JSONL/interface markers present",
+      "name": "interface_markers:scripts/jsonl_to_csv.py",
+      "passed": true
+    },
+    {
+      "detail": "no direct latest/paper1/timestamped-summary authority markers",
+      "name": "no_direct_summary_authority:scripts/jsonl_to_csv.py",
+      "passed": true
+    },
+    {
+      "detail": "expected JSONL/interface markers present",
+      "name": "interface_markers:scripts/plots/_common.py",
+      "passed": true
+    },
+    {
+      "detail": "no direct latest/paper1/timestamped-summary authority markers",
+      "name": "no_direct_summary_authority:scripts/plots/_common.py",
+      "passed": true
+    },
+    {
+      "detail": "expected JSONL/interface markers present",
+      "name": "interface_markers:scripts/plots/core/calibration_curves.py",
+      "passed": true
+    },
+    {
+      "detail": "no direct latest/paper1/timestamped-summary authority markers",
+      "name": "no_direct_summary_authority:scripts/plots/core/calibration_curves.py",
+      "passed": true
+    },
+    {
+      "detail": "expected JSONL/interface markers present",
+      "name": "interface_markers:scripts/plots/core/pareto_downstream_vs_similarity.py",
+      "passed": true
+    },
+    {
+      "detail": "no direct latest/paper1/timestamped-summary authority markers",
+      "name": "no_direct_summary_authority:scripts/plots/core/pareto_downstream_vs_similarity.py",
+      "passed": true
+    },
+    {
+      "detail": "expected JSONL/interface markers present",
+      "name": "interface_markers:scripts/plots/core/per_class_delta_f1.py",
+      "passed": true
+    },
+    {
+      "detail": "no direct latest/paper1/timestamped-summary authority markers",
+      "name": "no_direct_summary_authority:scripts/plots/core/per_class_delta_f1.py",
+      "passed": true
+    },
+    {
+      "detail": "expected JSONL/interface markers present",
+      "name": "interface_markers:scripts/plots/diversity/ms_ssim_hist.py",
+      "passed": true
+    },
+    {
+      "detail": "no direct latest/paper1/timestamped-summary authority markers",
+      "name": "no_direct_summary_authority:scripts/plots/diversity/ms_ssim_hist.py",
+      "passed": true
+    },
+    {
+      "detail": "expected JSONL/interface markers present",
+      "name": "interface_markers:scripts/plots/diversity/nn_distance_distrib.py",
+      "passed": true
+    },
+    {
+      "detail": "no direct latest/paper1/timestamped-summary authority markers",
+      "name": "no_direct_summary_authority:scripts/plots/diversity/nn_distance_distrib.py",
+      "passed": true
+    },
+    {
+      "detail": "expected JSONL/interface markers present",
+      "name": "interface_markers:scripts/plots/hparams/ablation_bars.py",
+      "passed": true
+    },
+    {
+      "detail": "no direct latest/paper1/timestamped-summary authority markers",
+      "name": "no_direct_summary_authority:scripts/plots/hparams/ablation_bars.py",
+      "passed": true
+    },
+    {
+      "detail": "expected JSONL/interface markers present",
+      "name": "interface_markers:scripts/plots/hparams/parallel_coords.py",
+      "passed": true
+    },
+    {
+      "detail": "no direct latest/paper1/timestamped-summary authority markers",
+      "name": "no_direct_summary_authority:scripts/plots/hparams/parallel_coords.py",
+      "passed": true
+    },
+    {
+      "detail": "expected JSONL/interface markers present",
+      "name": "interface_markers:scripts/plots/imbalance/class_counts_before_after.py",
+      "passed": true
+    },
+    {
+      "detail": "no direct latest/paper1/timestamped-summary authority markers",
+      "name": "no_direct_summary_authority:scripts/plots/imbalance/class_counts_before_after.py",
+      "passed": true
+    },
+    {
+      "detail": "expected JSONL/interface markers present",
+      "name": "interface_markers:scripts/plots/imbalance/simple_stats_sanity.py",
+      "passed": true
+    },
+    {
+      "detail": "no direct latest/paper1/timestamped-summary authority markers",
+      "name": "no_direct_summary_authority:scripts/plots/imbalance/simple_stats_sanity.py",
+      "passed": true
+    },
+    {
+      "detail": "expected JSONL/interface markers present",
+      "name": "interface_markers:scripts/plots/qual/class_triptychs.py",
+      "passed": true
+    },
+    {
+      "detail": "no direct latest/paper1/timestamped-summary authority markers",
+      "name": "no_direct_summary_authority:scripts/plots/qual/class_triptychs.py",
+      "passed": true
+    },
+    {
+      "detail": "mixed canonical/historical orchestration markers present; dedicated M7.3 review required",
+      "name": "makefile_review_surface_present",
+      "passed": true
+    }
+  ],
+  "consumers": [
+    {
+      "authority_role": "consumer_only",
+      "interface": "jsonl_only",
+      "m7_2_runtime_required": false,
+      "path": "scripts/jsonl_to_csv.py"
+    },
+    {
+      "authority_role": "consumer_only",
+      "interface": "jsonl_only",
+      "m7_2_runtime_required": false,
+      "path": "scripts/plots/_common.py"
+    },
+    {
+      "authority_role": "consumer_only",
+      "interface": "jsonl_only",
+      "m7_2_runtime_required": false,
+      "path": "scripts/plots/core/calibration_curves.py"
+    },
+    {
+      "authority_role": "consumer_only",
+      "interface": "jsonl_only",
+      "m7_2_runtime_required": false,
+      "path": "scripts/plots/core/pareto_downstream_vs_similarity.py"
+    },
+    {
+      "authority_role": "consumer_only",
+      "interface": "jsonl_only",
+      "m7_2_runtime_required": false,
+      "path": "scripts/plots/core/per_class_delta_f1.py"
+    },
+    {
+      "authority_role": "consumer_only",
+      "interface": "jsonl_only",
+      "m7_2_runtime_required": false,
+      "path": "scripts/plots/diversity/ms_ssim_hist.py"
+    },
+    {
+      "authority_role": "consumer_only",
+      "interface": "jsonl_only",
+      "m7_2_runtime_required": false,
+      "path": "scripts/plots/diversity/nn_distance_distrib.py"
+    },
+    {
+      "authority_role": "consumer_only",
+      "interface": "jsonl_only",
+      "m7_2_runtime_required": false,
+      "path": "scripts/plots/hparams/ablation_bars.py"
+    },
+    {
+      "authority_role": "consumer_only",
+      "interface": "jsonl_only",
+      "m7_2_runtime_required": false,
+      "path": "scripts/plots/hparams/parallel_coords.py"
+    },
+    {
+      "authority_role": "consumer_only",
+      "interface": "jsonl_only",
+      "m7_2_runtime_required": false,
+      "path": "scripts/plots/imbalance/class_counts_before_after.py"
+    },
+    {
+      "authority_role": "consumer_only",
+      "interface": "jsonl_plus_manifest_filesystem",
+      "m7_2_runtime_required": true,
+      "path": "scripts/plots/imbalance/simple_stats_sanity.py"
+    },
+    {
+      "authority_role": "consumer_only",
+      "interface": "jsonl_plus_manifest_filesystem",
+      "m7_2_runtime_required": true,
+      "path": "scripts/plots/qual/class_triptychs.py"
+    }
+  ],
+  "handoff": {
+    "m7_2": "Verify canonical-derived JSONL compatibility across the 12 P2 consumers, with explicit runtime checks for the two manifest/filesystem-coupled visualizers.",
+    "m7_3": "Review Makefile orchestration separately; do not modify it automatically."
+  },
+  "makefile": {
+    "classification": "review_before_migration",
+    "path": "Makefile",
+    "reason": "Mixed historical and canonical orchestration, including paper1_build plus destructive clean targets. M7.3 must review safety and authority handoff before any modification."
+  },
+  "status": "PASS",
+  "summary": {
+    "checks_failed": 0,
+    "checks_passed": 26,
+    "checks_total": 26,
+    "filesystem_coupled_consumers": 2,
+    "jsonl_consumers": 12,
+    "jsonl_only_consumers": 10,
+    "makefile_review_surfaces": 1,
+    "p2_total": 13
+  }
+}

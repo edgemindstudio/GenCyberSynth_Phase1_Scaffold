@@ -1,0 +1,226 @@
+{
+  "audit": "M6.5.5",
+  "checks": [
+    {
+      "detail": "branch=migration/trustforge-foundation",
+      "name": "repository_branch",
+      "passed": true
+    },
+    {
+      "detail": "HEAD=ef1be13",
+      "name": "repository_head_resolved",
+      "passed": true
+    },
+    {
+      "detail": "P0: observed=2 expected=2 missing=[] extra=[]",
+      "name": "policy_p0_inventory",
+      "passed": true
+    },
+    {
+      "detail": "P1: observed=10 expected=10 missing=[] extra=[]",
+      "name": "policy_p1_inventory",
+      "passed": true
+    },
+    {
+      "detail": "P2: observed=13 expected=13 missing=[] extra=[]",
+      "name": "policy_p2_inventory",
+      "passed": true
+    },
+    {
+      "detail": "all canonical markers present",
+      "name": "source_markers:scripts/build_jsonl.sh",
+      "passed": true
+    },
+    {
+      "detail": "all canonical markers present",
+      "name": "source_markers:scripts/metrics/aggregate.py",
+      "passed": true
+    },
+    {
+      "detail": "all canonical markers present",
+      "name": "source_markers:scripts/metrics/print_cfid_table.py",
+      "passed": true
+    },
+    {
+      "detail": "all canonical markers present",
+      "name": "source_markers:scripts/phase1_html.py",
+      "passed": true
+    },
+    {
+      "detail": "all canonical markers present",
+      "name": "source_markers:scripts/phase1_report.py",
+      "passed": true
+    },
+    {
+      "detail": "all canonical markers present",
+      "name": "source_markers:scripts/summaries_to_jsonl.py",
+      "passed": true
+    },
+    {
+      "detail": "all canonical markers present",
+      "name": "source_markers:scripts/tuning_dashboard.py",
+      "passed": true
+    },
+    {
+      "detail": "all canonical markers present",
+      "name": "source_markers:scripts/utils/backfill_counts.py",
+      "passed": true
+    },
+    {
+      "detail": "all canonical markers present",
+      "name": "source_markers:tools/aggregate_phase1.py",
+      "passed": true
+    },
+    {
+      "detail": "all canonical markers present",
+      "name": "source_markers:tools/build_paper1_jsonl.py",
+      "passed": true
+    },
+    {
+      "detail": "all canonical markers present",
+      "name": "source_markers:tools/build_phase1_scores.py",
+      "passed": true
+    },
+    {
+      "detail": "all canonical markers present",
+      "name": "source_markers:tools/check_phase1_integrity.py",
+      "passed": true
+    },
+    {
+      "detail": "present",
+      "name": "regression_test:tests/trustforge/test_paper01_p0_consumers.py",
+      "passed": true
+    },
+    {
+      "detail": "present",
+      "name": "regression_test:tests/trustforge/test_paper01_jsonl_producers.py",
+      "passed": true
+    },
+    {
+      "detail": "present",
+      "name": "regression_test:tests/trustforge/test_paper01_backfill_counts.py",
+      "passed": true
+    },
+    {
+      "detail": "present",
+      "name": "regression_test:tests/trustforge/test_paper01_aggregate_phase1.py",
+      "passed": true
+    },
+    {
+      "detail": "present",
+      "name": "regression_test:tests/trustforge/test_paper01_direct_reporters.py",
+      "passed": true
+    },
+    {
+      "detail": "present",
+      "name": "regression_test:tests/trustforge/test_paper01_metrics_aggregate.py",
+      "passed": true
+    },
+    {
+      "detail": "present",
+      "name": "regression_test:tests/trustforge/test_paper01_tuning_dashboard.py",
+      "passed": true
+    },
+    {
+      "detail": "unchanged since a450c37",
+      "name": "protected_path:eval/runner.py",
+      "passed": true
+    },
+    {
+      "detail": "unchanged since a450c37",
+      "name": "protected_path:tools/freeze_phase1_snapshots.py",
+      "passed": true
+    }
+  ],
+  "closure_statement": "P0 and P1 migration surfaces are accounted for; protected historical implementation paths remain unchanged since the M6.5.2 policy checkpoint; P2 work remains explicitly deferred.",
+  "deferred_p2": [
+    {
+      "classification": "historical_evidence_mutator_or_producer",
+      "path": "Makefile",
+      "rationale": "Mixed orchestration surface includes destructive or evidence-writing operations. It requires a dedicated safety review before any migration.",
+      "treatment": "REVIEW_BEFORE_MIGRATION"
+    },
+    {
+      "classification": "legacy_or_direct_consumer",
+      "path": "scripts/jsonl_to_csv.py",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "classification": "legacy_or_direct_consumer",
+      "path": "scripts/plots/_common.py",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "classification": "legacy_or_direct_consumer",
+      "path": "scripts/plots/core/calibration_curves.py",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "classification": "legacy_or_direct_consumer",
+      "path": "scripts/plots/core/pareto_downstream_vs_similarity.py",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "classification": "legacy_or_direct_consumer",
+      "path": "scripts/plots/core/per_class_delta_f1.py",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "classification": "legacy_or_direct_consumer",
+      "path": "scripts/plots/diversity/ms_ssim_hist.py",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "classification": "legacy_or_direct_consumer",
+      "path": "scripts/plots/diversity/nn_distance_distrib.py",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "classification": "legacy_or_direct_consumer",
+      "path": "scripts/plots/hparams/ablation_bars.py",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "classification": "legacy_or_direct_consumer",
+      "path": "scripts/plots/hparams/parallel_coords.py",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "classification": "legacy_or_direct_consumer",
+      "path": "scripts/plots/imbalance/class_counts_before_after.py",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "classification": "legacy_or_direct_consumer",
+      "path": "scripts/plots/imbalance/simple_stats_sanity.py",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    },
+    {
+      "classification": "legacy_or_direct_consumer",
+      "path": "scripts/plots/qual/class_triptychs.py",
+      "rationale": "Consumes the consolidated JSONL contract rather than choosing historical authority itself. Keep the consumer contract stable and feed it from a canonical-derived export instead of migrating this file directly.",
+      "treatment": "USE_CANONICAL_DERIVED_EXPORT"
+    }
+  ],
+  "migration_baseline_commit": "a450c37",
+  "status": "PASS",
+  "summary": {
+    "checks_failed": 0,
+    "checks_passed": 26,
+    "checks_total": 26,
+    "p0_count": 2,
+    "p1_count": 10,
+    "p2_deferred_count": 13
+  }
+}

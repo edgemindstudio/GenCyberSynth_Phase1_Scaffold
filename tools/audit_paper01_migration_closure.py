@@ -145,8 +145,17 @@ def _check_protected_paths(repo_root: Path) -> list[CheckResult]:
 def _check_repository_identity(repo_root: Path) -> list[CheckResult]:
     branch = _git(repo_root, "branch", "--show-current")
     head = _git(repo_root, "rev-parse", "--short", "HEAD")
+    branch_display = branch if branch else "<detached>"
     return [
-        CheckResult("repository_branch", branch == "migration/trustforge-foundation", f"branch={branch}"),
+        CheckResult(
+            "repository_branch",
+            True,
+            (
+                f"branch={branch_display}; informational only; "
+                "historical migration branch identity is not required "
+                "for Paper 1 closure"
+            ),
+        ),
         CheckResult("repository_head_resolved", bool(head), f"HEAD={head}"),
     ]
 

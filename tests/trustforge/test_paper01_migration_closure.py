@@ -43,6 +43,32 @@ def test_protected_paths_unchanged_since_policy_checkpoint():
     assert len(checks) == 2
     assert [c for c in checks if not c.passed] == []
 
+def test_repository_identity_does_not_require_historical_branch(monkeypatch):
+    def fake_git(repo_root: Path, *args: str) -> str:
+        del repo_root
+
+        if args == ("branch", "--show-current"):
+            return "main"
+
+        if args == ("rev-parse", "--short", "HEAD"):
+            return "deadbee"
+
+        raise AssertionError(f"unexpected git invocation: {args}")
+
+    monkeypatch.setattr(audit, "_git", fake_git)
+
+    checks = audit._check_repository_identity(REPO_ROOT)
+
+    assert len(checks) == 2
+    assert checks[0].name == "repository_branch"
+    assert checks[0].passed
+    assert "branch=main" in checks[0].detail
+    assert "informational only" in checks[0].detail
+    assert checks[1].name == "repository_head_resolved"
+    assert checks[1].passed
+    assert checks[1].detail == "HEAD=deadbee"
+
+
 def test_run_audit_passes_on_repository():
     report = audit.run_audit(REPO_ROOT)
     assert report["status"] == "PASS"

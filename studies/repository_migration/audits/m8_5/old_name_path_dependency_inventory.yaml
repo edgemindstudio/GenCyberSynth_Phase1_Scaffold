@@ -1,0 +1,223 @@
+schema_version: 1
+milestone: M8.5
+title: TrustForge Old-Name and Old-Path Dependency Inventory
+status: RENAME_DEPENDENCIES_INVENTORIED
+source_acceptance:
+  m8_4_acceptance_commit: a11445a
+authority_boundary:
+  repository_rename_authorized: false
+  remote_update_authorized: false
+  historical_rewrite_authorized: false
+  paper_migration_authorized: false
+  compatibility_removal_authorized: false
+principles:
+- OLD_NAME_PRESENT != RENAME_BLOCKER
+- HISTORICAL_PATH != CURRENT_CONFIGURATION
+- HISTORICAL_REPOSITORY_IDENTITY != CURRENT_REPOSITORY_IDENTITY
+- GCS_COMPATIBILITY != TRUSTFORGE_CANONICAL_IDENTITY
+- PORTABILITY_BLOCKER != REPOSITORY_NAME_BLOCKER
+- BULK_RENAME != GOVERNED_MIGRATION
+summary:
+  dependency_group_count: 16
+  class_counts:
+    COMPATIBILITY_REFERENCE: 2
+    DOCUMENTATION_ONLY: 1
+    HISTORICAL_REFERENCE: 4
+    PORTABILITY_BLOCKER: 1
+    RENAME_BLOCKER: 1
+    REQUIRES_REVIEW: 2
+    SAFE_TO_RETAIN: 3
+    TEST_ONLY: 1
+    TOOLING_ONLY: 1
+  rename_blocker_ids:
+  - M8.5-001
+  rename_blocker_count: 1
+dependencies:
+- dependency_id: M8.5-001
+  classification: RENAME_BLOCKER
+  surface: Git remote origin
+  examples:
+  - origin git@github.com:edgemindstudio/GenCyberSynth_Phase1_Scaffold.git
+  rename_impact: A GitHub repository rename requires origin to resolve to the new canonical repository identity.
+  action_before_repo_rename: Update origin only as part of the governed repository rename procedure after rename-readiness
+    acceptance.
+  mutate_now: false
+  rationale: This is the clearest live external identity tied directly to the old repository name.
+- dependency_id: M8.5-002
+  classification: HISTORICAL_REFERENCE
+  surface: Paper 1 canonical experiment/study repository fields
+  examples:
+  - 'studies/paper01_benchmark/experiments/** repository: edgemindstudio/GenCyberSynth_Phase1_Scaffold'
+  - studies/paper01_benchmark/study.yaml
+  - studies/paper01_benchmark/lineage.yaml
+  - schemas/examples/paper01/**
+  rename_impact: Historical provenance remains valid after repository rename.
+  action_before_repo_rename: Preserve historical repository identity in accepted Paper 1 evidence; do not bulk-rewrite.
+  mutate_now: false
+  rationale: Scientific execution/provenance identity must not be rewritten merely because the repository receives a new current
+    name.
+- dependency_id: M8.5-003
+  classification: HISTORICAL_REFERENCE
+  surface: Paper 1 experiment generator repository constant
+  examples:
+  - 'scripts/generate_paper01_experiments.py: REPOSITORY = "edgemindstudio/GenCyberSynth_Phase1_Scaffold"'
+  rename_impact: The generator reproduces accepted historical Paper 1 contracts.
+  action_before_repo_rename: Keep historical identity unless a future versioned generator explicitly separates historical_repository
+    from current_repository.
+  mutate_now: false
+  rationale: Changing this constant now would risk changing deterministic accepted Paper 1 contracts.
+- dependency_id: M8.5-004
+  classification: HISTORICAL_REFERENCE
+  surface: Paper 2 result/evidence absolute repository paths
+  examples:
+  - papers/paper2_conditional_generation_done_right/results/tables/*.csv
+  - papers/paper2_conditional_generation_done_right/results/tables/*.json
+  rename_impact: Paths may become non-resolving after local directory rename, but they remain historical evidence of where
+    outputs were produced.
+  action_before_repo_rename: Preserve in place. During Paper 2 migration, represent current portable locations separately
+    from historical recorded paths.
+  mutate_now: false
+  rationale: Observed absolute paths inside scientific outputs are evidence, not configuration defaults.
+- dependency_id: M8.5-005
+  classification: PORTABILITY_BLOCKER
+  surface: Paper 2 active scripts/configs/Slurm hard-coded external gencys roots
+  examples:
+  - papers/paper2_conditional_generation_done_right/configs/**
+  - papers/paper2_conditional_generation_done_right/scripts/**
+  - papers/paper2_conditional_generation_done_right/slurm/**
+  rename_impact: These paths do not depend on the repository directory name, but they prevent portable execution and must
+    be handled during Paper 2 migration.
+  action_before_repo_rename: Do not change historical files now. Replace with TrustForge storage/path contracts in the future
+    Paper 2 canonical migration.
+  mutate_now: false
+  rationale: This is a portability problem rather than a repository-rename-name dependency.
+- dependency_id: M8.5-006
+  classification: COMPATIBILITY_REFERENCE
+  surface: gcs-core submodule and gcs_core imports
+  examples:
+  - .gitmodules -> https://github.com/edgemindstudio/gcs-core.git
+  - .github/workflows/smoke.yml
+  - eval/runner.py
+  - eval/val_common.py
+  - model-template/**
+  rename_impact: The independent gcs-core identity does not inherently block renaming the parent repository.
+  action_before_repo_rename: Retain until runtime/plugin migration explicitly replaces or retires the dependency.
+  mutate_now: false
+  rationale: gcs-core is a separate compatibility/runtime dependency, not the parent repository identity.
+- dependency_id: M8.5-007
+  classification: COMPATIBILITY_REFERENCE
+  surface: Legacy GCS_* environment aliases
+  examples:
+  - src/trustforge/storage/paths.py
+  - scripts/trustforge_doctor.py
+  - tests/trustforge/test_storage_paths.py
+  rename_impact: Legacy aliases are intentionally supported alongside TRUSTFORGE_* variables.
+  action_before_repo_rename: Retain through repository rename; retire only through a separately governed compatibility decision.
+  mutate_now: false
+  rationale: Compatibility aliases are deliberate and already subordinate to canonical TRUSTFORGE_* variables.
+- dependency_id: M8.5-008
+  classification: SAFE_TO_RETAIN
+  surface: External protected ~/gencys data/artifact root
+  examples:
+  - /home/bruno.fonkeng/gencys/data
+  - /home/bruno.fonkeng/gencys/artifacts*
+  - artifacts -> /home/bruno.fonkeng/gencys/artifacts
+  rename_impact: External storage root is independent of the repository directory name.
+  action_before_repo_rename: Retain. Do not rename or reorganize protected historical storage as part of repository rename.
+  mutate_now: false
+  rationale: The gencys storage identity is historical/external storage, not the Git repository name.
+- dependency_id: M8.5-009
+  classification: SAFE_TO_RETAIN
+  surface: Dynamic repository-root discovery
+  examples:
+  - Path(__file__).resolve().parents[...]
+  - git top-level discovery
+  - Path.cwd()/--repo-root patterns
+  - $(CURDIR)
+  - $SLURM_SUBMIT_DIR
+  rename_impact: These mechanisms generally survive a repository directory rename because they derive location dynamically.
+  action_before_repo_rename: Retain, while validating structural-depth assumptions during each paper migration.
+  mutate_now: false
+  rationale: Dynamic location discovery is rename-safe unless directory depth changes.
+- dependency_id: M8.5-010
+  classification: DOCUMENTATION_ONLY
+  surface: Current repository branding in README/Runbook/docs/comments
+  examples:
+  - README.md
+  - Runbook.md
+  - .github/git-commit-instructions.md
+  - app/main.py descriptions/comments
+  - common/data.py comments
+  - adapters/base.py comments
+  rename_impact: Old branding does not block filesystem/Git rename but would make the renamed repository externally inconsistent.
+  action_before_repo_rename: Update current-facing documentation and CLI branding during the governed rename transition, preserving
+    explicitly historical references.
+  mutate_now: false
+  rationale: These are presentation/current-identity surfaces rather than scientific evidence.
+- dependency_id: M8.5-011
+  classification: HISTORICAL_REFERENCE
+  surface: Historical GenCyberSynth references in research lineage/architecture documentation
+  examples:
+  - docs/RESEARCH_LINEAGE.md
+  - docs/TRUSTFORGE_ARCHITECTURE.md
+  - docs/STORAGE_AND_PATHS.md historical examples
+  rename_impact: Historical references remain semantically correct after rename.
+  action_before_repo_rename: Preserve statements that explicitly describe the former GenCyberSynth identity; update only text
+    that claims it is the current repository name.
+  mutate_now: false
+  rationale: TrustForge architecture explicitly distinguishes historical GenCyberSynth identity from current framework identity.
+- dependency_id: M8.5-012
+  classification: REQUIRES_REVIEW
+  surface: Root Makefile current-facing GenCyberSynth branding and legacy defaults
+  examples:
+  - 'Makefile: "# Makefile — Unified main Makefile for GenCyberSynth"'
+  - 'Makefile: echo "GenCyberSynth unified Makefile"'
+  - 'Makefile: gcs-core schema path'
+  - 'Makefile: ~/gencys historical artifact example'
+  rename_impact: Branding should change eventually, while dependency/default lines may remain compatibility behavior.
+  action_before_repo_rename: Split current-branding changes from compatibility semantics before rename; no bulk edit.
+  mutate_now: false
+  rationale: One file contains both current-facing identity and historical/compatibility behavior.
+- dependency_id: M8.5-013
+  classification: REQUIRES_REVIEW
+  surface: model-template legacy product identity
+  examples:
+  - model-template/CITATION.cff
+  - model-template/pyproject.toml
+  - model-template/Makefile
+  - model-template/scripts/slurm_array_example.sh
+  rename_impact: Template naming may communicate an obsolete product identity to new model/plugin projects.
+  action_before_repo_rename: Review during plugin architecture normalization, not as an automatic repository rename substitution.
+  mutate_now: false
+  rationale: The template combines package naming, dependency naming, citation identity, and job-name conventions.
+- dependency_id: M8.5-014
+  classification: SAFE_TO_RETAIN
+  surface: gcs-core submodule URL
+  examples:
+  - https://github.com/edgemindstudio/gcs-core.git
+  rename_impact: Independent submodule URL is unaffected by parent repository rename.
+  action_before_repo_rename: No action required for parent repository rename.
+  mutate_now: false
+  rationale: Separate repository identity must not be renamed merely to match the parent.
+- dependency_id: M8.5-015
+  classification: TEST_ONLY
+  surface: TrustForge tests referencing legacy aliases and historical identities
+  examples:
+  - tests/trustforge/test_storage_paths.py
+  - tests/trustforge/test_doctor.py
+  - tests/trustforge/test_paper01_*
+  rename_impact: Tests intentionally lock compatibility and historical behavior.
+  action_before_repo_rename: Retain unless the governed behavior itself changes.
+  mutate_now: false
+  rationale: Test references are not production dependency evidence by themselves.
+- dependency_id: M8.5-016
+  classification: TOOLING_ONLY
+  surface: Migration/audit tooling references
+  examples:
+  - tools/**
+  - scripts/trustforge_doctor.py
+  - scripts/trustforge_foundation_check.py
+  rename_impact: Tooling may reference both historical and canonical identities by design.
+  action_before_repo_rename: Evaluate per tool; do not globally replace old-name strings.
+  mutate_now: false
+  rationale: Audit tooling must often recognize legacy state in order to validate migration.

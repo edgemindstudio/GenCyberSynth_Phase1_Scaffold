@@ -1,0 +1,34 @@
+schema_version: "1.0"
+schema_type: m8_5_old_name_path_dependency_inventory
+
+required_top_level:
+  - schema_version
+  - milestone
+  - title
+  - status
+  - source_acceptance
+  - authority_boundary
+  - principles
+  - summary
+  - dependencies
+
+dependency_required:
+  - dependency_id
+  - classification
+  - surface
+  - examples
+  - rename_impact
+  - action_before_repo_rename
+  - mutate_now
+  - rationale
+
+allowed_classifications:
+  - RENAME_BLOCKER
+  - PORTABILITY_BLOCKER
+  - HISTORICAL_REFERENCE
+  - COMPATIBILITY_REFERENCE
+  - DOCUMENTATION_ONLY
+  - TEST_ONLY
+  - TOOLING_ONLY
+  - SAFE_TO_RETAIN
+  - REQUIRES_REVIEW

@@ -1,0 +1,33 @@
+schema_version: "1.0"
+schema_type: m8_4_2_execution_readiness
+
+required_top_level:
+  - schema_version
+  - milestone
+  - title
+  - status
+  - source_structural_plan
+  - authority_boundary
+  - principles
+  - summary
+  - actions
+
+action_required:
+  - action_id
+  - target
+  - readiness_class
+  - action_type
+  - authorized
+  - historical_move_authorized
+  - import_rewrite_authorized
+  - paper_migration_authorized
+  - rationale
+  - preconditions
+  - evidence
+
+allowed_readiness_classes:
+  - AUTHORIZED_SAFE_SCAFFOLD
+  - PRESERVE_AS_IS
+  - GUARDED_COMPATIBILITY
+  - MIGRATION_NOT_YET_AUTHORIZED
+  - DEFERRED

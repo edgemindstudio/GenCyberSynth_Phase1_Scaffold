@@ -1,0 +1,322 @@
+schema_version: 1
+milestone: M8.4.2
+title: TrustForge Normalization Execution Readiness
+status: EXECUTION_READINESS_DEFINED
+source_structural_plan:
+  m8_4_1_acceptance_commit: 22f3df2
+authority_boundary:
+  safe_scaffold_creation_authorized: true
+  historical_moves_authorized: false
+  import_rewrites_authorized: false
+  paper_migrations_authorized: false
+  plugin_relocations_authorized: false
+  historical_cleanup_authorized: false
+principles:
+- SCAFFOLD_CREATION != MIGRATION
+- DESTINATION_EXISTENCE != AUTHORITY_TRANSFER
+- HISTORICAL_SOURCE_REMAINS_AUTHORITATIVE_UNTIL_MIGRATION_ACCEPTED
+- NATIVE_NAMESPACE_EXISTENCE != IMPLEMENTATION_MIGRATION
+- COMPATIBILITY_GUARD_PRECEDES_RUNTIME_REPLACEMENT
+summary:
+  action_count: 21
+  class_counts:
+    AUTHORIZED_SAFE_SCAFFOLD: 4
+    DEFERRED: 1
+    GUARDED_COMPATIBILITY: 6
+    MIGRATION_NOT_YET_AUTHORIZED: 4
+    PRESERVE_AS_IS: 6
+actions:
+- action_id: SAFE-001
+  target: src/trustforge/data/
+  readiness_class: PRESERVE_AS_IS
+  action_type: existing_native_scaffold
+  authorized: false
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: The native namespace already exists and contains only tracked package scaffolding.
+  preconditions:
+  - No implementation migration is required to preserve this namespace.
+  evidence:
+  - Only src/trustforge/data/__init__.py is tracked.
+  - No tracked Python import currently references trustforge.data.
+- action_id: SAFE-002
+  target: src/trustforge/evaluation/
+  readiness_class: PRESERVE_AS_IS
+  action_type: existing_native_scaffold
+  authorized: false
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: The native namespace already exists and is not yet coupled to runtime behavior.
+  preconditions:
+  - Historical eval/runner.py must remain untouched.
+  evidence:
+  - Only src/trustforge/evaluation/__init__.py is tracked.
+  - No tracked Python import currently references trustforge.evaluation.
+- action_id: SAFE-003
+  target: src/trustforge/orchestration/
+  readiness_class: PRESERVE_AS_IS
+  action_type: existing_native_scaffold
+  authorized: false
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: The native namespace already exists without replacing app/main.py.
+  preconditions:
+  - Historical app/main.py remains compatibility runtime.
+  evidence:
+  - Only src/trustforge/orchestration/__init__.py is tracked.
+  - No tracked Python import currently references trustforge.orchestration.
+- action_id: SAFE-004
+  target: src/trustforge/models/
+  readiness_class: PRESERVE_AS_IS
+  action_type: existing_native_scaffold
+  authorized: false
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: The native namespace exists for future plugin contracts without moving model implementations.
+  preconditions:
+  - Historical model packages remain in place.
+  evidence:
+  - Only src/trustforge/models/__init__.py is tracked.
+  - No tracked Python import currently references trustforge.models.
+- action_id: SAFE-005
+  target: src/trustforge/policies/
+  readiness_class: PRESERVE_AS_IS
+  action_type: existing_native_scaffold
+  authorized: false
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: The namespace exists without absorbing Paper 4 policy semantics.
+  preconditions:
+  - Paper 4 policy implementations remain study-owned.
+  evidence:
+  - Only src/trustforge/policies/__init__.py is tracked.
+  - No tracked Python import currently references trustforge.policies.
+- action_id: SAFE-006
+  target: src/trustforge/augmentation/
+  readiness_class: PRESERVE_AS_IS
+  action_type: existing_native_scaffold
+  authorized: false
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: The namespace exists without absorbing Paper 3 augmentation semantics.
+  preconditions:
+  - Paper 3 augmentation implementations remain study-owned.
+  evidence:
+  - Only src/trustforge/augmentation/__init__.py is tracked.
+  - No tracked Python import currently references trustforge.augmentation.
+- action_id: SAFE-007
+  target: hpc/
+  readiness_class: AUTHORIZED_SAFE_SCAFFOLD
+  action_type: create_directory_scaffold
+  authorized: true
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: The native hpc/ root is part of accepted target architecture and does not currently exist.
+  preconditions:
+  - Creation must contain no migrated historical Slurm scripts.
+  - Creation must not change root slurm/ behavior.
+  - Creation must not change execution semantics.
+  evidence:
+  - docs/TRUSTFORGE_ARCHITECTURE.md already names hpc/ in the target structure.
+  - M8.4.1 target structure includes hpc/.
+  - No native hpc/ directory currently exists.
+- action_id: SAFE-008
+  target: studies/paper02_conditioning_audit/
+  readiness_class: AUTHORIZED_SAFE_SCAFFOLD
+  action_type: create_directory_scaffold
+  authorized: true
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: The canonical Paper 2 study destination is accepted, but migration is not.
+  preconditions:
+  - Scaffold must contain no copied/moved historical Paper 2 files.
+  - Historical papers/paper2_conditional_generation_done_right/ remains authoritative.
+  evidence:
+  - M8.4.1 defines studies/paper02_conditioning_audit/ as the future target.
+  - The destination is currently absent.
+  - Current references are planning/test references only.
+- action_id: SAFE-009
+  target: studies/paper03_augmentation_regimes/
+  readiness_class: AUTHORIZED_SAFE_SCAFFOLD
+  action_type: create_directory_scaffold
+  authorized: true
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: The canonical Paper 3 study destination is accepted, but migration is not.
+  preconditions:
+  - Scaffold must contain no copied/moved historical Paper 3 files.
+  - Historical papers/paper3_when_does_synth_help/ remains authoritative.
+  evidence:
+  - M8.4.1 defines studies/paper03_augmentation_regimes/ as the future target.
+  - The destination is currently absent.
+  - Current references are planning/test references only.
+- action_id: SAFE-010
+  target: studies/paper04_selective_policies/
+  readiness_class: AUTHORIZED_SAFE_SCAFFOLD
+  action_type: create_directory_scaffold
+  authorized: true
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: The canonical Paper 4 study destination is accepted, but migration is not.
+  preconditions:
+  - Scaffold must contain no copied/moved historical Paper 4 files.
+  - Historical papers/paper4_selective_synth_policies/ remains authoritative.
+  evidence:
+  - M8.4.1 defines studies/paper04_selective_policies/ as the future target.
+  - The destination is currently absent.
+  - Current references are planning/test references only.
+- action_id: GUARD-001
+  target: app/
+  readiness_class: GUARDED_COMPATIBILITY
+  action_type: historical_runtime
+  authorized: false
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: Shared CLI remains active compatibility runtime for Papers 2–4.
+  preconditions:
+  - No relocation or import rewrite before paper migration contracts exist.
+  evidence:
+  - M8.2 classifies app/main.py as TRANSITIONAL_RUNTIME.
+  - M8.3 allows it only with migration debt.
+- action_id: GUARD-002
+  target: adapters/
+  readiness_class: GUARDED_COMPATIBILITY
+  action_type: historical_runtime
+  authorized: false
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: Concrete adapters remain bound to historical model packages.
+  preconditions:
+  - No relocation into src/trustforge/models/ yet.
+  evidence:
+  - M8.2 separates adapter interface ownership from current concrete adapters.
+- action_id: GUARD-003
+  target: common/
+  readiness_class: GUARDED_COMPATIBILITY
+  action_type: historical_runtime
+  authorized: false
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: Historical dataset runtime remains shared compatibility code.
+  preconditions:
+  - No replacement by trustforge.data until consumer migrations are proven.
+  evidence:
+  - M8.3 allows common/data.py only as transitional dependency.
+- action_id: GUARD-004
+  target: eval/
+  readiness_class: GUARDED_COMPATIBILITY
+  action_type: historical_runtime
+  authorized: false
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: Historical evaluator remains compatibility runtime with paper-era semantics.
+  preconditions:
+  - No replacement by trustforge.evaluation until evaluator contracts are implemented and paper migrations validated.
+  evidence:
+  - M8.2 classifies eval/runner.py as TRANSITIONAL_RUNTIME.
+- action_id: GUARD-005
+  target: configs/
+  readiness_class: GUARDED_COMPATIBILITY
+  action_type: mixed_root
+  authorized: false
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: Current root is mixed historical/native candidate space and must be partitioned later.
+  preconditions:
+  - No historical config may be silently reclassified as native default.
+  evidence:
+  - M8.4.1 classifies configs/ as MIGRATE_LATER.
+- action_id: GUARD-006
+  target: slurm/;run_gcs.slurm;run_suite.slurm;run_tuning.slurm
+  readiness_class: GUARDED_COMPATIBILITY
+  action_type: historical_hpc
+  authorized: false
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: Historical/global Slurm surfaces remain compatibility infrastructure.
+  preconditions:
+  - No script is moved into hpc/ merely because hpc/ now exists.
+  evidence:
+  - M8.3 classifies historical Slurm usage as compatibility-only.
+- action_id: BLOCK-001
+  target: papers/paper2_conditional_generation_done_right/
+  readiness_class: MIGRATION_NOT_YET_AUTHORIZED
+  action_type: paper_migration
+  authorized: false
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: Paper 2 historical study has not yet undergone canonical migration.
+  preconditions:
+  - Paper 2 migration requires dedicated evidence mapping and compatibility validation.
+  evidence:
+  - M8.4.1 classifies Paper 2 as MIGRATE_LATER.
+- action_id: BLOCK-002
+  target: papers/paper3_when_does_synth_help/
+  readiness_class: MIGRATION_NOT_YET_AUTHORIZED
+  action_type: paper_migration
+  authorized: false
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: Paper 3 historical study has not yet undergone canonical migration.
+  preconditions:
+  - Paper 3 migration requires dedicated evidence mapping and compatibility validation.
+  evidence:
+  - M8.4.1 classifies Paper 3 as MIGRATE_LATER.
+- action_id: BLOCK-003
+  target: papers/paper4_selective_synth_policies/
+  readiness_class: MIGRATION_NOT_YET_AUTHORIZED
+  action_type: paper_migration
+  authorized: false
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: Paper 4 historical study has not yet undergone canonical migration.
+  preconditions:
+  - Paper 4 migration requires dedicated evidence mapping and compatibility validation.
+  evidence:
+  - M8.4.1 classifies Paper 4 as MIGRATE_LATER.
+- action_id: BLOCK-004
+  target: gan/;vae/;diffusion/;autoregressive/;gaussianmixture/;restrictedboltzmann/;maskedautoflow/
+  readiness_class: MIGRATION_NOT_YET_AUTHORIZED
+  action_type: plugin_migration
+  authorized: false
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: Model packages are conceptually plugins but relocation mechanics remain unresolved.
+  preconditions:
+  - Plugin interface must be implemented before any model package relocation.
+  evidence:
+  - M8.2 classifies model implementations as MODEL_PLUGIN.
+  - M8.3 explicitly defers plugin migration mechanics.
+- action_id: DEFER-001
+  target: src/trustforge/uncertainty/
+  readiness_class: DEFERRED
+  action_type: future_capability
+  authorized: false
+  historical_move_authorized: false
+  import_rewrite_authorized: false
+  paper_migration_authorized: false
+  rationale: Uncertainty/calibration is outside current Papers 1–4 normalization needs.
+  preconditions:
+  - No implementation work required in M8.4.2.
+  evidence:
+  - M8.4.1 classifies uncertainty namespace as DEFERRED.

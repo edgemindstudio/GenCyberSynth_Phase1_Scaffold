@@ -1,0 +1,33 @@
+schema_version: "1.0"
+schema_type: m8_3_paper_isolation_contracts
+
+required_top_level:
+  - schema_version
+  - milestone
+  - title
+  - status
+  - source_boundary
+  - authority_boundary
+  - principles
+  - dependency_class_definitions
+  - summary
+  - rules
+
+rule_required:
+  - rule_id
+  - paper
+  - dependency_class
+  - target
+  - rationale
+  - enforcement
+  - migration_authorized
+  - implementation_move_authorized
+  - evidence
+
+allowed_dependency_classes:
+  - CORE_ALLOWED
+  - TRANSITIONAL_ALLOWED
+  - STUDY_LOCAL_ONLY
+  - FORBIDDEN_CROSS_PAPER
+  - HISTORICAL_COMPATIBILITY_ONLY
+  - DEFERRED

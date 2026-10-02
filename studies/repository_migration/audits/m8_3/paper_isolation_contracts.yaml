@@ -1,0 +1,198 @@
+schema_version: 1
+milestone: M8.3
+title: TrustForge Paper Isolation Contracts
+status: ISOLATION_BOUNDARIES_DEFINED
+source_boundary:
+  m8_2_acceptance_commit: d42e022
+authority_boundary:
+  file_moves_authorized: false
+  runtime_rewrites_authorized: false
+  paper_migrations_authorized: false
+  cross_paper_reuse_authorized_by_default: false
+principles:
+- PAPER_SPECIFIC_SCIENCE != SHARED_FRAMEWORK_DEFAULT
+- TRANSITIONAL_ALLOWED != PERMANENTLY_ALLOWED
+- CROSS_PAPER_IMPORT != SHARED_CORE
+- HISTORICAL_COMPATIBILITY != NATIVE_DEFAULT
+- MODEL_PLUGIN != FRAMEWORK_CORE
+dependency_class_definitions:
+  CORE_ALLOWED: Paper may depend on paper-neutral TrustForge core contracts/interfaces.
+  TRANSITIONAL_ALLOWED: Existing historical dependency may remain temporarily, but creates migration debt.
+  STUDY_LOCAL_ONLY: Scientific behavior must remain explicitly owned by the paper/study.
+  FORBIDDEN_CROSS_PAPER: Direct dependency on another paper's scientific implementation is prohibited.
+  HISTORICAL_COMPATIBILITY_ONLY: May be used only to reproduce or interpret historical execution/evidence.
+  DEFERRED: Boundary recognized, but migration mechanics are intentionally unresolved.
+summary:
+  rule_count: 16
+  class_counts:
+    CORE_ALLOWED: 4
+    DEFERRED: 1
+    FORBIDDEN_CROSS_PAPER: 3
+    HISTORICAL_COMPATIBILITY_ONLY: 1
+    STUDY_LOCAL_ONLY: 3
+    TRANSITIONAL_ALLOWED: 4
+rules:
+- rule_id: P2-CORE-001
+  paper: paper02
+  dependency_class: CORE_ALLOWED
+  target: src/trustforge/provenance/
+  rationale: Paper 2 may depend on paper-neutral TrustForge provenance contracts.
+  enforcement: allowed
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - M8.2 classifies provenance as CORE_CONTRACT.
+- rule_id: P2-CORE-002
+  paper: paper02
+  dependency_class: CORE_ALLOWED
+  target: src/trustforge/storage/
+  rationale: Paper 2 may depend on paper-neutral TrustForge storage/path contracts.
+  enforcement: allowed
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - M8.2 classifies storage resolution as CORE_CONTRACT.
+- rule_id: P2-TRANS-001
+  paper: paper02
+  dependency_class: TRANSITIONAL_ALLOWED
+  target: app/main.py
+  rationale: Paper 2 historically invokes the shared CLI runtime; this remains temporary compatibility.
+  enforcement: allowed_with_migration_debt
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - M8.1 observed Paper 2 invocations of python -m app.main.
+  - M8.2 classifies the historical shared CLI as TRANSITIONAL_RUNTIME.
+- rule_id: P2-TRANS-002
+  paper: paper02
+  dependency_class: TRANSITIONAL_ALLOWED
+  target: common/data.py
+  rationale: Paper 2 historically imports shared dataset loading; this is not permanent core ownership.
+  enforcement: allowed_with_migration_debt
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Paper 2 scripts directly import common.data.
+  - M8.2 classifies historical shared dataset runtime as TRANSITIONAL_RUNTIME.
+- rule_id: P2-LOCAL-001
+  paper: paper02
+  dependency_class: STUDY_LOCAL_ONLY
+  target: gan/models_acgan.py;gan/train_acgan.py
+  rationale: ACGAN and conditioning-intervention semantics are owned by Paper 2.
+  enforcement: must_remain_explicitly_paper_owned
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - M8.2 classifies Paper 2 conditioning semantics as STUDY_OWNED.
+- rule_id: P2-XPAPER-001
+  paper: paper02
+  dependency_class: FORBIDDEN_CROSS_PAPER
+  target: papers/paper3_when_does_synth_help/;papers/paper4_selective_synth_policies/
+  rationale: Paper 2 must not import implementation or scientific semantics from later studies.
+  enforcement: forbidden
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Paper-specific scientific meaning must remain isolated by study.
+- rule_id: P3-CORE-001
+  paper: paper03
+  dependency_class: CORE_ALLOWED
+  target: src/trustforge/provenance/;src/trustforge/storage/
+  rationale: Paper 3 may depend on paper-neutral TrustForge contracts.
+  enforcement: allowed
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - M8.2 classifies storage and provenance as CORE_CONTRACT.
+- rule_id: P3-TRANS-001
+  paper: paper03
+  dependency_class: TRANSITIONAL_ALLOWED
+  target: app/main.py;eval/runner.py;common/data.py
+  rationale: Paper 3 historically depends on the shared CLI/evaluator/data runtime.
+  enforcement: allowed_with_migration_debt
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - M8.1 observed extensive Paper 3 use of python -m app.main.
+  - M8.2 classifies CLI, evaluator, and dataset runtime as TRANSITIONAL_RUNTIME.
+- rule_id: P3-LOCAL-001
+  paper: paper03
+  dependency_class: STUDY_LOCAL_ONLY
+  target: class-restricted synthesis;minority c4/c7 augmentation;budget-regime semantics
+  rationale: Paper 3 scientific interventions must remain Paper 3-owned.
+  enforcement: must_remain_explicitly_paper_owned
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - M8.2 classifies Paper 3 augmentation semantics as STUDY_OWNED.
+- rule_id: P3-XPAPER-001
+  paper: paper03
+  dependency_class: FORBIDDEN_CROSS_PAPER
+  target: papers/paper2_conditional_generation_done_right/;papers/paper4_selective_synth_policies/
+  rationale: Paper 3 must not silently inherit Paper 2 conditioning or Paper 4 policy semantics.
+  enforcement: forbidden
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Paper-specific interventions are not framework defaults.
+- rule_id: P4-CORE-001
+  paper: paper04
+  dependency_class: CORE_ALLOWED
+  target: src/trustforge/provenance/;src/trustforge/storage/
+  rationale: Paper 4 may depend on paper-neutral TrustForge contracts.
+  enforcement: allowed
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - M8.2 classifies storage and provenance as CORE_CONTRACT.
+- rule_id: P4-TRANS-001
+  paper: paper04
+  dependency_class: TRANSITIONAL_ALLOWED
+  target: app/main.py;eval/runner.py;common/data.py
+  rationale: Paper 4 historically depends on shared runtime surfaces.
+  enforcement: allowed_with_migration_debt
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - M8.1 observed Paper 4 use of python -m app.main.
+  - M8.2 classifies CLI/evaluator/data runtime as transitional.
+- rule_id: P4-LOCAL-001
+  paper: paper04
+  dependency_class: STUDY_LOCAL_ONLY
+  target: keep-all;confidence filtering;top-k;class-repair
+  rationale: Selective synthetic-data policy semantics are owned by Paper 4.
+  enforcement: must_remain_explicitly_paper_owned
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - M8.2 classifies Paper 4 policy semantics as STUDY_OWNED.
+- rule_id: P4-XPAPER-001
+  paper: paper04
+  dependency_class: FORBIDDEN_CROSS_PAPER
+  target: papers/paper2_conditional_generation_done_right/;papers/paper3_when_does_synth_help/
+  rationale: Paper 4 must not import scientific implementation directly from Papers 2 or 3.
+  enforcement: forbidden
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Study ownership is distinct from shared framework ownership.
+- rule_id: ALL-HIST-001
+  paper: all
+  dependency_class: HISTORICAL_COMPATIBILITY_ONLY
+  target: historical configs;legacy Slurm scripts;historical path aliases
+  rationale: Historical reproduction surfaces may be read/used for compatibility but must not become new native defaults.
+  enforcement: compatibility_only
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - M8.2 classifies legacy path/config surfaces as HISTORICAL_COMPATIBILITY.
+- rule_id: ALL-PLUGIN-001
+  paper: all
+  dependency_class: DEFERRED
+  target: gan/;vae/;diffusion/;autoregressive/;gaussianmixture/;restrictedboltzmann/;maskedautoflow/
+  rationale: Current model packages are plugins conceptually, but migration/isolation mechanics are deferred.
+  enforcement: deferred
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - M8.2 classifies historical model implementations as MODEL_PLUGIN.

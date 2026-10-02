@@ -1,0 +1,31 @@
+schema_version: "1.0"
+schema_type: m8_2_shared_core_boundary
+required_top_level:
+  - schema_version
+  - milestone
+  - title
+  - status
+  - source_baseline
+  - authority_boundary
+  - principles
+  - boundary_class_definitions
+  - summary
+  - capabilities
+capability_required:
+  - capability
+  - current_locations
+  - current_role
+  - future_role
+  - boundary_class
+  - migration_authorized
+  - implementation_move_authorized
+  - evidence
+  - rationale
+allowed_boundary_classes:
+  - CORE_CONTRACT
+  - CORE_INTERFACE
+  - TRANSITIONAL_RUNTIME
+  - MODEL_PLUGIN
+  - STUDY_OWNED
+  - HISTORICAL_COMPATIBILITY
+  - DEFERRED

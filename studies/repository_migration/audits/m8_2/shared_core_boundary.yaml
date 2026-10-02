@@ -1,0 +1,330 @@
+schema_version: 1
+milestone: M8.2
+title: TrustForge Shared Core Boundary Definition
+status: BOUNDARY_DEFINED
+source_baseline:
+  m8_1_repository_baseline: d60f9c97e6b01b78cd615aa0fdb4aa61f3acce51
+  m8_1_acceptance_commit: 9487df0
+authority_boundary:
+  migration_authorized: false
+  implementation_moves_authorized: false
+  historical_runtime_rewrites_authorized: false
+  paper_migrations_authorized: false
+principles:
+- MULTI_PAPER_SHARED_RUNTIME != SHARED_TRUSTFORGE_CORE
+- REUSABLE != CORE
+- INTERFACE_OWNERSHIP != CURRENT_IMPLEMENTATION_OWNERSHIP
+- SCIENTIFIC_EXPERIMENT_IDENTITY != HISTORICAL_EXECUTION_IDENTITY
+- HPC_BACKEND != SCIENTIFIC_EXPERIMENT_DEFINITION
+- HISTORICAL_COMPATIBILITY != NATIVE_TRUSTFORGE_CORE
+boundary_class_definitions:
+  CORE_CONTRACT: Permanent paper-neutral TrustForge contract.
+  CORE_INTERFACE: Permanent paper-neutral capability/interface; current historical implementation is not automatically native
+    core.
+  TRANSITIONAL_RUNTIME: Historically shared implementation retained during migration; not permanent core by current evidence.
+  MODEL_PLUGIN: Replaceable model-family implementation outside framework core.
+  STUDY_OWNED: Scientific behavior or interpretation owned by a specific study.
+  HISTORICAL_COMPATIBILITY: Preserved compatibility/reproduction surface.
+  DEFERRED: Concept needed later, but evidence is insufficient to freeze a paper-neutral contract now.
+summary:
+  capability_count: 23
+  class_counts:
+    CORE_CONTRACT: 7
+    CORE_INTERFACE: 6
+    DEFERRED: 1
+    HISTORICAL_COMPATIBILITY: 1
+    MODEL_PLUGIN: 1
+    STUDY_OWNED: 3
+    TRANSITIONAL_RUNTIME: 4
+capabilities:
+- capability: study_identity_contract
+  current_locations:
+  - schemas/study.schema.yaml
+  - docs/REPRODUCIBILITY_CONTRACT.md
+  current_role: Defines stable study identity and scientific scope.
+  future_role: Permanent TrustForge study identity contract.
+  boundary_class: CORE_CONTRACT
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - STUDY is distinct from CODE, CONFIG, MANIFEST, and ARTIFACT.
+  - Study identity is stable independently of manuscript filenames.
+  rationale: Study identity is framework-wide and not owned by one paper.
+- capability: experiment_identity_contract
+  current_locations:
+  - schemas/experiment.schema.yaml
+  - docs/REPRODUCIBILITY_CONTRACT.md
+  current_role: Defines exact scientific intent including dataset, model, seed, evaluation, and scientific parameters.
+  future_role: Permanent TrustForge experiment-definition contract.
+  boundary_class: CORE_CONTRACT
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Experiment describes scientific intent.
+  - Experiment identity is distinct from execution identity.
+  rationale: Experiment identity must remain paper-neutral and machine-independent.
+- capability: execution_identity_contract
+  current_locations:
+  - src/trustforge/provenance/execution.py
+  - schemas/manifest.schema.yaml
+  current_role: Defines one concrete execution attempt.
+  future_role: Permanent TrustForge execution-identity contract.
+  boundary_class: CORE_CONTRACT
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Execution realizes an Experiment.
+  - Execution identifiers are not scientific experiment identifiers.
+  rationale: Execution identity is operational provenance and paper-neutral.
+- capability: storage_resolution
+  current_locations:
+  - src/trustforge/storage/paths.py
+  - src/trustforge/storage/layout.py
+  current_role: Resolves portable roots and canonical dataset/study/experiment/execution paths.
+  future_role: Permanent TrustForge storage contract and implementation.
+  boundary_class: CORE_CONTRACT
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Scientific identity is separate from machine-specific paths.
+  - Canonical paths derive from stable identifiers.
+  rationale: Storage semantics are already paper-neutral TrustForge code.
+- capability: provenance_hashing
+  current_locations:
+  - src/trustforge/provenance/hashing.py
+  current_role: Provides SHA256 exact-file and canonical structured-data hashing.
+  future_role: Permanent TrustForge provenance primitive.
+  boundary_class: CORE_CONTRACT
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Exact file hashes and canonical structured hashes answer different provenance questions.
+  rationale: Hashing semantics apply across all studies.
+- capability: git_provenance
+  current_locations:
+  - src/trustforge/provenance/git.py
+  current_role: Captures commit, branch, repository root, and dirty state read-only.
+  future_role: Permanent TrustForge execution provenance primitive.
+  boundary_class: CORE_CONTRACT
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Executions must record exact source identity.
+  - Dirty state must not be represented as clean.
+  rationale: Git provenance is independent of study-specific science.
+- capability: native_manifest_contract
+  current_locations:
+  - schemas/manifest.schema.yaml
+  - src/trustforge/provenance/manifest.py
+  - src/trustforge/provenance/validation.py
+  current_role: Defines and validates execution reality.
+  future_role: Permanent TrustForge manifest contract and native implementation.
+  boundary_class: CORE_CONTRACT
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - CONFIG describes intended work; MANIFEST describes execution reality.
+  - Manifest completion does not itself establish scientific acceptance.
+  rationale: Execution manifests are universal framework records.
+- capability: accepted_evidence_contract
+  current_locations:
+  - src/trustforge/paper01_execution_evidence.py
+  - studies/paper01_benchmark/execution_evidence/
+  current_role: Paper 1 implementation separates production, evaluation, and authoritative results.
+  future_role: Future paper-neutral accepted-evidence contract.
+  boundary_class: DEFERRED
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Operational completion is not accepted scientific evidence.
+  - Paper 1 demonstrates producer/evaluator/result separation.
+  rationale: The concept belongs in core, but current implementation is Paper 1-specific.
+- capability: adapter_interface
+  current_locations:
+  - adapters/base.py
+  current_role: Defines generic Adapter and synth(config)->manifest semantics.
+  future_role: TrustForge-native model adapter interface.
+  boundary_class: CORE_INTERFACE
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Adapter defines a generic synthesis contract.
+  rationale: The abstraction is reusable even though the implementation is historical runtime.
+- capability: adapter_registry_interface
+  current_locations:
+  - adapters/registry.py
+  current_role: Registers and resolves adapters by model key.
+  future_role: TrustForge-native plugin registry interface.
+  boundary_class: CORE_INTERFACE
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Registry is implementation-agnostic at its public interface.
+  rationale: Registry semantics belong in core; historical registrations do not.
+- capability: orchestration_interface
+  current_locations:
+  - app/main.py
+  current_role: Routes train, synth, eval, configuration, paper scoping, and runtime metadata.
+  future_role: TrustForge-native orchestration interface.
+  boundary_class: CORE_INTERFACE
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Current app.main mixes generic orchestration with paper-era behavior.
+  rationale: Train/synth/eval orchestration is core as an interface, not as the current CLI implementation.
+- capability: evaluation_interface
+  current_locations:
+  - eval/runner.py
+  current_role: Historical evaluator mixes metrics, manifests, paths, config interpretation, and paper-era behavior.
+  future_role: TrustForge-native evaluator request/result interface.
+  boundary_class: CORE_INTERFACE
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - eval/runner.py accumulated Paper 1, Paper 3, and Paper 4 behavior.
+  rationale: Evaluation is cross-study, but the current monolith is not accepted wholesale as core.
+- capability: dataset_interface
+  current_locations:
+  - common/data.py
+  current_role: Historical shared loading, normalization, label encoding, and dataset construction.
+  future_role: TrustForge-native dataset representation/loading interface.
+  boundary_class: CORE_INTERFACE
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Multiple historical model trainers import common.data.
+  rationale: Dataset abstraction is core; current loader remains transitional.
+- capability: execution_backend_interface
+  current_locations:
+  - docs/TRUSTFORGE_ARCHITECTURE.md
+  - slurm/
+  current_role: Historical Slurm scripts plus an architecture-level HPC contract.
+  future_role: Backend-neutral execution plan with local and Slurm backends.
+  boundary_class: CORE_INTERFACE
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - HPC is an execution backend, not scientific experiment definition.
+  rationale: Execution backend abstraction is core; current Slurm scripts require later review.
+- capability: historical_shared_cli_runtime
+  current_locations:
+  - app/main.py
+  current_role: Shared CLI incrementally modified across papers.
+  future_role: Compatibility runtime during migration.
+  boundary_class: TRANSITIONAL_RUNTIME
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Git history shows Paper 1, Paper 2, and Paper 3 changes.
+  rationale: Shared historical use does not establish permanent core ownership.
+- capability: historical_shared_evaluator
+  current_locations:
+  - eval/runner.py
+  current_role: Cross-paper evaluator with accumulated historical semantics.
+  future_role: Compatibility runtime until native evaluation contracts exist.
+  boundary_class: TRANSITIONAL_RUNTIME
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Git history includes Paper 1 fixes, Paper 3 changes, and Paper 4 behavior.
+  rationale: The implementation is coupled to historical study semantics.
+- capability: historical_shared_dataset_runtime
+  current_locations:
+  - common/data.py
+  current_role: Shared historical loader consumed by multiple trainers.
+  future_role: Compatibility runtime until native dataset interface exists.
+  boundary_class: TRANSITIONAL_RUNTIME
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - GAN, VAE, Diffusion, and Autoregressive trainers import common.data.
+  rationale: Shared use does not prove permanent API suitability.
+- capability: historical_concrete_adapters
+  current_locations:
+  - adapters/gan_adapter.py
+  - adapters/vae_adapter.py
+  - adapters/diffusion_adapter.py
+  - adapters/autoregressive_adapter.py
+  - adapters/gaussianmixture_adapter.py
+  - adapters/restrictedboltzmann_adapter.py
+  - adapters/maskedautoflow_adapter.py
+  current_role: Concrete bridges from shared CLI into historical model packages.
+  future_role: Compatibility adapters or validated future plugins.
+  boundary_class: TRANSITIONAL_RUNTIME
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Concrete adapters import historical model-specific packages.
+  rationale: Concrete adapters are implementations, not the adapter abstraction.
+- capability: historical_model_implementations
+  current_locations:
+  - gan/
+  - vae/
+  - diffusion/
+  - autoregressive/
+  - gaussianmixture/
+  - restrictedboltzmann/
+  - maskedautoflow/
+  current_role: Seven historical generative-model implementations.
+  future_role: Replaceable model plugins outside permanent core.
+  boundary_class: MODEL_PLUGIN
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Model implementations are replaceable while TrustForge contracts remain stable.
+  rationale: Reusable model code is a plugin, not framework core.
+- capability: paper02_conditioning_study
+  current_locations:
+  - papers/paper2_conditional_generation_done_right/
+  - gan/models_acgan.py
+  - gan/train_acgan.py
+  current_role: Conditional-generation interventions and audits.
+  future_role: Paper 2 study-owned implementation and evidence.
+  boundary_class: STUDY_OWNED
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Paper 2 owns conditioning/class-faithfulness audit behavior.
+  rationale: These semantics answer Paper 2's scientific question.
+- capability: paper03_augmentation_study
+  current_locations:
+  - papers/paper3_when_does_synth_help/
+  - gan/sample.py
+  - vae/sample.py
+  - adapters/diffusion_adapter.py
+  current_role: Augmentation budgets, minority targeting, and class-restricted synthesis.
+  future_role: Paper 3 study-owned implementation and evidence.
+  boundary_class: STUDY_OWNED
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Paper 3 owns augmentation regimes and minority-heavy c4/c7 behavior.
+  rationale: Paper-specific interventions must remain explicit study semantics.
+- capability: paper04_selective_policy_study
+  current_locations:
+  - papers/paper4_selective_synth_policies/
+  - eval/runner.py
+  current_role: Keep-all, confidence, top-k, and class-repair interventions.
+  future_role: Paper 4 study-owned implementation and evidence.
+  boundary_class: STUDY_OWNED
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Paper 4 treats synthetic inclusion as a policy-controlled intervention.
+  rationale: Policy semantics belong to Paper 4 unless later generalized explicitly.
+- capability: legacy_path_and_config_compatibility
+  current_locations:
+  - configs/paper1_*.yaml
+  - configs/paper2_500.yaml
+  - configs/paper2_1000.yaml
+  - configs/paper2_2000.yaml
+  - slurm/legacy/
+  - slurm/oneoffs/
+  current_role: Historical reproduction and compatibility surfaces.
+  future_role: Preserved compatibility until evidence permits retirement.
+  boundary_class: HISTORICAL_COMPATIBILITY
+  migration_authorized: false
+  implementation_move_authorized: false
+  evidence:
+  - Migration doctrine preserves historical path-bearing evidence.
+  rationale: Historical path/config state may be provenance and must not be rewritten blindly.

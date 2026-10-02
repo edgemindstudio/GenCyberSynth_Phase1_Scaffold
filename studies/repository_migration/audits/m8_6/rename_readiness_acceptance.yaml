@@ -1,0 +1,107 @@
+schema_version: 1
+milestone: M8.6
+title: TrustForge Repository Rename-Readiness Acceptance
+status: READY_FOR_CONTROLLED_RENAME
+source_acceptance:
+  m8_5_acceptance_commit: ff5f617
+  m8_4_acceptance_commit: a11445a
+identity_transition:
+  old_repository_name: GenCyberSynth_Phase1_Scaffold
+  new_repository_name: TrustForge
+  old_remote: git@github.com:edgemindstudio/GenCyberSynth_Phase1_Scaffold.git
+  new_remote: git@github.com:edgemindstudio/TrustForge.git
+  old_local_directory: /home/bruno.fonkeng/ProbabilisticModels/GenCyberSynth_Phase1_Scaffold
+  new_local_directory: /home/bruno.fonkeng/ProbabilisticModels/TrustForge
+readiness_findings:
+  structural_normalization_accepted: true
+  paper_isolation_defined: true
+  historical_authority_preserved: true
+  rename_dependency_inventory_complete: true
+  direct_rename_blocker_count: 1
+  direct_rename_blocker: Git remote origin
+  blocker_resolvable_inside_transaction: true
+  historical_rewrite_required: false
+  paper_migration_required_before_rename: false
+  gcs_core_rename_required: false
+  protected_gencys_storage_rename_required: false
+authority_boundary:
+  repository_rename_transaction_authorized: true
+  historical_evidence_rewrite_authorized: false
+  paper2_migration_authorized: false
+  paper3_migration_authorized: false
+  paper4_migration_authorized: false
+  runtime_replacement_authorized: false
+  plugin_relocation_authorized: false
+  gcs_core_rename_authorized: false
+  protected_storage_rename_authorized: false
+  legacy_alias_removal_authorized: false
+principles:
+- REPOSITORY_RENAME != HISTORICAL_REWRITE
+- REPOSITORY_RENAME != PAPER_MIGRATION
+- CURRENT_IDENTITY != HISTORICAL_EXECUTION_IDENTITY
+- REMOTE_UPDATE_BELONGS_TO_RENAME_TRANSACTION
+- PROTECTED_STORAGE_IDENTITY != REPOSITORY_IDENTITY
+- GCS_CORE_IDENTITY != PARENT_REPOSITORY_IDENTITY
+- TREE_CONTENT_MUST_REMAIN_STABLE_DURING_IDENTITY_RENAME
+transaction:
+  preflight:
+  - Verify branch migration/trustforge-foundation.
+  - Capture git rev-parse HEAD and treat it as RENAME_PREFLIGHT_HEAD.
+  - Capture git rev-parse HEAD^{tree} and treat it as RENAME_PREFLIGHT_TREE.
+  - Capture git ls-files count.
+  - Capture git remote -v.
+  - Capture git submodule status.
+  - Confirm only known untracked scratch/bundle files are present.
+  ordered_actions:
+  - step: 1
+    action: Rename the GitHub repository from GenCyberSynth_Phase1_Scaffold to TrustForge under edgemindstudio.
+    content_mutation: false
+  - step: 2
+    action: Rename the local repository directory from GenCyberSynth_Phase1_Scaffold to TrustForge.
+    content_mutation: false
+  - step: 3
+    action: Set origin to git@github.com:edgemindstudio/TrustForge.git.
+    content_mutation: false
+  - step: 4
+    action: If TRUSTFORGE_REPO_ROOT is explicitly configured, update it to the new local repository directory.
+    content_mutation: false
+  forbidden_during_transaction:
+  - Do not rewrite Paper 1 repository/provenance fields.
+  - Do not rewrite Paper 2 historical result/evidence absolute paths.
+  - Do not rename or reorganize /home/bruno.fonkeng/gencys.
+  - Do not rename gcs-core or gcs_core.
+  - Do not remove GCS_* compatibility aliases.
+  - Do not migrate Papers 2–4.
+  - Do not move app/, adapters/, common/, eval/, or model packages.
+  - Do not combine current-facing branding edits with the identity/location rename transaction.
+  postflight:
+  - Verify git rev-parse HEAD matches RENAME_PREFLIGHT_HEAD.
+  - Verify git rev-parse HEAD^{tree} matches RENAME_PREFLIGHT_TREE.
+  - Verify git ls-files count matches preflight.
+  - Verify git rev-parse --show-toplevel resolves to /home/bruno.fonkeng/ProbabilisticModels/TrustForge.
+  - Verify origin resolves to git@github.com:edgemindstudio/TrustForge.git.
+  - Verify git submodule status is unchanged.
+  - Run PYTHONPATH=src python -m pytest -q tests/trustforge.
+  - Run PYTHONPATH=src python scripts/trustforge_doctor.py.
+  - Run git diff --check.
+preserve_without_rewrite:
+- Accepted Paper 1 repository identity fields naming edgemindstudio/GenCyberSynth_Phase1_Scaffold.
+- Paper 1 deterministic generator historical repository constant.
+- Paper 2 historical result/evidence absolute paths containing GenCyberSynth_Phase1_Scaffold.
+- Explicit historical GenCyberSynth lineage documentation.
+- /home/bruno.fonkeng/gencys protected data/artifact storage.
+- gcs-core submodule URL and gcs_core compatibility imports.
+- Legacy GCS_* environment aliases.
+post_rename_followup:
+- item: Current-facing repository branding
+  scope: README.md, Runbook.md, .github/git-commit-instructions.md, current CLI/help/comments, current Makefile branding
+  timing: separate post-rename commit
+- item: Mixed Makefile compatibility semantics
+  scope: Keep gcs-core and historical-storage behavior separate from branding updates.
+  timing: review after rename
+- item: model-template legacy identity
+  scope: Review with plugin architecture; do not bulk-substitute during rename.
+  timing: deferred
+- item: Paper 2 portability debt
+  scope: Replace active hard-coded gencys roots only during canonical Paper 2 migration.
+  timing: Paper 2 migration

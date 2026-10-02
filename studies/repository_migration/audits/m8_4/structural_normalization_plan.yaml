@@ -1,0 +1,454 @@
+schema_version: 1
+milestone: M8.4.1
+title: TrustForge Repository Structural Normalization Plan
+status: STRUCTURAL_DESIGN_DEFINED
+source_isolation_contract:
+  m8_3_acceptance_commit: c2e06fa
+authority_boundary:
+  moves_authorized: false
+  renames_authorized: false
+  import_rewrites_authorized: false
+  paper_migrations_authorized: false
+  historical_cleanup_authorized: false
+principles:
+- NORMALIZED_TARGET != IMMEDIATE_MOVE
+- COMPATIBILITY_SURFACE != NATIVE_CORE
+- STUDY_LOCAL_SCIENCE_STAYS_WITH_STUDY
+- MODEL_IMPLEMENTATION == PLUGIN
+- INTERFACE_FIRST_BEFORE_IMPLEMENTATION_MIGRATION
+- HISTORICAL_EVIDENCE_REMAINS_PRESERVED
+target_repository_shape:
+- src/trustforge/
+- studies/paper01_benchmark/
+- studies/paper02_conditioning_audit/
+- studies/paper03_augmentation_regimes/
+- studies/paper04_selective_policies/
+- configs/
+- manifests/
+- schemas/
+- hpc/
+- scripts/
+- tools/
+- tests/
+- docs/
+summary:
+  component_count: 37
+  class_counts:
+    COMPATIBILITY_ONLY: 6
+    CREATE_NATIVE: 7
+    DEFERRED: 4
+    MIGRATE_LATER: 5
+    PLUGIN: 7
+    PRESERVE_CURRENT: 8
+    STUDY_LOCAL: 0
+components:
+- component: trustforge_provenance
+  current_location: src/trustforge/provenance/
+  normalization_class: PRESERVE_CURRENT
+  target_role: Permanent paper-neutral provenance core.
+  target_location: src/trustforge/provenance/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: M8.2 already accepted this implementation as CORE_CONTRACT.
+  evidence:
+  - Current TrustForge provenance package contains execution, Git, hashing, manifest, and validation primitives.
+- component: trustforge_storage
+  current_location: src/trustforge/storage/
+  normalization_class: PRESERVE_CURRENT
+  target_role: Permanent paper-neutral storage/path core.
+  target_location: src/trustforge/storage/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: M8.2 already accepted this implementation as CORE_CONTRACT.
+  evidence:
+  - Current storage package resolves portable roots and canonical artifact layout.
+- component: trustforge_data_namespace
+  current_location: src/trustforge/data/
+  normalization_class: CREATE_NATIVE
+  target_role: Paper-neutral dataset identity/loading interfaces.
+  target_location: src/trustforge/data/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Namespace exists but contains only package scaffolding.
+  evidence:
+  - M8.2 defines dataset abstraction as CORE_INTERFACE while common/data.py remains transitional.
+- component: trustforge_evaluation_namespace
+  current_location: src/trustforge/evaluation/
+  normalization_class: CREATE_NATIVE
+  target_role: Paper-neutral evaluator contracts and native implementations.
+  target_location: src/trustforge/evaluation/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Namespace exists but historical eval/runner.py is not accepted as core implementation.
+  evidence:
+  - M8.2 classifies evaluation abstraction as CORE_INTERFACE and eval/runner.py as TRANSITIONAL_RUNTIME.
+- component: trustforge_orchestration_namespace
+  current_location: src/trustforge/orchestration/
+  normalization_class: CREATE_NATIVE
+  target_role: Paper-neutral train/synth/eval orchestration contracts.
+  target_location: src/trustforge/orchestration/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Namespace exists but current app/main.py remains transitional compatibility runtime.
+  evidence:
+  - M8.2 distinguishes orchestration interface from current historical CLI implementation.
+- component: trustforge_models_namespace
+  current_location: src/trustforge/models/
+  normalization_class: CREATE_NATIVE
+  target_role: Plugin/adapter interfaces and model registration contracts, not model implementations.
+  target_location: src/trustforge/models/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Framework core should own plugin contracts while implementations remain plugins.
+  evidence:
+  - M8.2 classifies model implementations as MODEL_PLUGIN rather than core.
+- component: trustforge_policies_namespace
+  current_location: src/trustforge/policies/
+  normalization_class: CREATE_NATIVE
+  target_role: Future paper-neutral policy interfaces only.
+  target_location: src/trustforge/policies/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Namespace exists but Paper 4 policy semantics remain study-owned.
+  evidence:
+  - M8.2 classifies Paper 4 selective policies as STUDY_OWNED.
+- component: trustforge_augmentation_namespace
+  current_location: src/trustforge/augmentation/
+  normalization_class: CREATE_NATIVE
+  target_role: Future paper-neutral augmentation interfaces only.
+  target_location: src/trustforge/augmentation/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Namespace exists but Paper 3 augmentation semantics remain study-owned.
+  evidence:
+  - M8.2 classifies Paper 3 augmentation behavior as STUDY_OWNED.
+- component: trustforge_uncertainty_namespace
+  current_location: src/trustforge/uncertainty/
+  normalization_class: DEFERRED
+  target_role: Future uncertainty/calibration capability.
+  target_location: src/trustforge/uncertainty/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Architecture reserves this area, but current Papers 1–4 migration does not yet require implementation.
+  evidence:
+  - Namespace currently contains only __init__.py.
+- component: paper01_native_study
+  current_location: studies/paper01_benchmark/
+  normalization_class: PRESERVE_CURRENT
+  target_role: Canonical TrustForge-native Paper 1 study/evidence package.
+  target_location: studies/paper01_benchmark/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Paper 1 migration is complete and accepted.
+  evidence:
+  - Current study contains canonical experiments, execution evidence, and audit history.
+- component: paper02_study
+  current_location: papers/paper2_conditional_generation_done_right/
+  normalization_class: MIGRATE_LATER
+  target_role: Paper 2 canonical TrustForge study package.
+  target_location: studies/paper02_conditioning_audit/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Paper 2 has rich configs/results/scripts/slurm structure but has not yet been migrated.
+  evidence:
+  - Tracked structure includes configs, manifests, notes, paper, results, scripts, and slurm.
+- component: paper03_study
+  current_location: papers/paper3_when_does_synth_help/
+  normalization_class: MIGRATE_LATER
+  target_role: Paper 3 canonical TrustForge study package.
+  target_location: studies/paper03_augmentation_regimes/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Paper 3 has rich configs/results/scripts/slurm structure but remains historical active study.
+  evidence:
+  - Tracked structure includes 82 configs, 122 results, 12 scripts, and 38 slurm files.
+- component: paper04_study
+  current_location: papers/paper4_selective_synth_policies/
+  normalization_class: MIGRATE_LATER
+  target_role: Paper 4 canonical TrustForge study package.
+  target_location: studies/paper04_selective_policies/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Paper 4 has rich configs/results/scripts/slurm structure but remains historical active study.
+  evidence:
+  - Tracked structure includes configs, results, scripts, and slurm.
+- component: paper03_placeholder
+  current_location: papers/paper03_when_does_synth_help/
+  normalization_class: COMPATIBILITY_ONLY
+  target_role: Historical/scaffold placeholder retained until cleanup is explicitly authorized.
+  target_location: null
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: M8.1 classified this location as scaffold-only, distinct from active Paper 3.
+  evidence:
+  - Active Paper 3 is papers/paper3_when_does_synth_help/.
+- component: paper05_placeholder
+  current_location: papers/paper05_shift_calibration/
+  normalization_class: DEFERRED
+  target_role: Future study placeholder outside current Papers 1–4 migration.
+  target_location: null
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Paper 5 is outside current migration scope.
+  evidence:
+  - M8.1 classified this location as scaffold-only.
+- component: historical_cli_runtime
+  current_location: app/
+  normalization_class: COMPATIBILITY_ONLY
+  target_role: Historical orchestration compatibility surface.
+  target_location: null
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: M8.2/M8.3 explicitly classify current CLI runtime as transitional, not native core.
+  evidence:
+  - Papers 2–4 historically invoke python -m app.main.
+- component: historical_adapters
+  current_location: adapters/
+  normalization_class: COMPATIBILITY_ONLY
+  target_role: Historical concrete adapter compatibility surface.
+  target_location: null
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Concrete adapters remain tied to historical model packages.
+  evidence:
+  - M8.2 classifies adapter interface as core but concrete adapters as TRANSITIONAL_RUNTIME.
+- component: historical_dataset_runtime
+  current_location: common/
+  normalization_class: COMPATIBILITY_ONLY
+  target_role: Historical dataset/runtime compatibility surface.
+  target_location: null
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: common/data.py is multi-paper shared runtime, not accepted native core.
+  evidence:
+  - Papers/models import common.data directly.
+- component: historical_evaluator
+  current_location: eval/
+  normalization_class: COMPATIBILITY_ONLY
+  target_role: Historical evaluation compatibility surface.
+  target_location: null
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: eval/runner.py mixes cross-paper and paper-era semantics.
+  evidence:
+  - M8.2 classifies historical evaluator as TRANSITIONAL_RUNTIME.
+- component: gan_plugin
+  current_location: gan/
+  normalization_class: PLUGIN
+  target_role: GAN family implementation plugin.
+  target_location: null
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Model implementation is reusable but not framework core.
+  evidence:
+  - M8.2 classifies historical model implementations as MODEL_PLUGIN.
+- component: vae_plugin
+  current_location: vae/
+  normalization_class: PLUGIN
+  target_role: VAE family implementation plugin.
+  target_location: null
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Model implementation is reusable but not framework core.
+  evidence:
+  - M8.2 classifies historical model implementations as MODEL_PLUGIN.
+- component: diffusion_plugin
+  current_location: diffusion/
+  normalization_class: PLUGIN
+  target_role: Diffusion family implementation plugin.
+  target_location: null
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Model implementation is reusable but not framework core.
+  evidence:
+  - M8.2 classifies historical model implementations as MODEL_PLUGIN.
+- component: autoregressive_plugin
+  current_location: autoregressive/
+  normalization_class: PLUGIN
+  target_role: Autoregressive family implementation plugin.
+  target_location: null
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Model implementation is reusable but not framework core.
+  evidence:
+  - M8.2 classifies historical model implementations as MODEL_PLUGIN.
+- component: gaussianmixture_plugin
+  current_location: gaussianmixture/
+  normalization_class: PLUGIN
+  target_role: Gaussian-mixture implementation plugin.
+  target_location: null
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Model implementation is reusable but not framework core.
+  evidence:
+  - M8.2 classifies historical model implementations as MODEL_PLUGIN.
+- component: restrictedboltzmann_plugin
+  current_location: restrictedboltzmann/
+  normalization_class: PLUGIN
+  target_role: Restricted Boltzmann implementation plugin.
+  target_location: null
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Model implementation is reusable but not framework core.
+  evidence:
+  - M8.2 classifies historical model implementations as MODEL_PLUGIN.
+- component: maskedautoflow_plugin
+  current_location: maskedautoflow/
+  normalization_class: PLUGIN
+  target_role: Masked AutoFlow implementation plugin.
+  target_location: null
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Model implementation is reusable but not framework core.
+  evidence:
+  - M8.2 classifies historical model implementations as MODEL_PLUGIN.
+- component: generic_schemas
+  current_location: schemas/
+  normalization_class: PRESERVE_CURRENT
+  target_role: Repository-level TrustForge contract schemas.
+  target_location: schemas/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Generic study/experiment/manifest schemas are already accepted shared core contracts.
+  evidence:
+  - Paper 1 examples remain explicitly separated under schemas/examples/paper01/.
+- component: manifests
+  current_location: manifests/
+  normalization_class: PRESERVE_CURRENT
+  target_role: Repository-level manifest schemas/registry area.
+  target_location: manifests/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Existing Paper 1 schema material is explicit and tracked.
+  evidence:
+  - M8.1 distinguished generic schemas from Paper 1-specific manifest schema.
+- component: configs_root
+  current_location: configs/
+  normalization_class: MIGRATE_LATER
+  target_role: Future repository-level paper-neutral configuration area after mixed historical content is partitioned.
+  target_location: configs/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: 'The current root is mixed: some files are historical compatibility while the normalized repository still requires
+    a native configs/ surface.'
+  evidence:
+  - M8.1 left many root configs ambiguous or historical compatibility.
+  - M8.3 requires historical configs to remain compatibility-only rather than become native defaults.
+  - The target architecture retains configs/ as a normalized repository-level surface.
+- component: slurm_root
+  current_location: slurm/;run_gcs.slurm;run_suite.slurm;run_tuning.slurm
+  normalization_class: COMPATIBILITY_ONLY
+  target_role: Historical/global HPC compatibility area.
+  target_location: null
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Root Slurm contains legacy, one-off, and historical shared runners.
+  evidence:
+  - M8.3 allows historical Slurm only as compatibility, not native default.
+- component: hpc_native_root
+  current_location: hpc/
+  normalization_class: CREATE_NATIVE
+  target_role: Future TrustForge-native backend-neutral/local/Slurm execution support.
+  target_location: hpc/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Target architecture calls for hpc/ and M8.2 defines execution backend as a core interface.
+  evidence:
+  - No native hpc/ directory currently exists.
+- component: scripts_root
+  current_location: scripts/
+  normalization_class: MIGRATE_LATER
+  target_role: Repository-level general automation only; study-specific scripts should live with studies.
+  target_location: scripts/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Current scripts mix generic utilities, plots, metrics, and Paper 1-era functionality.
+  evidence:
+  - M8.1 classified many scripts as ambiguous and some as Paper 1-specific.
+- component: tools_root
+  current_location: tools/
+  normalization_class: PRESERVE_CURRENT
+  target_role: Repository engineering/audit tooling.
+  target_location: tools/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: TrustForge migration and audit tooling already lives here.
+  evidence:
+  - M8.1/M8.2/M8.3 generators are repository tooling, not scientific study code.
+- component: tests_root
+  current_location: tests/
+  normalization_class: PRESERVE_CURRENT
+  target_role: Repository-level tests, including TrustForge contract tests.
+  target_location: tests/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Current tests/trustforge suite validates foundation and migration contracts.
+  evidence:
+  - Current TrustForge suite contains migration milestone tests.
+- component: docs_root
+  current_location: docs/
+  normalization_class: PRESERVE_CURRENT
+  target_role: Architecture, portability, reproducibility, and lineage documentation.
+  target_location: docs/
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: Current docs define accepted TrustForge architecture and research lineage.
+  evidence:
+  - M8.1 classified core architecture docs as SHARED_TRUSTFORGE_CORE.
+- component: model_template
+  current_location: model-template/
+  normalization_class: DEFERRED
+  target_role: Developer/template infrastructure subject to later review.
+  target_location: null
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: M8.1 classified it as operational infrastructure, not scientific core.
+  evidence:
+  - No migration action has yet been authorized.
+- component: gcs_core_submodule
+  current_location: gcs-core/
+  normalization_class: DEFERRED
+  target_role: Legacy/external component requiring dedicated review.
+  target_location: null
+  move_authorized: false
+  rename_authorized: false
+  rewrite_authorized: false
+  rationale: M8.1 left this component ambiguous.
+  evidence:
+  - Current repository tracks gcs-core as a separate top-level component.

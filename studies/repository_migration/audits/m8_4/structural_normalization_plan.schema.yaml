@@ -1,0 +1,35 @@
+schema_version: "1.0"
+schema_type: m8_4_structural_normalization_plan
+
+required_top_level:
+  - schema_version
+  - milestone
+  - title
+  - status
+  - source_isolation_contract
+  - authority_boundary
+  - principles
+  - target_repository_shape
+  - summary
+  - components
+
+component_required:
+  - component
+  - current_location
+  - normalization_class
+  - target_role
+  - target_location
+  - move_authorized
+  - rename_authorized
+  - rewrite_authorized
+  - rationale
+  - evidence
+
+allowed_normalization_classes:
+  - CREATE_NATIVE
+  - PRESERVE_CURRENT
+  - MIGRATE_LATER
+  - COMPATIBILITY_ONLY
+  - STUDY_LOCAL
+  - PLUGIN
+  - DEFERRED
